@@ -134,6 +134,21 @@ Es mucho más seguro y compatible crear un usuario específico en lugar de usar 
    sudo chmod -R 775 storage bootstrap/cache
    ```
 
+4. **Crear usuario Administrador**:
+   Tienes dos opciones para crear tu cuenta de acceso:
+   
+   **Opción A (Datos por defecto):**
+   ```bash
+   # Crea un usuario: admin@stefynails.com / password
+   php artisan db:seed --class=AdminUserSeeder
+   ```
+
+   **Opción B (Datos personalizados vía Tinker):**
+   ```bash
+   # Ejecuta esto y reemplaza los datos
+   php artisan tinker --execute="App\Models\User::create(['name' => 'TuNombre', 'email' => 'tu@correo.com', 'password' => bcrypt('tu_password_seguro'), 'email_verified_at' => now()])"
+   ```
+
 ## 6. Configuración del Bot de WhatsApp
 El bot requiere dependencias de Puppeteer en Linux:
 ```bash

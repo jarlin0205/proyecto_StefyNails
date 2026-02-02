@@ -14,7 +14,7 @@ class AdminUserSeeder extends Seeder
             ['email' => 'admin@stefynails.com'],
             [
                 'name' => 'Administrador',
-                'password' => Hash::make('password'), // Weak password for dev
+                'password' => Hash::make('admin123'), // Weak password for dev
                 'email_verified_at' => now(),
             ]
         );

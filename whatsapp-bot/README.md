@@ -21,20 +21,7 @@ node index.js
 - Abre WhatsApp en tu celular -> Dispositivos vinculados -> Vincular un dispositivo.
 - Escanea el código QR de la pantalla.
 
-## 4. Comandos Disponibles# Docker provee instrucciones dedicadas para cada sistema operativo.
-# Por favor consulta la documentación oficial en https://www.docker.com/get-started/
-
-# Descarga la imagen de Docker de Node.js:
-docker pull node:24-alpine
-
-# Crea un contenedor de Node.js e inicia una sesión shell:
-docker run -it --rm --entrypoint sh node:24-alpine
-
-# Verifica la versión de Node.js:
-node -v # Debería mostrar "v24.13.0".
-
-# Verifica versión de npm:
-npm -v # Debería mostrar "11.6.2".
+## 4.
 Una vez conectado, el bot responderá a los siguientes comandos (puedes probarlo enviándote un mensaje a ti mismo o desde otro número):
 
 - `CONFIRMAR [ID]` -> Ejemplo: `CONFIRMAR 5`
