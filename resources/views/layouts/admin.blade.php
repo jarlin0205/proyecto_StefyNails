@@ -48,12 +48,19 @@
                 </a>
             </nav>
             <div class="p-4 border-t border-pink-800 overflow-hidden">
-                <a href="{{ route('logout') }}" class="flex items-center px-4 py-3 rounded text-pink-300 hover:text-white hover:bg-pink-800 transition-colors">
+            <div class="p-4 border-t border-pink-800 overflow-hidden">
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
+                    @csrf
+                </form>
+                <a href="{{ route('logout') }}" 
+                   onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+                   class="flex items-center px-4 py-3 rounded text-pink-300 hover:text-white hover:bg-pink-800 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
                     <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Cerrar Sesión</span>
                 </a>
+            </div>
             </div>
         </aside>
 

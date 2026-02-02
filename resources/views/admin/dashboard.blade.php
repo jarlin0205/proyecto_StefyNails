@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('header', 'Dashboard')
+@section('header', 'Panel de Control')
 
 @section('content')
 <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
