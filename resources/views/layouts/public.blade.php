@@ -69,18 +69,34 @@
                     </a>
                 </div>
 
-                <!-- Mobile Menu Button (Simple Placeholder if needed, or just let links stack/scroll) -->
-                <div class="md:hidden flex items-center">
-                    <a href="{{ route('appointments.create') }}" class="bg-pink-600 text-white text-sm px-3 py-2 rounded-lg font-bold mr-2">
+                <!-- Mobile Menu Button & Actions -->
+                <div class="md:hidden flex items-center space-x-2">
+                    <a href="{{ route('appointments.create') }}" class="bg-pink-600 text-white text-xs px-3 py-2 rounded-lg font-bold sm:text-sm">
                         Agendar
                     </a>
+                    
+                    <button id="mobile-menu-button" class="text-gray-500 hover:text-pink-600 focus:outline-none p-1">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path id="menu-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                    
                     <!-- Mobile Login -->
-                    <a href="{{ route('login') }}" class="text-gray-500 p-2">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <a href="{{ route('login') }}" class="text-gray-400 hover:text-pink-600 p-1" title="Admin Login">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
                         </svg>
                     </a>
                 </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu Navigation -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-gray-100 animate-slide-down">
+            <div class="px-4 pt-2 pb-6 space-y-1">
+                <a href="{{ route('home') }}#inicio" class="block py-3 px-4 text-base font-medium text-gray-700 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition">Inicio</a>
+                <a href="{{ route('home') }}#servicios" class="block py-3 px-4 text-base font-medium text-gray-700 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition">Servicios</a>
+                <a href="{{ route('home') }}#contacto" class="block py-3 px-4 text-base font-medium text-gray-700 hover:text-pink-600 hover:bg-pink-50 rounded-lg transition">Contacto</a>
             </div>
         </div>
     </nav>
@@ -101,6 +117,33 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Mobile Menu Toggle
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuIcon = document.getElementById('menu-icon');
+
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', () => {
+                    const isHidden = mobileMenu.classList.contains('hidden');
+                    
+                    if (isHidden) {
+                        mobileMenu.classList.remove('hidden');
+                        menuIcon.setAttribute('d', 'M6 18L18 6M6 6l12 12'); // X Icon
+                    } else {
+                        mobileMenu.classList.add('hidden');
+                        menuIcon.setAttribute('d', 'M4 6h16M4 12h16M4 18h16'); // Hamburger Icon
+                    }
+                });
+
+                // Close menu when clicking a link
+                mobileMenu.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', () => {
+                        mobileMenu.classList.add('hidden');
+                        menuIcon.setAttribute('d', 'M4 6h16M4 12h16M4 18h16');
+                    });
+                });
+            }
+
             @if($errors->any())
                 Swal.fire({
                     icon: 'error',

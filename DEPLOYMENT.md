@@ -76,34 +76,63 @@ Instala las dependencias y configura el entorno:
 composer install --no-dev --optimize-autoloader
 cp .env.example .env
 php artisan key:generate
+7. **Instalar dependencias de Frontend y Compilar Assets** (Crucial para evitar error de Vite):
+   ```bash
+   npm install
+   npm run build
+   ```
+
+8. **Optimización de Laravel**:
+   ```bash
+   php artisan config:cache
+   php artisan route:cache
+   php artisan view:cache
+   ```
 ```
 
 ### Configurar `.env`:
-Edita el archivo `.env` con los datos de tu base de datos y la URL:
+Edita el archivo `.env` con los datos de tu base de datos (MySQL) y la URL.
 ```bash
 nano .env
-# Ajustar:
-# APP_URL=http://ec2-18-222-97-39.us-east-2.compute.amazonaws.com
+# Ajustar obligatoriamente:
+# DB_CONNECTION=mysql
+# DB_HOST=127.0.0.1
+# DB_PORT=3306
+# APP_URL=http://tu-dominio-o-ip
 # DB_DATABASE=stefynails
-# DB_USERNAME=tu_usuario
-# DB_PASSWORD=tu_password
+# DB_USERNAME=stefy_user
+# DB_PASSWORD=tu_password_seguro
 ```
 
-### Permisos de Carpeta:
-```bash
-sudo chmod -R 775 storage bootstrap/cache
-sudo chown -R www-data:www-data storage bootstrap/cache
-```
+## 5. Configuración de la Base de Datos y Permisos Finales
+Es mucho más seguro y compatible crear un usuario específico en lugar de usar `root`.
 
-## 5. Configuración de la Base de Datos
-Crea la base de datos en MySQL y corre las migraciones:
-```bash
-sudo mysql -u root
-# CREATE DATABASE stefynails;
-# EXIT;
+1. **Entrar a MySQL**:
+   ```bash
+   sudo mysql -u root
+   ```
 
-php artisan migrate --force
-```
+2. **Crear base de datos y usuario** (Copia y pega cada línea):
+   ```sql
+   UPDATE DATABASE stefynails;
+   ALTER USER 'stefyuser'@'localhost' IDENTIFIED BY 'admin123';
+   GRANT ALL PRIVILEGES ON stefynails.* TO 'stefyuser'@'localhost';
+   FLUSH PRIVILEGES;
+   EXIT;
+   ```
+
+3. **Correr migraciones**:
+   ```bash
+   # Primero damos permisos temporales para que no falle el log
+   sudo chmod -R 777 storage bootstrap/cache
+   
+   # Corremos la migración
+   php artisan migrate --force
+
+   # RE-APLICAR PERMISOS CORRECTOS (Para Nginx)
+   sudo chown -R www-data:www-data storage bootstrap/cache
+   sudo chmod -R 775 storage bootstrap/cache
+   ```
 
 ## 6. Configuración del Bot de WhatsApp
 El bot requiere dependencias de Puppeteer en Linux:
@@ -127,12 +156,65 @@ Crea un archivo de configuración para el sitio:
 ```bash
 sudo nano /etc/nginx/sites-available/stefynails
 ```
-Pega la configuración estándar de Laravel y luego activa el sitio:
+
+Copia y pega esta configuración estándar (ajusta `server_name` y la versión de PHP si es necesario):
+```nginx
+server {
+    listen 80;
+    server_name ec2-18-222-97-39.us-east-2.compute.amazonaws.com; # O tu IP/Dominio
+    root /var/www/html/StefyNails/stefynails/public;
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+
+    index index.php;
+
+    charset utf-8;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock; # Ajusta a tu versión (8.1, 8.2, 8.3)
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+```
+
+Activa el sitio y reinicia Nginx:
 ```bash
 sudo ln -s /etc/nginx/sites-available/stefynails /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl restart nginx
 ```
+
+> [!TIP]
+> **Si recibes el error:** `could not build server_names_hash, you should increase server_names_hash_bucket_size: 64`
+>
+> 1. Edita el archivo de configuración principal de Nginx:
+>    ```bash
+>    sudo nano /etc/nginx/nginx.conf
+>    ```
+> 2. Busca la línea `# server_names_hash_bucket_size 64;` dentro del bloque `http { ... }`.
+> 3. Quita el `#` para activarla (o añádela si no existe):
+>    ```nginx
+>    http {
+>        server_names_hash_bucket_size 64;
+>        ...
+>    }
+>    ```
+> 4. Guarda y reinicia: `sudo systemctl restart nginx`
 
 ---
 > [!IMPORTANT]
