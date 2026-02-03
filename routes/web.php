@@ -12,6 +12,7 @@ use App\Http\Controllers\PublicAppointmentController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AvailabilityController;
+use App\Http\Controllers\CategoryController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/agendar', [PublicAppointmentController::class, 'create'])->name('appointments.create');
@@ -28,6 +29,7 @@ Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 // Admin Routes (Protected)
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::resource('categories', CategoryController::class);
     Route::resource('services', ServiceController::class);
     Route::get('appointments/check-availability', [AppointmentController::class, 'checkAvailability'])->name('appointments.checkAvailability');
     Route::post('appointments/{appointment}/status', [AppointmentController::class, 'updateStatus'])->name('appointments.updateStatus');
