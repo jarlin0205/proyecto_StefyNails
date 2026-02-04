@@ -4,6 +4,14 @@
 
 @section('content')
 <!-- Hero Section -->
+ <!DOCTYPE html>
+ <html lang="es">
+ <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stylo Tefy</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+ </head>
 <section id="inicio" class="hero-bridge relative bg-pink-100 h-screen flex items-center justify-center overflow-hidden">
     <div class="absolute inset-0 z-0">
         <!-- Placeholder for hero background image if available, using CSS pattern for now -->
@@ -21,7 +29,7 @@
         </a>
     </div>
 </section>
-
+</html>     
 <!-- Services Section -->
 <section id="servicios" class="py-20 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
