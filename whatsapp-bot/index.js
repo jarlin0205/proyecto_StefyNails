@@ -5,8 +5,12 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 
-// CONFIGURACIÓN
-const API_BASE_URL = 'http://localhost:8000/api/bot'; // Ajustar si el puerto es diferente
+// CONFIGURACIÓN PRODUCCIÓN
+// El bot local enviará comandos a esta URL (Producción en AWS)
+const API_BASE_URL = 'http://18.222.97.39/api/bot';
+
+// El servidor de Laravel en AWS enviará notificaciones al bot (Local) 
+// vía túnel reverso SSH al puerto 3000 local.
 
 // GESTIÓN DE ESTADO (En memoria)
 const userStates = {};
