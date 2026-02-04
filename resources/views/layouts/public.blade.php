@@ -1,45 +1,11 @@
 <!DOCTYPE html>
-<html lang="es" style="background-color: #fdf2f8;">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stefy Nails - @yield('title', 'Inicio')</title>
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}?v=public">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <style>
-        /* Estilos Críticos Inmediatos (Evitan el estado Blanco y Negro) */
-        :root { background-color: #fdf2f8; }
-        html, body { margin: 0; padding: 0; background-color: #fdf2f8; font-family: ui-sans-serif, system-ui, sans-serif; }
-        
-        /* Navbar de Emergencia (Aparece antes de que Tailwind cargue) */
-        .nav-bridge { 
-            background-color: white !important; 
-            height: 64px; 
-            width: 100%; 
-            position: fixed; 
-            top: 0; 
-            left: 0; 
-            z-index: 100; 
-            display: flex; 
-            align-items: center; 
-            border-bottom: 1px solid #f1f5f9;
-            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
-        }
-        .logo-bridge { color: #db2777 !important; font-size: 1.5rem; font-weight: bold; padding-left: 2rem; text-decoration: none; }
-        
-        /* Hero de Emergencia */
-        .hero-bridge { background-color: #fdf2f8; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .hero-title-bridge { color: #be185d; font-size: 3.5rem; font-weight: bold; margin: 0; }
-        
-        /* Ocultar contenido crudo hasta que el diseño esté listo */
-        body { visibility: hidden; }
-    </style>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        // Mostrar la página solo cuando los estilos base estén listos
-        setTimeout(() => { document.body.style.visibility = 'visible'; }, 50);
-        window.addEventListener('load', () => { document.body.style.visibility = 'visible'; });
-    </script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @stack('styles')
 </head>
