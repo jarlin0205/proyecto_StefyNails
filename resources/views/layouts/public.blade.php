@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stefy Nails - @yield('title', 'Inicio')</title>
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}?v=public">
-    @vite(['resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         /* Estilos Críticos Inmediatos (Evitan el estado Blanco y Negro) */
         :root { background-color: #fdf2f8; }

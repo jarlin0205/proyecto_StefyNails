@@ -9,7 +9,7 @@
     </a>
 </div>
 
-<div class="bg-white rounded-lg shadow overflow-hidden">
+<div class="bg-white rounded-lg shadow overflow-x-auto">
     <table class="min-w-full leading-normal">
         <thead>
             <tr>
