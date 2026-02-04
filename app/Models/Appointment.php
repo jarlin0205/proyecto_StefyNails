@@ -36,10 +36,9 @@ class Appointment extends Model
     public function getRescheduleTokenAttribute($value)
     {
         if (empty($value)) {
-            $newToken = \Illuminate\Support\Str::random(32);
-            $this->attributes['reschedule_token'] = $newToken;
-            $this->save();
-            return $newToken;
+            // No guardar aquí para evitar recursión o duplicados durante la creación.
+            // El evento 'creating' ya se encarga de los registros nuevos.
+            return null;
         }
         return $value;
     }
