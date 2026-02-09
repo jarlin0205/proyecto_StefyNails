@@ -97,14 +97,12 @@ class WhatsAppHelper
             $reasonText = "*Motivo:* {$appointment->reschedule_reason}\n\n";
         }
 
-        $link = route('public.appointments.reschedule', $appointment->reschedule_token);
-
         $msg = "📅 *Cita Reprogramada* 📅\n\n" .
                $reasonText .
-               "Tu cita ha sido actualizada exitosamente.\n\n" .
+               "Tu cita ha sido actualizada exitosamente. Espera confirmación por parte de Stefy Nails.\n\n" .
                "🆕 *Nueva Fecha:* {$date}\n" .
                "📋 *Servicio:* {$appointment->service->name}\n\n" .
-               "Si necesitas volver a cambiar el horario, puedes hacerlo aquí:\n🔗 {$link}\n\n" .
+               "Cualquier inquietud o solicitud puedes escribir *MENU* para ver las opciones.\n\n" .
                "¡Te esperamos! ✨";
                
         self::sendMessage($appointment->customer_phone, $msg);
