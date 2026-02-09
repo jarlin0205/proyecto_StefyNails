@@ -102,11 +102,10 @@ class WhatsAppHelper
 
         $msg = "📅 *Cita Reprogramada* 📅\n\n" .
                $reasonText .
-               "Tu cita ha sido actualizada exitosamente. Espera confirmación por parte de Stefy Nails.\n\n" .
+               "Tu cita ha sido actualizada exitosamente.\n\n" .
                "🆕 *Nueva Fecha:* {$date}\n" .
                "📋 *Servicio:* {$appointment->service->name}\n\n" .
-               "Cualquier inquietud o solicitud puedes escribir *MENU* para ver las opciones.\n\n" .
-               "¡Te esperamos! ✨";
+               "Por favor responde con la palabra *CONFIRMAR* para asegurar tu espacio, o escribe *MENU* para ver más opciones. ✨";
                
         self::sendMessage($appointment->customer_phone, $msg);
     }
