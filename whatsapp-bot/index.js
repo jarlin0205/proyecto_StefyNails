@@ -80,16 +80,22 @@ client.on('message', async (msg) => {
 
     const userState = userStates[sender];
 
+    // --- COMANDO GLOBAL MENU ---
+    if (body === 'MENU' || body === 'AYUDA') {
+        userState.state = STATES.IDLE;
+        return msg.reply(`🌟 *Bienvenido al Bot de Stefy Nails* 🌟\n\nPodemos ayudarte a gestionar tu cita con estos comandos:\n\n1️⃣ *CONFIRMAR* - Para asegurar tu asistencia.\n2️⃣ *CANCELAR* - Si no puedes asistir.\n3️⃣ *REPROGRAMAR* - El bot te preguntará la fecha.\n\n_Escribe "MENU" para volver a ver esto._`);
+    }
+
     // Manejo de Estados Especiales
     if (userState.state === STATES.AWAITING_RESCHEDULE) {
-        if (body === 'CANCELAR' || body === 'MENU' || body === 'SALIR') {
+        if (body === 'CANCELAR' || body === 'SALIR') {
             userState.state = STATES.IDLE;
             return msg.reply('❌ Reprogramación cancelada. Escribe MENU para ver opciones.');
         }
 
         const isoDate = parseDateTimeToISO(msg.body);
         if (!isoDate) {
-            return msg.reply('❌ Formato de fecha u hora no reconocido.\n\nPor favor intenta así:\n*DD/MM 02:30 PM*\n(Ejemplo: 15/02 04:00 PM)');
+            return msg.reply('❌ Formato de fecha u hora no reconocido.\n\nPor favor intenta así:\n*DD/MM 02:30 PM*\n(Ejemplo: 15/02 04:00 PM)\n\nEscribe *CANCELAR* para salir.');
         }
 
         try {
@@ -99,7 +105,7 @@ client.on('message', async (msg) => {
                 reason: 'Reprogramado por el cliente vía WhatsApp (Flujo guiado)'
             });
             userState.state = STATES.IDLE;
-            msg.reply(`📅 *Cita Reprogramada*\n${res.data.message}\n\n¡Gracias! ✨`);
+            msg.reply(`📅 *Cita Reprogramada*\n${res.data.message}\n\nEscribe *MENU* para ver opciones. ✨`);
         } catch (err) {
             msg.reply('❌ Error: ' + (err.response?.data?.message || 'Horario no disponible o error en el sistema.'));
         }
@@ -117,7 +123,7 @@ client.on('message', async (msg) => {
                 phone: sender,
                 status: 'confirmed'
             });
-            msg.reply(`✅ *Cita Confirmada*\n${res.data.message}`);
+            msg.reply(`✅ *Cita Confirmada*\n${res.data.message}\n\nEscribe *MENU* para ver opciones.`);
         } catch (err) {
             msg.reply('❌ Error: ' + (err.response?.data?.message || 'No se encontró cita para confirmar.'));
         }
@@ -134,7 +140,7 @@ client.on('message', async (msg) => {
                 phone: sender,
                 status: 'cancelled'
             });
-            msg.reply(`� *Cita Cancelada*\n${res.data.message}`);
+            msg.reply(`🗑️ *Cita Cancelada*\n${res.data.message}\n\nSi deseas agendar una nueva cita, escribe *MENU*.`);
         } catch (err) {
             msg.reply('❌ Error: ' + (err.response?.data?.message || 'No se encontró cita para cancelar.'));
         }
@@ -147,16 +153,12 @@ client.on('message', async (msg) => {
             if (res.data.success) {
                 msg.reply(`📅 *Reprogramar Cita* 📅\n\nHola *${res.data.customer_name}*, para elegir un nuevo horario por favor ingresa al siguiente enlace:\n\n🔗 ${res.data.link}\n\nAllí podrás ver los horarios disponibles en tiempo real. ✨`);
             } else {
-                msg.reply('❌ No encontramos una cita activa para reprogramar.');
+                msg.reply('❌ No encontramos una cita activa para reprogramar. Si deseas agendar una nueva cita, por favor visita nuestra web.');
             }
         } catch (err) {
             msg.reply('❌ Error: ' + (err.response?.data?.message || 'No se encontró cita para reprogramar.'));
         }
         return;
-    }
-
-    if (body === 'MENU' || body === 'AYUDA') {
-        msg.reply(`🌟 *Bienvenido al Bot de Stefy Nails* 🌟\n\nPodemos ayudarte a gestionar tu cita con estos comandos:\n\n1️⃣ *CONFIRMAR* - Para asegurar tu asistencia.\n2️⃣ *CANCELAR* - Si no puedes asistir.\n3️⃣ *REPROGRAMAR* - El bot te preguntará la fecha.\n\n_Escribe "MENU" para volver a ver esto._`);
     }
 });
 

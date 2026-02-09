@@ -75,11 +75,14 @@ class WhatsAppHelper
         if ($status === 'confirmed') {
             $msg = "✅ *¡Tu cita ha sido CONFIRMADA!* ✅\n\n" .
                    "Te esperamos el día *{$date}* para tu servicio de *{$appointment->service->name}*.\n\n" .
+                   "Si necesitas realizar algún cambio, puedes escribir *MENU* en cualquier momento.\n\n" .
                    "¡Gracias por elegir Stefy Nails! ✨";
         } elseif ($status === 'cancelled') {
             $msg = "🌸 *Hola {$appointment->customer_name}* 🌸\n\n" .
                    "Lamentamos informarte que por el momento *no contamos con espacios disponibles* para tu cita del día *{$date}*.\n\n" .
-                   "¡Nos encantaría atenderte! Te invitamos amablemente a solicitar un nuevo horario en nuestra web o escribiendo *MENU*. ✨\n\n" .
+                   "¡Nos encantaría atenderte! Te invitamos amablemente a solicitar un nuevo horario en nuestra web:\n\n" .
+                   "🔗 " . config('app.url') . "\n\n" .
+                   "Escribe *MENU* para ver opciones generales. ✨\n\n" .
                    "¡Gracias por tu comprensión! 💖";
         }
 
