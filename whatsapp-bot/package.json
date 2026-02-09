@@ -1,6 +1,7 @@
 {
   "name": "stefy-nails-whatsapp-bot",
   "version": "1.0.0",
+  "type": "commonjs",
   "description": "Bot de WhatsApp para gestión de citas de Stefy Nails",
   "main": "index.js",
   "dependencies": {
