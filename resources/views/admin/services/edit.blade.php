@@ -13,8 +13,13 @@
                 Imagen Principal
             </label>
             @if($service->image_path)
-                <div class="mb-2">
+                <div class="mb-2 relative group inline-block">
                     <img src="{{ asset($service->image_path) }}" alt="Current Image" class="h-32 w-auto object-cover rounded shadow">
+                    <button type="button" onclick="deleteMainImage({{ $service->id }})" class="absolute top-0 right-0 bg-red-600 text-white rounded-full p-1 m-1 opacity-75 hover:opacity-100" title="Eliminar imagen principal">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
             @endif
             <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="image" type="file" name="image" accept="image/*">
@@ -104,7 +109,7 @@
 </div>
 @endsection
 
-@section('scripts')
+@push('scripts')
 <form id="delete-image-form" action="" method="POST" class="hidden">
     @csrf
     @method('DELETE')
@@ -113,9 +118,17 @@
     function deleteImage(id) {
         if(confirm('¿Eliminar esta imagen de la galería?')) {
             let form = document.getElementById('delete-image-form');
-            form.action = '/admin/services/images/' + id; // We need to define this route
+            form.action = '/admin/services/images/' + id; 
+            form.submit();
+        }
+    }
+
+    function deleteMainImage(serviceId) {
+        if(confirm('¿Eliminar la imagen principal del servicio?')) {
+            let form = document.getElementById('delete-image-form');
+            form.action = '/admin/services/' + serviceId + '/image';
             form.submit();
         }
     }
 </script>
-@endsection
+@endpush

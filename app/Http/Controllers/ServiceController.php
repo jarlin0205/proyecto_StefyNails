@@ -109,11 +109,26 @@ class ServiceController extends Controller
 
     public function destroyImage(\App\Models\ServiceImage $image)
     {
-        // Optional: Delete file from storage
-        // Storage::disk('public')->delete(str_replace('storage/', '', $image->image_path));
+        if ($image->image_path) {
+            $path = str_replace('storage/', '', $image->image_path);
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($path);
+        }
         
         $image->delete();
         return back()->with('success', 'Imagen eliminada de la galería.');
+    }
+
+    public function destroyMainImage(Service $service)
+    {
+        if ($service->image_path) {
+            $path = str_replace('storage/', '', $service->image_path);
+            \Illuminate\Support\Facades\Storage::disk('public')->delete($path);
+            
+            $service->update(['image_path' => null]);
+            return back()->with('success', 'Imagen principal eliminada.');
+        }
+
+        return back()->with('error', 'No hay imagen principal para eliminar.');
     }
 
     /**

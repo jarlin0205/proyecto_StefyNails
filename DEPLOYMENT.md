@@ -234,3 +234,38 @@ sudo systemctl restart nginx
 ---
 > [!IMPORTANT]
 > Recuerda configurar los **Security Groups** en AWS para permitir el tráfico en los puertos 80 (HTTP) y 3000 (para la comunicación del bot si es necesaria externamente).
+
+## 8. Solución de Problemas Comunes
+
+### Error 413: Entidad de solicitud demasiado grande
+
+Si al subir imágenes recibes este error, es necesario aumentar los límites de subida tanto en Nginx como en PHP (FPM).
+
+**1. Configurar Nginx:**
+Edita el archivo de tu sitio:
+```bash
+sudo nano /etc/nginx/sites-available/stefynails
+```
+Agrega `client_max_body_size 64M;` dentro del bloque `server { ... }`:
+```nginx
+server {
+    listen 80;
+    client_max_body_size 64M; # <--- AGREGAR ESTA LÍNEA
+    ...
+}
+```
+Reinicia Nginx: `sudo systemctl restart nginx`
+
+**2. Configurar PHP (FPM):**
+Edita el archivo `php.ini` (ajusta `8.3` a tu versión de PHP):
+```bash
+sudo nano /etc/php/8.3/fpm/php.ini
+```
+Busca y modifica estas líneas (usa `CTRL + W` para buscar):
+```ini
+upload_max_filesize = 64M
+post_max_size = 64M
+memory_limit = 256M
+```
+Reinicia PHP-FPM: `sudo systemctl restart php8.3-fpm`
+

@@ -30,6 +30,8 @@ Route::post('logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::resource('categories', CategoryController::class);
+    Route::delete('services/images/{image}', [ServiceController::class, 'destroyImage'])->name('services.destroyImage');
+    Route::delete('services/{service}/image', [ServiceController::class, 'destroyMainImage'])->name('services.destroyMainImage');
     Route::resource('services', ServiceController::class);
     Route::get('appointments/check-availability', [AppointmentController::class, 'checkAvailability'])->name('appointments.checkAvailability');
     Route::post('appointments/{appointment}/status', [AppointmentController::class, 'updateStatus'])->name('appointments.updateStatus');
