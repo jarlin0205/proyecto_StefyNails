@@ -18,7 +18,7 @@ class WhatsAppBotController extends Controller
         $validated = $request->validate([
             'id' => 'nullable|exists:appointments,id',
             'phone' => 'nullable|string',
-            'status' => 'required|in:confirmed,cancelled,completed,pending'
+            'status' => 'required|in:confirmed,cancelled,completed,pending,rescheduled'
         ]);
 
         $appointment = null;
@@ -120,11 +120,12 @@ class WhatsAppBotController extends Controller
         $oldDate = $appointment->appointment_date->format('d/m/Y H:i');
         $appointment->update([
             'appointment_date' => $requestedStart,
+            'status' => 'rescheduled',
             'reschedule_reason' => $validated['reason'] ?? null,
             'notes' => $appointment->notes . "\n[Reprogramado vía WhatsApp el " . now()->format('d/m/Y H:i') . " de original $oldDate]"
         ]);
 
-        \App\Helpers\WhatsAppHelper::notifyReschedule($appointment);
+        \App\Helpers\WhatsAppHelper::notifyReschedule($appointment, 'client');
 
         return response()->json([
             'success' => true,

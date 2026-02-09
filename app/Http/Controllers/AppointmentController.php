@@ -125,9 +125,11 @@ class AppointmentController extends Controller
         // Remove reason_msg from validated array if it's there
         unset($validated['reason_msg']);
 
+        $validated['status'] = 'rescheduled';
+
         $appointment->update($validated);
         
-        \App\Helpers\WhatsAppHelper::notifyReschedule($appointment);
+        \App\Helpers\WhatsAppHelper::notifyReschedule($appointment, 'admin');
 
         return redirect()->route('admin.appointments.show', $appointment)
             ->with('success', 'Cita reprogramada y notas actualizadas.');
@@ -136,7 +138,7 @@ class AppointmentController extends Controller
     public function updateStatus(Request $request, Appointment $appointment)
     {
         $validated = $request->validate([
-            'status' => 'required|in:pending,confirmed,completed,cancelled',
+            'status' => 'required|in:pending,confirmed,completed,cancelled,rescheduled',
             'appointment_date' => 'nullable|date',
             'notification_id' => 'nullable|exists:notifications,id',
             'reason' => 'nullable|string',
@@ -236,7 +238,7 @@ class AppointmentController extends Controller
         }
 
         if ($request->filled('appointment_date')) {
-            \App\Helpers\WhatsAppHelper::notifyReschedule($appointment);
+            \App\Helpers\WhatsAppHelper::notifyReschedule($appointment, 'admin');
         } else {
             \App\Helpers\WhatsAppHelper::notifyStatusChange($appointment);
         }

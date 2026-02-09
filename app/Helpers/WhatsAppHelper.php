@@ -91,7 +91,7 @@ class WhatsAppHelper
         }
     }
 
-    public static function notifyReschedule($appointment)
+    public static function notifyReschedule($appointment, $source = 'admin')
     {
         $date = \Carbon\Carbon::parse($appointment->appointment_date)->format('d/m/Y h:i A');
         
@@ -100,12 +100,20 @@ class WhatsAppHelper
             $reasonText = "*Motivo:* {$appointment->reschedule_reason}\n\n";
         }
 
-        $msg = "📅 *Cita Reprogramada* 📅\n\n" .
-               $reasonText .
-               "Tu cita ha sido actualizada exitosamente.\n\n" .
-               "🆕 *Nueva Fecha:* {$date}\n" .
-               "📋 *Servicio:* {$appointment->service->name}\n\n" .
-               "Por favor responde con la palabra *CONFIRMAR* para asegurar tu espacio, o escribe *MENU* para ver más opciones. ✨";
+        if ($source === 'client') {
+            $msg = "📅 *Solicitud de Reprogramación Enviada* 📅\n\n" .
+                   "Hola {$appointment->customer_name}, hemos recibido tu solicitud de cambio:\n\n" .
+                   "🆕 *Nueva Fecha:* {$date}\n" .
+                   "📋 *Servicio:* {$appointment->service->name}\n\n" .
+                   "🔔 *Por favor espera la confirmación oficial* por parte de Stefy Nails por este mismo medio.";
+        } else {
+            $msg = "📅 *Cita Reprogramada* 📅\n\n" .
+                   $reasonText .
+                   "Tu cita ha sido actualizada exitosamente.\n\n" .
+                   "🆕 *Nueva Fecha:* {$date}\n" .
+                   "📋 *Servicio:* {$appointment->service->name}\n\n" .
+                   "Por favor responde con la palabra *CONFIRMAR* para asegurar tu espacio, o escribe *MENU* para ver más opciones. ✨";
+        }
                
         self::sendMessage($appointment->customer_phone, $msg);
     }

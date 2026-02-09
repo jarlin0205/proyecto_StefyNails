@@ -176,7 +176,7 @@ class PublicAppointmentController extends Controller
             'appointment_date' => $requestedStart,
             'reschedule_reason' => $reason,
             'notes' => $appointment->notes ? $appointment->notes . "\n" . $newNote : $newNote,
-            'status' => 'confirmed', // Mark as confirmed since it was already validated or was previous state
+            'status' => 'rescheduled', 
         ]);
 
         // Create notification for admin
@@ -188,7 +188,7 @@ class PublicAppointmentController extends Controller
             'action_url' => route('admin.appointments.show', $appointment->id)
         ]);
 
-        \App\Helpers\WhatsAppHelper::notifyReschedule($appointment);
+        \App\Helpers\WhatsAppHelper::notifyReschedule($appointment, 'client');
 
         return redirect()->route('home')->with('success', '¡Tu cita ha sido reprogramada con éxito! ✨');
     }

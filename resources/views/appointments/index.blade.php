@@ -89,12 +89,14 @@
                                     'confirmed' => 'bg-green-100 text-green-800',
                                     'completed' => 'bg-blue-100 text-blue-800',
                                     'cancelled' => 'bg-red-100 text-red-800',
+                                    'rescheduled' => 'bg-purple-100 text-purple-800',
                                 ];
                                 $label = [
                                     'pending' => 'Pendiente',
                                     'confirmed' => 'Confirmada',
                                     'completed' => 'Completada',
                                     'cancelled' => 'Cancelada',
+                                    'rescheduled' => 'Reprogramada',
                                 ][$appointment->status] ?? $appointment->status;
                             @endphp
                             <span class="px-3 py-1 rounded-full text-xs font-bold {{ $statusColors[$appointment->status] ?? 'bg-gray-100' }}">
