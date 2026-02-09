@@ -11,11 +11,11 @@
 <!-- Main Appointment Detail Modal -->
 <div id="appointment-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
     <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 transition-opacity" aria-hidden="true" onclick="closeAppointmentModal()">
+        <div class="fixed inset-0 transition-opacity z-0" aria-hidden="true" onclick="closeAppointmentModal()">
             <div class="absolute inset-0 bg-gray-500 opacity-75"></div>
         </div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full relative z-50">
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div class="flex justify-between items-start border-b pb-4 mb-4">
                     <h3 class="text-xl font-bold text-gray-900" id="modal-title">Detalle de la Cita</h3>
@@ -80,11 +80,11 @@
 <!-- Specialized Conflict Reschedule Modal -->
 <div id="reschedule-modal" class="fixed inset-0 z-[60] hidden overflow-y-auto">
     <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 transition-opacity" aria-hidden="true" onclick="closeRescheduleModal()">
+        <div class="fixed inset-0 transition-opacity z-0" aria-hidden="true" onclick="closeRescheduleModal()">
             <div class="absolute inset-0 bg-gray-900 opacity-80 backdrop-blur-sm"></div>
         </div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border-2 border-yellow-400">
+        <div class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border-2 border-yellow-400 relative z-50">
             <div class="bg-yellow-50 px-6 py-4 border-b border-yellow-100 flex justify-between items-center">
                 <h3 class="text-lg font-bold text-yellow-800 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
@@ -141,11 +141,11 @@
 <!-- Create Appointment Modal -->
 <div id="create-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
     <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 transition-opacity" aria-hidden="true" onclick="closeCreateModal()">
+        <div class="fixed inset-0 transition-opacity z-0" aria-hidden="true" onclick="closeCreateModal()">
             <div class="absolute inset-0 bg-gray-900 opacity-80 backdrop-blur-sm"></div>
         </div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+        <div class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full relative z-50">
             <div class="bg-pink-50 px-6 py-4 border-b border-pink-100 flex justify-between items-center">
                 <h3 class="text-lg font-bold text-pink-800 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
