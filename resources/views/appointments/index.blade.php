@@ -85,18 +85,18 @@
                         <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                             @php
                                 $statusColors = [
-                                    'pending' => 'bg-yellow-100 text-yellow-800',
+                                    'pending_admin' => 'bg-orange-100 text-orange-800',
+                                    'pending_client' => 'bg-yellow-100 text-yellow-800',
                                     'confirmed' => 'bg-green-100 text-green-800',
                                     'completed' => 'bg-blue-100 text-blue-800',
                                     'cancelled' => 'bg-red-100 text-red-800',
-                                    'rescheduled' => 'bg-purple-100 text-purple-800',
                                 ];
                                 $label = [
-                                    'pending' => 'Pendiente',
+                                    'pending_admin' => 'Esperando Admin',
+                                    'pending_client' => 'Esperando Cliente',
                                     'confirmed' => 'Confirmada',
                                     'completed' => 'Completada',
                                     'cancelled' => 'Cancelada',
-                                    'rescheduled' => 'Reprogramada',
                                 ][$appointment->status] ?? $appointment->status;
                             @endphp
                             <span class="px-3 py-1 rounded-full text-xs font-bold {{ $statusColors[$appointment->status] ?? 'bg-gray-100' }}">
@@ -104,7 +104,22 @@
                             </span>
                         </td>
                         <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-center">
-                            <button class="text-pink-600 hover:text-pink-800 font-bold">
+                            <button 
+                                onclick="openAppointmentModalWrapper({{ json_encode([
+                                    'id' => $appointment->id,
+                                    'customer_name' => $appointment->customer_name,
+                                    'customer_phone' => $appointment->customer_phone,
+                                    'service_name' => $appointment->service->name,
+                                    'date' => $appointment->appointment_date->format('d/m/Y h:i A'),
+                                    'status' => $appointment->status,
+                                    'price' => $appointment->offered_price ?? ($appointment->service ? $appointment->service->price : 0),
+                                    'image' => $appointment->reference_image_path,
+                                    'notes' => $appointment->notes,
+                                    'edit_url' => route('admin.appointments.edit', $appointment),
+                                    'status_url' => route('admin.appointments.updateStatus', $appointment),
+                                    'delete_url' => route('admin.appointments.destroy', $appointment)
+                                ]) }})"
+                                class="text-pink-600 hover:text-pink-800 font-bold transition-colors">
                                 Ver Detalle
                             </button>
                         </td>

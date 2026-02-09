@@ -100,7 +100,7 @@
             </div>
             <form id="reschedule-form" method="POST">
                 @csrf
-                <input type="hidden" name="status" value="confirmed">
+                <input type="hidden" name="status" value="pending_client">
                 <div class="p-6 space-y-4">
                     <p id="reschedule-modal-msg" class="text-sm text-gray-600 italic bg-yellow-50 p-3 rounded border-l-4 border-yellow-400">Reprograma la cita eligiendo un nuevo horario y explica el motivo al cliente.</p>
                     
@@ -474,7 +474,8 @@ let currentGlobalApp = null;
         
         const statusEl = document.getElementById('modal-status');
         const statusMap = {
-            'pending': { label: 'Pendiente', class: 'bg-yellow-100 text-yellow-800' },
+            'pending_admin': { label: 'Esperando Admin', class: 'bg-orange-100 text-orange-800' },
+            'pending_client': { label: 'Esperando Cliente', class: 'bg-yellow-100 text-yellow-800' },
             'confirmed': { label: 'Confirmada', class: 'bg-green-100 text-green-800' },
             'completed': { label: 'Completada', class: 'bg-blue-100 text-blue-800' },
             'cancelled': { label: 'Cancelada', class: 'bg-red-100 text-red-800' }
@@ -495,14 +496,14 @@ let currentGlobalApp = null;
         document.getElementById('btn-reschedule-link').classList.toggle('hidden', data.status === 'completed' || data.status === 'cancelled');
         
         // Hide/Show complete button based on status (Cannot complete if pending, completed or cancelled)
-        document.getElementById('btn-complete').classList.toggle('hidden', data.status === 'completed' || data.status === 'cancelled' || data.status === 'pending');
+        document.getElementById('btn-complete').classList.toggle('hidden', data.status === 'completed' || data.status === 'cancelled' || data.status === 'pending_admin' || data.status === 'pending_client');
         
         // Hide/Show cancel button based on status (Cannot cancel if cancelled or completed, but CAN cancel if confirmed or pending)
         document.getElementById('btn-cancel').classList.toggle('hidden', data.status === 'cancelled' || data.status === 'completed');
         
-        // Confirm button (only for pending)
+        // Confirm button (only for pending_admin)
         const btnConf = document.getElementById('btn-confirm');
-        if(data.status === 'pending') {
+        if(data.status === 'pending_admin') {
             btnConf.classList.remove('hidden');
         } else {
             btnConf.classList.add('hidden');
@@ -519,8 +520,11 @@ let currentGlobalApp = null;
         console.log('Opening reschedule modal with data:', data);
         currentGlobalApp = data;
         const form = document.getElementById('reschedule-form');
-        // Always use status_url for rescheduling from modal, as it expects POST and 'status'
-        form.action = data.status_url;
+        form.action = data.status_url || `{{ url('admin/appointments') }}/${data.id}/status`;
+        
+        // Force the status to pending_client for admin reschedules
+        const statusInput = form.querySelector('input[name="status"]');
+        if (statusInput) statusInput.value = 'pending_client';
         
         const msgEl = document.getElementById('reschedule-modal-msg');
         if (msgEl) {
@@ -588,7 +592,7 @@ let currentGlobalApp = null;
                     const form = document.getElementById('global-action-form');
                     form.action = currentGlobalApp.status_url;
                     document.getElementById('global-action-status').value = 
-                        (action === 'completar' ? 'completed' : (action === 'confirmar' ? 'confirmed' : 'pending'));
+                        (action === 'completar' ? 'completed' : (action === 'confirmar' ? 'confirmed' : 'pending_admin'));
                     form.submit();
                 }
             }
@@ -597,20 +601,19 @@ let currentGlobalApp = null;
 
     function promptCancellation() {
         Swal.fire({
-            title: 'Motivo de la cancelación',
-            input: 'textarea',
-            inputPlaceholder: 'Escribe por qué se rechaza la cita...',
+            title: '¿Confirmar cancelación?',
+            text: 'Se enviará un mensaje al cliente informando que no hay espacios disponibles.',
+            icon: 'warning',
             showCancelButton: true,
-            confirmButtonText: 'Confirmar Rechazo',
+            confirmButtonText: 'Sí, Cancelar Cita',
             confirmButtonColor: '#ef4444',
             cancelButtonText: 'Volver',
-            inputValidator: (value) => { if (!value) return '¡Debes proporcionar un motivo!'; }
         }).then((result) => {
             if (result.isConfirmed) {
                 const form = document.getElementById('global-action-form');
                 form.action = currentGlobalApp.status_url;
                 document.getElementById('global-action-status').value = 'cancelled';
-                document.getElementById('global-action-reason').value = result.value;
+                document.getElementById('global-action-reason').value = 'No contamos con espacios disponibles';
                 form.submit();
             }
         });

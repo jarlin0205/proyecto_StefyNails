@@ -82,8 +82,13 @@ class WhatsAppHelper
                    "Lamentamos informarte que por el momento *no contamos con espacios disponibles* para tu cita del día *{$date}*.\n\n" .
                    "¡Nos encantaría atenderte! Te invitamos amablemente a solicitar un nuevo horario en nuestra web:\n\n" .
                    "🔗 " . config('app.url') . "\n\n" .
-                   "Escribe *MENU* para ver opciones generales. ✨\n\n" .
                    "¡Gracias por tu comprensión! 💖";
+        } elseif ($status === 'pending_client') {
+             // El administrador confirmó o reprogramó algo que el cliente debe aceptar
+             $msg = "✨ *¡Tengo una propuesta para tu cita!* ✨\n\n" .
+                    "Hola {$appointment->customer_name}, he actualizado tu cita para el:\n" .
+                    "📅 *Fecha:* {$date}\n\n" .
+                    "Por favor responde con la palabra *CONFIRMAR* si estás de acuerdo, o escribe *MENU* para ver más opciones. ✨";
         }
 
         if ($msg) {
@@ -107,9 +112,10 @@ class WhatsAppHelper
                    "📋 *Servicio:* {$appointment->service->name}\n\n" .
                    "🔔 *Por favor espera la confirmación oficial* por parte de Stefy Nails por este mismo medio.";
         } else {
+            // Cuando el admin reprograma, el estado es pending_client
             $msg = "📅 *Cita Reprogramada* 📅\n\n" .
                    $reasonText .
-                   "Tu cita ha sido actualizada exitosamente.\n\n" .
+                   "He actualizado tu cita para una mejor atención:\n\n" .
                    "🆕 *Nueva Fecha:* {$date}\n" .
                    "📋 *Servicio:* {$appointment->service->name}\n\n" .
                    "Por favor responde con la palabra *CONFIRMAR* para asegurar tu espacio, o escribe *MENU* para ver más opciones. ✨";

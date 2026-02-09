@@ -88,8 +88,8 @@ class AppointmentController extends Controller
         $durationMinutes = $service ? $service->duration_in_minutes : 60; // Default 60 if somehow missing
         $requestedEnd = $requestedStart->copy()->addMinutes($durationMinutes);
 
-        // Check against existing appointments (ONLY confirmed or completed AND THIS APPOINTMENT)
-        $conflictingAppointment = Appointment::whereIn('status', ['confirmed', 'completed'])
+        // Check against existing appointments (ONLY confirmed, pending_client or completed AND THIS APPOINTMENT)
+        $conflictingAppointment = Appointment::whereIn('status', ['confirmed', 'completed', 'pending_client'])
             ->where('id', '!=', $appointment->id) // CRITICAL: Exclude itself
             ->whereDate('appointment_date', $requestedStart->format('Y-m-d'))
             ->get()
@@ -125,7 +125,7 @@ class AppointmentController extends Controller
         // Remove reason_msg from validated array if it's there
         unset($validated['reason_msg']);
 
-        $validated['status'] = 'rescheduled';
+        $validated['status'] = 'pending_client'; // Admin reschedules via full edit page
 
         $appointment->update($validated);
         
@@ -138,7 +138,7 @@ class AppointmentController extends Controller
     public function updateStatus(Request $request, Appointment $appointment)
     {
         $validated = $request->validate([
-            'status' => 'required|in:pending,confirmed,completed,cancelled,rescheduled',
+            'status' => 'required|in:pending_admin,pending_client,confirmed,completed,cancelled,rescheduled',
             'appointment_date' => 'nullable|date',
             'notification_id' => 'nullable|exists:notifications,id',
             'reason' => 'nullable|string',
@@ -146,21 +146,21 @@ class AppointmentController extends Controller
         ]);
 
         // RESTRICTION: Cannot complete a pending appointment
-        if ($validated['status'] === 'completed' && $appointment->status === 'pending') {
+        if ($validated['status'] === 'completed' && ($appointment->status === 'pending_admin' || $appointment->status === 'pending_client')) {
             return back()->with('error', '❌ No se puede marcar como completada una cita que aún está pendiente por confirmar. Confírmala primero.');
         }
 
         // --- CONFLICT CHECK FOR CONFIRMATIONS ---
         $dateToCheck = $request->filled('appointment_date') ? $validated['appointment_date'] : $appointment->appointment_date;
 
-        if ($validated['status'] === 'confirmed') {
+        if ($validated['status'] === 'confirmed' || $validated['status'] === 'pending_client') {
             $requestedStart = \Carbon\Carbon::parse($dateToCheck);
             $service = $appointment->service;
             $durationMinutes = $service ? $service->duration_in_minutes : 60;
             $requestedEnd = $requestedStart->copy()->addMinutes($durationMinutes);
 
-            // Check against existing confirmed/completed appointments
-            $conflict = Appointment::whereIn('status', ['confirmed', 'completed'])
+            // Check against existing confirmed/completed/pending_client (acting as rescheduled) appointments
+            $conflict = Appointment::whereIn('status', ['confirmed', 'completed', 'pending_client'])
                 ->where('id', '!=', $appointment->id)
                 ->whereDate('appointment_date', $requestedStart->format('Y-m-d'))
                 ->with('service') // Cargar servicio para el mensaje
@@ -207,7 +207,16 @@ class AppointmentController extends Controller
             }
         }
 
-        $updateData = ['status' => $validated['status']];
+        $statusToSet = $validated['status'];
+        if ($statusToSet === 'rescheduled') $statusToSet = 'pending_client';
+        
+        // FORCED LOGIC: If date is changed by admin, it must be pending_client 
+        // unless they are explicitly completing or cancelling something.
+        if ($request->filled('appointment_date') && !in_array($statusToSet, ['completed', 'cancelled'])) {
+            $statusToSet = 'pending_client';
+        }
+
+        $updateData = ['status' => $statusToSet];
         
         if ($request->filled('appointment_date')) {
             $updateData['appointment_date'] = $validated['appointment_date'];
@@ -218,11 +227,12 @@ class AppointmentController extends Controller
             $updateData['reschedule_reason'] = $reason;
             $date = now()->format('d/m/Y H:i');
             $statusLabel = [
-                'confirmed' => 'Confirmada/Reprogramada',
+                'confirmed' => 'Confirmada', // Si el admin lo hace, es confirmada
                 'cancelled' => 'Rechazada',
                 'completed' => 'Completada',
-                'pending' => 'Pendiente'
-            ][$validated['status']];
+                'pending_admin' => 'Pendiente (Admin)',
+                'pending_client' => 'Pendiente (Cliente)'
+            ][$validated['status']] ?? 'Actualizada';
 
             $newNote = "[$statusLabel el $date: $reason]";
             $updateData['notes'] = $appointment->notes ? $appointment->notes . "\n" . $newNote : $newNote;
@@ -248,7 +258,8 @@ class AppointmentController extends Controller
             'confirmed' => '¡Cita confirmada exitosamente! ✅',
             'cancelled' => 'Cita rechazada. Se envió el mensaje al cliente.',
             'completed' => 'Cita marcada como completada.',
-            'pending' => 'Cita actualizada.'
+            'pending_admin' => 'Cita puesta en espera de administrador.',
+            'pending_client' => 'Propuesta de horario enviada al cliente. ✨'
         ];
 
         $successMsg = $successMessages[$validated['status']] ?? 'Cita actualizada correctamente.';
@@ -268,8 +279,8 @@ class AppointmentController extends Controller
         $service = \App\Models\Service::find($validated['service_id']);
         $serviceDuration = $service ? $service->duration_in_minutes : 60;
 
-        // Obtener todas las citas confirmadas o completadas para ese día
-        $query = Appointment::whereIn('status', ['confirmed', 'completed'])
+        // Obtener todas las citas confirmadas o que el cliente debe confirmar para ese día
+        $query = Appointment::whereIn('status', ['confirmed', 'completed', 'pending_client'])
             ->whereDate('appointment_date', $date)
             ->with('service');
 

@@ -67,8 +67,8 @@ class PublicAppointmentController extends Controller
         $durationMinutes = $service->duration_in_minutes;
         $requestedEnd = $requestedStart->copy()->addMinutes($durationMinutes);
 
-        // Check against existing appointments (ONLY confirmed or completed)
-        $conflictingAppointment = Appointment::whereIn('status', ['confirmed', 'completed'])
+        // Check against existing appointments (ONLY confirmed, completed or pending_client)
+        $conflictingAppointment = Appointment::whereIn('status', ['confirmed', 'completed', 'pending_client'])
             ->whereDate('appointment_date', $requestedStart->format('Y-m-d')) // Optimización basic
             ->get()
             ->filter(function ($existingApp) use ($requestedStart, $requestedEnd) {
@@ -99,7 +99,7 @@ class PublicAppointmentController extends Controller
             'offered_price' => $finalOfferedPrice,
             'appointment_date' => $validated['appointment_date'],
             'notes' => $validated['notes'],
-            'status' => 'pending',
+            'status' => 'pending_admin',
             'reference_image_path' => $request->input('reference_image_path'),
         ]);
 
@@ -150,7 +150,7 @@ class PublicAppointmentController extends Controller
         $durationMinutes = $service ? $service->duration_in_minutes : 60;
         $requestedEnd = $requestedStart->copy()->addMinutes($durationMinutes);
 
-        $conflict = Appointment::whereIn('status', ['confirmed', 'completed'])
+        $conflict = Appointment::whereIn('status', ['confirmed', 'completed', 'pending_client'])
             ->where('id', '!=', $appointment->id)
             ->whereDate('appointment_date', $requestedStart->format('Y-m-d'))
             ->get()
@@ -176,7 +176,7 @@ class PublicAppointmentController extends Controller
             'appointment_date' => $requestedStart,
             'reschedule_reason' => $reason,
             'notes' => $appointment->notes ? $appointment->notes . "\n" . $newNote : $newNote,
-            'status' => 'rescheduled', 
+            'status' => 'pending_admin', 
         ]);
 
         // Create notification for admin

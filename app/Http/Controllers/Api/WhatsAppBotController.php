@@ -18,7 +18,7 @@ class WhatsAppBotController extends Controller
         $validated = $request->validate([
             'id' => 'nullable|exists:appointments,id',
             'phone' => 'nullable|string',
-            'status' => 'required|in:confirmed,cancelled,completed,pending,rescheduled'
+            'status' => 'required|in:confirmed,cancelled,completed,pending_admin,pending_client'
         ]);
 
         $appointment = null;
@@ -42,8 +42,20 @@ class WhatsAppBotController extends Controller
         if (!$appointment) {
             return response()->json([
                 'success' => false,
-                'message' => 'No se encontró una cita activa vinculada a este número.'
+                'message' => 'No encontramos una cita activa vinculada a este número. 🌸 Te invitamos a agendar una nueva cita en nuestra web: ' . config('app.url')
             ], 404);
+        }
+
+        // BLOQUEO: Solo permitir confirmar si está en 'pending_client'
+        if ($validated['status'] === 'confirmed' && $appointment->status !== 'pending_client') {
+            $msg = ($appointment->status === 'pending_admin') 
+                ? 'Tu solicitud de cita aún está pendiente de revisión por el administrador. 🌸 Por favor espera la confirmación oficial antes de realizar cambios.'
+                : 'No puedes confirmar esta cita en su estado actual.';
+            
+            return response()->json([
+                'success' => false,
+                'message' => $msg
+            ], 403);
         }
 
         $appointment->update(['status' => $validated['status']]);
@@ -88,7 +100,7 @@ class WhatsAppBotController extends Controller
         if (!$appointment) {
             return response()->json([
                 'success' => false,
-                'message' => 'No se encontró una cita activa para reprogramar.'
+                'message' => 'No encontramos una cita activa para reprogramar. 🌸 Te invitamos a agendar una nueva cita en nuestra web: ' . config('app.url')
             ], 404);
         }
 
@@ -98,8 +110,8 @@ class WhatsAppBotController extends Controller
         $durationMinutes = $service ? $service->duration_in_minutes : 60;
         $requestedEnd = $requestedStart->copy()->addMinutes($durationMinutes);
 
-        // Conflict check (excluding self) - ONLY confirmed or completed
-        $conflicting = Appointment::whereIn('status', ['confirmed', 'completed'])
+        // Conflict check (excluding self) - confirmed, completed, and pending_client (acting as scheduled)
+        $conflicting = Appointment::whereIn('status', ['confirmed', 'completed', 'pending_client'])
             ->where('id', '!=', $appointment->id)
             ->whereDate('appointment_date', $requestedStart->format('Y-m-d'))
             ->get()
@@ -120,7 +132,7 @@ class WhatsAppBotController extends Controller
         $oldDate = $appointment->appointment_date->format('d/m/Y H:i');
         $appointment->update([
             'appointment_date' => $requestedStart,
-            'status' => 'rescheduled',
+            'status' => 'pending_admin', // Regresa a pendiente para aprobación del administrador
             'reschedule_reason' => $validated['reason'] ?? null,
             'notes' => $appointment->notes . "\n[Reprogramado vía WhatsApp el " . now()->format('d/m/Y H:i') . " de original $oldDate]"
         ]);
@@ -145,7 +157,7 @@ class WhatsAppBotController extends Controller
 
             // 1. Get standard busy slots (appointments)
             $appointments = Appointment::whereDate('appointment_date', $date)
-                ->whereIn('status', ['confirmed', 'completed'])
+                ->whereIn('status', ['confirmed', 'completed', 'pending_client'])
                 ->with('service')
                 ->get();
 
@@ -190,14 +202,14 @@ class WhatsAppBotController extends Controller
                 $q->where('customer_phone', 'LIKE', "%$phone%")
                   ->orWhere('customer_phone', 'LIKE', '%' . substr($phone, -10) . '%');
             })
-            ->whereIn('status', ['pending', 'confirmed'])
+            ->whereIn('status', ['pending_admin', 'pending_client', 'confirmed'])
             ->latest()
             ->first();
 
         if (!$appointment) {
             return response()->json([
                 'success' => false,
-                'message' => 'No se encontró una cita activa para reprogramar.'
+                'message' => 'No encontramos una cita activa para reprogramar. 🌸 Te invitamos a agendar una nueva cita en nuestra web: ' . config('app.url')
             ], 404);
         }
 
