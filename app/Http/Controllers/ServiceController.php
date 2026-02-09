@@ -38,8 +38,8 @@ class ServiceController extends Controller
             'price' => 'nullable|numeric',
             'duration' => 'nullable|string',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|max:2048', // Main image
-            'gallery.*' => 'image|max:2048', // Gallery images
+            'image' => 'nullable|image|max:20480', // Main image
+            'gallery.*' => 'image|max:20480', // Gallery images
         ]);
 
         if ($request->hasFile('image')) {
@@ -83,8 +83,8 @@ class ServiceController extends Controller
             'price' => 'nullable|numeric',
             'duration' => 'nullable|string',
             'description' => 'nullable|string',
-            'image' => 'nullable|image|max:2048',
-            'gallery.*' => 'image|max:2048',
+            'image' => 'nullable|image|max:20480',
+            'gallery.*' => 'image|max:20480',
         ]);
 
         if ($request->hasFile('image')) {
