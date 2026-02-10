@@ -43,5 +43,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('availability/get', [AvailabilityController::class, 'show'])->name('availability.show');
     Route::post('availability', [AvailabilityController::class, 'store'])->name('availability.store');
     Route::delete('availability', [AvailabilityController::class, 'destroy'])->name('availability.destroy');
+
+    // Expenses
+    Route::resource('expenses', ExpenseController::class);
 });
 

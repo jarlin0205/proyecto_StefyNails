@@ -25,6 +25,19 @@ class AdminController extends Controller
             ->sortBy(fn($appointment) => abs($appointment->appointment_date->timestamp - now()->timestamp))
             ->take(8);
 
+        // Financial Indicators
+        $grossRevenue = Appointment::where('status', 'completed')->get()->sum('final_price');
+        $totalExpenses = Expense::sum('amount');
+        $netProfit = $grossRevenue - $totalExpenses;
+        $projectedRevenue = Appointment::where('status', 'confirmed')->get()->sum('final_price');
+
+        // Monthly Stats (Current Month)
+        $monthlyRevenue = Appointment::where('status', 'completed')
+            ->whereMonth('appointment_date', now()->month)
+            ->whereYear('appointment_date', now()->year)
+            ->get()
+            ->sum('final_price');
+
         return view('admin.dashboard', compact(
             'pendingCount', 
             'confirmedCount', 
@@ -32,7 +45,12 @@ class AdminController extends Controller
             'cancelledCount', 
             'servicesCount', 
             'notifications', 
-            'latestsAppointments'
+            'latestsAppointments',
+            'grossRevenue',
+            'totalExpenses',
+            'netProfit',
+            'projectedRevenue',
+            'monthlyRevenue'
         ));
     }
 }

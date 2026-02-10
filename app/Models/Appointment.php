@@ -47,6 +47,11 @@ class Appointment extends Model
         'appointment_date' => 'datetime',
     ];
 
+    public function getFinalPriceAttribute()
+    {
+        return $this->offered_price ?? ($this->service ? $this->service->price : 0);
+    }
+
     public function service()
     {
         return $this->belongsTo(Service::class);
