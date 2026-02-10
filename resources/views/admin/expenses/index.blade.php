@@ -16,7 +16,7 @@
             <span class="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded">Ingresos</span>
         </div>
         <h4 class="text-gray-500 text-sm font-medium">Ingresos Brutos</h4>
-        <p class="text-2xl font-bold text-gray-800">${{ number_format($grossRevenue, 0, ',', '.') }}</p>
+        <p class="text-2xl font-bold text-gray-800">${{ number_format($grossRevenue, 0, '', '') }}</p>
     </div>
 
     <!-- Gastos -->
@@ -30,7 +30,7 @@
             <span class="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded">Egresos</span>
         </div>
         <h4 class="text-gray-500 text-sm font-medium">Gastos Totales</h4>
-        <p class="text-2xl font-bold text-gray-800">${{ number_format($totalExpenses, 0, ',', '.') }}</p>
+        <p class="text-2xl font-bold text-gray-800">${{ number_format($totalExpenses, 0, '', '') }}</p>
     </div>
 
     <!-- Ganancia Neta -->
@@ -43,7 +43,7 @@
             </div>
         </div>
         <h4 class="text-gray-500 text-sm font-medium">Ganancia Real (Neta)</h4>
-        <p class="text-2xl font-bold text-pink-600">${{ number_format($netProfit, 0, ',', '.') }}</p>
+        <p class="text-2xl font-bold text-pink-600">${{ number_format($netProfit, 0, '', '') }}</p>
         <div class="mt-2 flex items-center">
             <div class="w-full bg-gray-100 rounded-full h-1.5">
                 <div class="bg-pink-500 h-1.5 rounded-full" style="width: {{ $grossRevenue > 0 ? ($netProfit / $grossRevenue) * 100 : 0 }}%"></div>
@@ -62,7 +62,7 @@
             <span class="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded">Futuro</span>
         </div>
         <h4 class="text-gray-500 text-sm font-medium">Proyectado (Confirmado)</h4>
-        <p class="text-2xl font-bold text-gray-800">${{ number_format($projectedRevenue, 0, ',', '.') }}</p>
+        <p class="text-2xl font-bold text-gray-800">${{ number_format($projectedRevenue, 0, '', '') }}</p>
     </div>
 </div>
 
@@ -103,7 +103,7 @@
                     {{ $expense->description }}
                 </td>
                 <td class="px-5 py-4 border-b border-gray-200 text-sm text-right font-bold text-red-600">
-                    ${{ number_format($expense->amount, 0, ',', '.') }}
+                    ${{ number_format($expense->amount, 0, '', '') }}
                 </td>
                 <td class="px-5 py-4 border-b border-gray-200 text-sm text-center">
                     <form action="{{ route('admin.expenses.destroy', $expense) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar este gasto?')">
