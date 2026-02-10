@@ -19,7 +19,11 @@ class AdminController extends Controller
         $servicesCount = Service::count();
         $notifications = Notification::where('is_read', false)->get();
         
-        $latestsAppointments = Appointment::with('service')->latest()->take(5)->get();
+        $latestsAppointments = Appointment::with('service')
+            ->whereIn('status', ['pending_admin', 'pending_client', 'confirmed'])
+            ->get()
+            ->sortBy(fn($appointment) => abs($appointment->appointment_date->timestamp - now()->timestamp))
+            ->take(8);
 
         return view('admin.dashboard', compact(
             'pendingCount', 

@@ -123,17 +123,30 @@
             </thead>
             <tbody>
                 @forelse($latestsAppointments ?? [] as $appointment)
-                <tr>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                @php
+                    $isVeryClose = $appointment->appointment_date->isFuture() && $appointment->appointment_date->diffInMinutes(now()) <= 30;
+                    $isPastDue = $appointment->appointment_date->isPast() && in_array($appointment->status, ['pending_admin', 'pending_client', 'confirmed']);
+                    $diffForHumans = $appointment->appointment_date->diffForHumans();
+                @endphp
+                <tr class="{{ $isVeryClose ? 'bg-red-50' : ($isPastDue ? 'bg-orange-50' : '') }} transition-colors">
+                    <td class="px-5 py-5 border-b border-gray-200 text-sm">
                         <div class="flex items-center">
                             <div class="ml-3">
-                                <p class="text-gray-900 whitespace-no-wrap">
+                                <p class="text-gray-900 font-medium">
                                     {{ $appointment->customer_name }}
                                 </p>
+                                @if($isVeryClose)
+                                    <span class="flex items-center text-[10px] font-bold text-red-600 animate-pulse">
+                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                                        </svg>
+                                        PRÓXIMA
+                                    </span>
+                                @endif
                             </div>
                         </div>
                     </td>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                    <td class="px-5 py-5 border-b border-gray-200 text-sm">
                          @if($appointment->reference_image_path)
                             <a href="{{ $appointment->reference_image_path }}" target="_blank">
                                 <img src="{{ $appointment->reference_image_path }}" alt="Referencia" class="h-10 w-10 rounded-full object-cover border-2 border-pink-200 hover:scale-150 transition-transform">
@@ -142,15 +155,20 @@
                             <span class="text-gray-400 text-xs">N/A</span>
                         @endif
                     </td>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                    <td class="px-5 py-5 border-b border-gray-200 text-sm">
                         <p class="text-gray-900 whitespace-no-wrap">{{ $appointment->service->name }}</p>
                     </td>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                        <p class="text-gray-900 whitespace-no-wrap">
-                            {{ $appointment->appointment_date->format('d/m/Y h:i A') }}
-                        </p>
+                    <td class="px-5 py-5 border-b border-gray-200 text-sm">
+                        <div class="flex flex-col">
+                            <span class="text-gray-900 font-medium">
+                                {{ $appointment->appointment_date->format('d/m/Y h:i A') }}
+                            </span>
+                            <span class="text-xs {{ $isPastDue ? 'text-red-500 font-semibold' : 'text-gray-500' }}">
+                                {{ $diffForHumans }}
+                            </span>
+                        </div>
                     </td>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-center">
+                    <td class="px-5 py-5 border-b border-gray-200 text-sm text-center">
                         @php
                             $statusColors = [
                                 'pending_admin' => 'bg-orange-100 text-orange-800',
@@ -171,7 +189,7 @@
                             {{ $label }}
                         </span>
                     </td>
-                    <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-center">
+                    <td class="px-5 py-5 border-b border-gray-200 text-sm text-center">
                         <button 
                             onclick="openAppointmentModalWrapper({{ json_encode([
                                 'id' => $appointment->id,
@@ -194,8 +212,8 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="4" class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-center">
-                        No hay citas recientes.
+                    <td colspan="6" class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-center">
+                        No hay citas pendientes o próximas.
                     </td>
                 </tr>
                 @endforelse
