@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Expense;
+use App\Models\Appointment;
 use Illuminate\Http\Request;
 
 class ExpenseController extends Controller
@@ -10,7 +11,20 @@ class ExpenseController extends Controller
     public function index()
     {
         $expenses = Expense::latest()->paginate(20);
-        return view('admin.expenses.index', compact('expenses'));
+
+        // Financial Indicators (same as AdminController)
+        $grossRevenue = Appointment::where('status', 'completed')->get()->sum('final_price');
+        $totalExpenses = Expense::sum('amount');
+        $netProfit = $grossRevenue - $totalExpenses;
+        $projectedRevenue = Appointment::where('status', 'confirmed')->get()->sum('final_price');
+
+        return view('admin.expenses.index', compact(
+            'expenses', 
+            'grossRevenue', 
+            'totalExpenses', 
+            'netProfit', 
+            'projectedRevenue'
+        ));
     }
 
     public function store(Request $request)

@@ -3,13 +3,76 @@
 @section('header', 'Gestión de Gastos')
 
 @section('content')
+<!-- Resumen Financiero -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Ingresos Brutos -->
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div class="flex items-center justify-between mb-4">
+            <div class="bg-green-50 p-3 rounded-lg">
+                <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <span class="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded">Ingresos</span>
+        </div>
+        <h4 class="text-gray-500 text-sm font-medium">Ingresos Brutos</h4>
+        <p class="text-2xl font-bold text-gray-800">${{ number_format($grossRevenue, 0, ',', '.') }}</p>
+    </div>
+
+    <!-- Gastos -->
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div class="flex items-center justify-between mb-4">
+            <div class="bg-red-50 p-3 rounded-lg">
+                <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <span class="text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded">Egresos</span>
+        </div>
+        <h4 class="text-gray-500 text-sm font-medium">Gastos Totales</h4>
+        <p class="text-2xl font-bold text-gray-800">${{ number_format($totalExpenses, 0, ',', '.') }}</p>
+    </div>
+
+    <!-- Ganancia Neta -->
+    <div class="bg-white rounded-xl shadow-sm p-6 border-2 border-pink-100 relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-2">
+            <div class="bg-pink-50 p-2 rounded-full">
+                <svg class="h-4 w-4 text-pink-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+                </svg>
+            </div>
+        </div>
+        <h4 class="text-gray-500 text-sm font-medium">Ganancia Real (Neta)</h4>
+        <p class="text-2xl font-bold text-pink-600">${{ number_format($netProfit, 0, ',', '.') }}</p>
+        <div class="mt-2 flex items-center">
+            <div class="w-full bg-gray-100 rounded-full h-1.5">
+                <div class="bg-pink-500 h-1.5 rounded-full" style="width: {{ $grossRevenue > 0 ? ($netProfit / $grossRevenue) * 100 : 0 }}%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Proyectado -->
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div class="flex items-center justify-between mb-4">
+            <div class="bg-blue-50 p-3 rounded-lg">
+                <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+            </div>
+            <span class="text-xs font-bold text-blue-600 bg-blue-100 px-2 py-1 rounded">Futuro</span>
+        </div>
+        <h4 class="text-gray-500 text-sm font-medium">Proyectado (Confirmado)</h4>
+        <p class="text-2xl font-bold text-gray-800">${{ number_format($projectedRevenue, 0, ',', '.') }}</p>
+    </div>
+</div>
+
 <div class="mb-6 flex justify-between items-center">
-    <h3 class="text-xl font-bold text-gray-800">Listado de Gastos</h3>
-    <button onclick="document.getElementById('modalGasto').classList.remove('hidden')" class="bg-red-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-red-700 transition-colors flex items-center shadow-sm">
+    <h3 class="text-xl font-bold text-gray-800">Listado Detallado</h3>
+    <button onclick="document.getElementById('modalGasto').classList.remove('hidden')" class="bg-pink-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-pink-700 transition-colors flex items-center shadow-sm">
         <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
-        Registrar Gasto
+        + Registrar Gasto
     </button>
 </div>
 
