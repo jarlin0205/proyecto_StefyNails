@@ -126,7 +126,7 @@
                 @php
                     $isVeryClose = $appointment->appointment_date->isFuture() && $appointment->appointment_date->diffInMinutes(now()) <= 30;
                     $isPastDue = $appointment->appointment_date->isPast() && in_array($appointment->status, ['pending_admin', 'pending_client', 'confirmed']);
-                    $diffForHumans = $appointment->appointment_date->diffForHumans();
+                    $diffForHumans = $appointment->appointment_date->locale('es')->diffForHumans();
                 @endphp
                 <tr class="{{ $isVeryClose ? 'bg-red-50' : ($isPastDue ? 'bg-orange-50' : '') }} transition-colors">
                     <td class="px-5 py-5 border-b border-gray-200 text-sm">
