@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Service;
 use App\Models\Appointment;
 use App\Models\Notification;
+use App\Models\Expense;
 
 class AdminController extends Controller
 {
