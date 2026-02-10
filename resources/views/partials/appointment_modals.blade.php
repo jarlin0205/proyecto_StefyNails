@@ -342,7 +342,10 @@ let currentGlobalApp = null;
 
         let availableCount = 0;
         const now = new Date();
-        const todayStr = now.toISOString().split('T')[0];
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const todayStr = `${year}-${month}-${day}`;
         const currentH = now.getHours();
         const currentM = now.getMinutes();
         const currentTimeVal = currentH * 60 + currentM;
@@ -430,7 +433,10 @@ let currentGlobalApp = null;
         }
 
         const now = new Date();
-        const todayStr = now.toISOString().split('T')[0];
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const todayStr = `${year}-${month}-${day}`;
         const currentTimeVal = now.getHours() * 60 + now.getMinutes();
 
         possibleSlots.forEach(time => {
