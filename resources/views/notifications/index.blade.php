@@ -33,7 +33,7 @@
                                     @endif
                                 </div>
 
-                                @if($notification->appointment_id && $notification->appointment && ($notification->appointment->status === 'pending' || $notification->appointment->status === 'confirmed'))
+                                @if($notification->appointment_id && $notification->appointment && in_array($notification->appointment->status, ['pending_admin', 'pending_client', 'confirmed']))
                                     <div class="flex space-x-2 ml-4">
                                         <form action="{{ route('admin.appointments.updateStatus', $notification->appointment_id) }}" method="POST" class="inline">
                                             @csrf

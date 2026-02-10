@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -138,6 +139,15 @@ class WhatsAppBotController extends Controller
         ]);
 
         \App\Helpers\WhatsAppHelper::notifyReschedule($appointment, 'client');
+        
+        // Crear notificación para el administrador
+        Notification::create([
+            'appointment_id' => $appointment->id,
+            'title' => "{$appointment->customer_name} ha reprogramado su cita (WhatsApp)",
+            'message' => "Nueva Fecha: " . $requestedStart->format('d/m/Y h:i A') . " (Anterior: $oldDate)",
+            'type' => 'warning',
+            'action_url' => route('admin.appointments.show', $appointment->id)
+        ]);
 
         return response()->json([
             'success' => true,
