@@ -515,6 +515,9 @@ let currentGlobalApp = null;
             btnConf.classList.add('hidden');
         }
 
+        // Hide/Show delete button (only if completed or cancelled)
+        document.getElementById('btn-delete').classList.toggle('hidden', data.status !== 'completed' && data.status !== 'cancelled');
+
         document.getElementById('appointment-modal').classList.remove('hidden');
     }
 
