@@ -13,6 +13,7 @@ use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ExpenseController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/agendar', [PublicAppointmentController::class, 'create'])->name('appointments.create');
