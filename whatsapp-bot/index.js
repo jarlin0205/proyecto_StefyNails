@@ -15,6 +15,10 @@ const API_BASE_URL = 'http://18.222.97.39/api/bot';
 // GESTIÓN DE ESTADO (En memoria)
 const userStates = {};
 
+console.log('--------------------------------------------------');
+console.log('INICIANDO BOT DE STEFY NAILS');
+console.log('--------------------------------------------------');
+
 const STATES = {
     IDLE: 'IDLE',
     AWAITING_RESCHEDULE: 'AWAITING_RESCHEDULE'
