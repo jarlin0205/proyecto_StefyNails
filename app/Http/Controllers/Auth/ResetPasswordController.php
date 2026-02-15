@@ -39,7 +39,7 @@ class ResetPasswordController extends Controller
             }
         );
 
-        return $status === Password::INVALID_USER || $status === Password::INVALID_TOKEN || $status === Password::INVALID_PASSWORD
+        return $status === Password::INVALID_USER || $status === Password::INVALID_TOKEN
             ? back()->withErrors(['email' => __($status)])
             : redirect()->route('login')->with('status', __($status));
     }
