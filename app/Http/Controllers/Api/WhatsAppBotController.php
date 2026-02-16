@@ -74,7 +74,7 @@ class WhatsAppBotController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Cita #{$appointment->id} actualizada a {$validated['status']}",
+            //message' => "Cita #{$appointment->id} actualizada a {$validated['status']}",
             'appointment' => $appointment
         ]);
     }
@@ -160,7 +160,7 @@ class WhatsAppBotController extends Controller
         ]);
 
         return response()->json([
-            'success' => true,
+            'success' => true,                                      
             'message' => "Cita #{$appointment->id} reprogramada para " . $requestedStart->format('d/m/Y h:i A'),
             'appointment' => $appointment
         ]);
