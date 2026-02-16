@@ -228,7 +228,7 @@ class WhatsAppBotController extends Controller
             ], 404);
         }
 
-        $link = route('public.appointments.reschedule', $appointment->reschedule_token);
+        $link = config('app.url') . '/reprogramar/' . $appointment->reschedule_token;
 
         return response()->json([
             'success' => true,
