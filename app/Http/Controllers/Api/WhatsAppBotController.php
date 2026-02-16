@@ -19,8 +19,13 @@ class WhatsAppBotController extends Controller
         $validated = $request->validate([
             'id' => 'nullable|exists:appointments,id',
             'phone' => 'nullable|string',
-            'status' => 'required|in:confirmed,cancelled,completed,pending_admin,pending_client'
+            'status' => 'required|in:confirmed,cancelled,completed,pending_admin,pending_client,cancelado'
         ]);
+
+        // Mapear status en español a inglés si es necesario
+        if ($validated['status'] === 'cancelado') {
+            $validated['status'] = 'cancelled';
+        }
 
         $appointment = null;
 
