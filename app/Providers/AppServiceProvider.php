@@ -20,12 +20,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         \Illuminate\Support\Facades\View::composer('layouts.admin', function ($view) {
-            // Contar notificaciones que tengan una cita pendiente O que no hayan sido leídas
-            $unreadNotificationsCount = \App\Models\Notification::where('is_read', false)
-                ->orWhereHas('appointment', function($query) {
-                    $query->where('status', 'pending');
-                })
-                ->count();
+            $unreadNotificationsCount = \App\Models\Notification::where('is_read', false)->count();
             $services = \App\Models\Service::all();
             $view->with('unreadNotificationsCount', $unreadNotificationsCount)
                  ->with('allServices', $services);

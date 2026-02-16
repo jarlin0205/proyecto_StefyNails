@@ -9,11 +9,14 @@ class NotificationController extends Controller
 {
     public function index()
     {
-        // Ya no marcamos todo como leído automáticamente para que la campana 
-        // sirva de recordatorio mientras haya citas pendientes.
-        // Notification::where('is_read', false)->update(['is_read' => true]);
+        // Marcamos todo como leído al entrar para resetear el contador de la campana
+        Notification::where('is_read', false)->update(['is_read' => true]);
 
-        $notifications = Notification::with('appointment')->latest()->paginate(10);
+        // Mostramos solo notificaciones de citas que requieren atención (pendientes)
+        $notifications = Notification::whereHas('appointment', function($query) {
+            $query->whereIn('status', ['pending_admin', 'pending_client']);
+        })->with('appointment')->latest()->paginate(10);
+
         return view('notifications.index', compact('notifications'));
     }
 }
