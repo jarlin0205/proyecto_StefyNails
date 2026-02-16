@@ -32,7 +32,7 @@ class AppointmentController extends Controller
             'customer_phone' => 'required|string|max:20',
             'customer_phone_full' => 'nullable|string|max:20',
             'service_id' => 'required|exists:services,id',
-            'appointment_date' => 'required|date|after:now',
+            'appointment_date' => 'required|date|after_or_equal:now',
             'location' => 'required|in:salon,home',
             'notes' => 'nullable|string'
         ]);
