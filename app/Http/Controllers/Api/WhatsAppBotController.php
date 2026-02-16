@@ -74,7 +74,7 @@ class WhatsAppBotController extends Controller
 
         return response()->json([
             'success' => true,
-            //message' => "Cita #{$appointment->id} actualizada a {$validated['status']}",
+            'message' => "🌸 Te invitamos a agendar nuevamente tu cita cuando lo desees en nuestra web: " . config('app.url'),
             'appointment' => $appointment
         ]);
     }
