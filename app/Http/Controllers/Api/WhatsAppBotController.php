@@ -65,11 +65,16 @@ class WhatsAppBotController extends Controller
         }
 
         $appointment->update(['status' => $validated['status']]);
-        \App\Helpers\WhatsAppHelper::notifyStatusChange($appointment);
+        
+        // No enviar notificación extra si es cancelación desde el bot, 
+        // ya que el bot da su propia respuesta simple.
+        if ($validated['status'] !== 'cancelled') {
+            \App\Helpers\WhatsAppHelper::notifyStatusChange($appointment);
+        }
 
         return response()->json([
             'success' => true,
-            'message' => "Estado de la cita #{$appointment->id} actualizado a {$validated['status']}",
+            'message' => "Cita #{$appointment->id} actualizada a {$validated['status']}",
             'appointment' => $appointment
         ]);
     }

@@ -139,8 +139,8 @@ client.on('message', async (msg) => {
         }
     } else if (body.startsWith('CANCELAR') || body === '2') {
         try {
-            const res = await callLaravelApi('status', 'POST', { phone: sender, status: 'cancelled' ?? 'cancelado' });
-            msg.reply(`🗑️ *Cita Cancelada*\n${res.message}`);
+            const res = await callLaravelApi('status', 'POST', { phone: sender, status: 'cancelled' });
+            msg.reply('✅ *Cita cancelada con éxito*');
         } catch (err) {
             msg.reply(`❌ Error: ${err.message}`);
         }
