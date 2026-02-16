@@ -91,8 +91,18 @@ client.on('message', async (msg) => {
 
     // Comandos Globales
     if (body === 'MENU' || body === 'AYUDA') {
-        userState.state = STATES.IDLE;
-        return msg.reply(`🌟 *Bienvenido al Bot de Stefy Nails* 🌟\n\nPodemos ayudarte a gestionar tu cita con estos comandos:\n\n1️⃣ *CONFIRMAR*\n2️⃣ *CANCELAR*\n3️⃣ *REPROGRAMAR*\n\n_Escribe "MENU" para volver a ver esto._`);
+        try {
+            const res = await callLaravelApi(`get-link?phone=${sender}`, 'GET');
+            if (res.success) {
+                userState.state = STATES.IDLE;
+                return msg.reply(`🌟 *Bienvenido al Bot de Stefy Nails* 🌟\n\nHola *${res.customer_name}*, podemos ayudarte a gestionar tu cita con estos comandos:\n\n1️⃣ *CONFIRMAR*\n2️⃣ *CANCELAR*\n3️⃣ *REPROGRAMAR*\n\n_Escribe "MENU" para volver a ver esto._`);
+            } else {
+                return msg.reply(`🌸 *¡Hola!* 🌸\n\nNo encontramos una cita activa vinculada a este número. ¡Nos encantaría atenderte! ✨\n\nPuedes agendar tu cita fácilmente aquí:\n🔗 http://3.12.104.67\n\n¡Te esperamos! 💖`);
+            }
+        } catch (err) {
+            // Si hay error en la API (ej: 404), sugerir agendar
+            return msg.reply(`🌸 *¡Hola!* 🌸\n\nParece que no tienes citas activas. ¡Te invitamos a agendar una en nuestra web! ✨\n\n🔗 http://3.12.104.67\n\n¡Gracias! 💖`);
+        }
     }
 
     // Estado: Esperando Reprogramación
