@@ -177,6 +177,7 @@ class PublicAppointmentController extends Controller
             'reschedule_reason' => $reason,
             'notes' => $appointment->notes ? $appointment->notes . "\n" . $newNote : $newNote,
             'status' => 'pending_admin', 
+            'reschedule_token' => \Illuminate\Support\Str::random(32), // Invalida el link actual
         ]);
 
         // Create notification for admin
