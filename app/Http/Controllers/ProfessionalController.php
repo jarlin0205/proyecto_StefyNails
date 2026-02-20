@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Professional;
 use App\Models\User;
+use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -20,7 +21,8 @@ class ProfessionalController extends Controller
 
     public function create()
     {
-        return view('admin.professionals.create');
+        $categories = Category::all();
+        return view('admin.professionals.create', compact('categories'));
     }
 
     public function store(Request $request)
@@ -30,6 +32,8 @@ class ProfessionalController extends Controller
             'specialty' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
             'photo' => 'nullable|image|max:2048',
+            'categories' => 'nullable|array',
+            'categories.*' => 'exists:categories,id',
             'create_user' => 'boolean',
             'email' => 'required_if:create_user,1|nullable|email|unique:users,email',
             'password' => 'required_if:create_user,1|nullable|min:8|confirmed',
@@ -58,21 +62,26 @@ class ProfessionalController extends Controller
             }
         }
 
-        Professional::create([
+        $professional = Professional::create([
             'user_id' => $user ? $user->id : null,
             'name' => $validated['name'],
-            'specialty' => $validated['specialty'],
+            'specialty' => $validated['specialty'], // Mantener por compatibilidad temporal
             'phone' => $validated['phone'],
             'photo_path' => $photoPath,
             'is_active' => true,
         ]);
+
+        if ($request->has('categories')) {
+            $professional->categories()->sync($validated['categories']);
+        }
 
         return redirect()->route('admin.professionals.index')->with('success', 'Profesional creado correctamente.');
     }
 
     public function edit(Professional $professional)
     {
-        return view('admin.professionals.edit', compact('professional'));
+        $categories = Category::all();
+        return view('admin.professionals.edit', compact('professional', 'categories'));
     }
 
     public function update(Request $request, Professional $professional)
@@ -82,6 +91,8 @@ class ProfessionalController extends Controller
             'specialty' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
             'photo' => 'nullable|image|max:2048',
+            'categories' => 'nullable|array',
+            'categories.*' => 'exists:categories,id',
             'is_active' => 'boolean',
             'create_user' => 'boolean',
             'email' => 'required_if:create_user,1|nullable|email|unique:users,email',
@@ -120,6 +131,8 @@ class ProfessionalController extends Controller
             'phone' => $validated['phone'],
             'is_active' => $request->has('is_active'),
         ]);
+
+        $professional->categories()->sync($request->categories ?? []);
 
         return redirect()->route('admin.professionals.index')->with('success', 'Profesional actualizado.');
     }

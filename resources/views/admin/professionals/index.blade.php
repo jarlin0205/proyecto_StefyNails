@@ -47,10 +47,21 @@
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full">
-                                    {{ $p->specialty ?? 'General' }}
-                                </span>
+                            <td class="px-6 py-4 whitespace-normal">
+                                <div class="flex flex-wrap gap-1 mb-1">
+                                    @forelse($p->categories as $category)
+                                        <span class="px-2 py-0.5 text-[10px] font-bold bg-pink-100 text-pink-700 rounded-full">
+                                            {{ $category->name }}
+                                        </span>
+                                    @empty
+                                        <span class="px-2 py-0.5 text-[10px] font-bold bg-gray-100 text-gray-500 rounded-full">
+                                            General
+                                        </span>
+                                    @endforelse
+                                </div>
+                                @if($p->specialty)
+                                    <div class="text-[10px] text-gray-400 italic leading-tight">{{ $p->specialty }}</div>
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-gray-900">{{ $p->phone ?: 'Sin teléfono' }}</div>

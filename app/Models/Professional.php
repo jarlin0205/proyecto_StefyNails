@@ -32,4 +32,9 @@ class Professional extends Model
     {
         return $this->hasMany(Availability::class);
     }
+
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class);
+    }
 }

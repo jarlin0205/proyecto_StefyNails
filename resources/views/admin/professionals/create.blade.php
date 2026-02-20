@@ -30,9 +30,22 @@
                         <input type="text" name="name" required value="{{ old('name') }}" 
                                class="w-full border-gray-200 rounded-lg focus:ring-pink-500 focus:border-pink-500 transition-all">
                     </div>
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Especialidad</label>
-                        <input type="text" name="specialty" value="{{ old('specialty') }}" placeholder="Ej: Manicurista, Pedicurista"
+                    <div class="col-span-full">
+                        <label class="block text-sm font-bold text-gray-700 mb-3">Especialidades (Categorías) *</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                            @foreach($categories as $category)
+                                <label class="flex items-center gap-2 p-3 border rounded-lg hover:bg-pink-50 cursor-pointer transition-colors border-gray-200">
+                                    <input type="checkbox" name="categories[]" value="{{ $category->id }}"
+                                           {{ is_array(old('categories')) && in_array($category->id, old('categories')) ? 'checked' : '' }}
+                                           class="h-4 w-4 text-pink-600 focus:ring-pink-500 border-gray-300 rounded">
+                                    <span class="text-sm font-medium text-gray-700">{{ $category->name }}</span>
+                                </label>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="col-span-full">
+                        <label class="block text-sm font-bold text-gray-700 mb-2">Descripción Adicional de Especialidad (Opcional)</label>
+                        <input type="text" name="specialty" value="{{ old('specialty') }}" placeholder="Ej: Especialista en diseño mano alzada"
                                class="w-full border-gray-200 rounded-lg focus:ring-pink-500 focus:border-pink-500 transition-all">
                     </div>
                 </div>
