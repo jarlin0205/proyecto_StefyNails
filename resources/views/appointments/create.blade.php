@@ -161,25 +161,38 @@
                                 ¿Qué servicio deseas?
                             </h3>
                             <div class="p-6 bg-pink-50 bg-opacity-30 rounded-xl border border-pink-100 space-y-6">
-                                <div>
-                                    <select class="shadow-sm border border-pink-200 rounded-lg w-full py-3 px-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white transition-all font-medium" 
-                                            id="service_id" name="service_id" required>
-                                        <option value="">Selecciona un servicio...</option>
-                                        @php $currentCategory = null; @endphp
-                                        @foreach($services as $service)
-                                            @if($service->category->name !== $currentCategory)
-                                                @if($currentCategory !== null) </optgroup> @endif
-                                                <optgroup label="✨ {{ $service->category->name }} ✨">
-                                                @php $currentCategory = $service->category->name; @endphp
-                                            @endif
-                                            <option value="{{ $service->id }}" data-price="{{ $service->price }}" 
-                                                    data-image="{{ $service->image_path ? asset($service->image_path) : '' }}"
-                                                    data-gallery="{{ $service->images->pluck('image_path')->map(fn($p) => asset($p))->toJson() }}"
-                                                    {{ (old('service_id') == $service->id || (isset($selectedServiceId) && $selectedServiceId == $service->id)) ? 'selected' : '' }}>
-                                                {{ $service->name }} — {{ $service->price_display }}
-                                            </option>
-                                        @endforeach
-                                    </select>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 mb-1 ml-1 uppercase">Servicio</label>
+                                        <select class="shadow-sm border border-pink-200 rounded-lg w-full py-3 px-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white transition-all font-medium" 
+                                                id="service_id" name="service_id" required>
+                                            <option value="">Selecciona un servicio...</option>
+                                            @php $currentCategory = null; @endphp
+                                            @foreach($services as $service)
+                                                @if($service->category->name !== $currentCategory)
+                                                    @if($currentCategory !== null) </optgroup> @endif
+                                                    <optgroup label="✨ {{ $service->category->name }} ✨">
+                                                    @php $currentCategory = $service->category->name; @endphp
+                                                @endif
+                                                <option value="{{ $service->id }}" data-price="{{ $service->price }}" 
+                                                        data-image="{{ $service->image_path ? asset($service->image_path) : '' }}"
+                                                        data-gallery="{{ $service->images->pluck('image_path')->map(fn($p) => asset($p))->toJson() }}"
+                                                        {{ (old('service_id') == $service->id || (isset($selectedServiceId) && $selectedServiceId == $service->id)) ? 'selected' : '' }}>
+                                                    {{ $service->name }} — {{ $service->price_display }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-gray-500 mb-1 ml-1 uppercase">Profesional</label>
+                                        <select class="shadow-sm border border-pink-200 rounded-lg w-full py-3 px-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white transition-all font-medium" 
+                                                id="professional_id" name="professional_id" required>
+                                            <option value="">Cualquier profesional...</option>
+                                            @foreach($professionals ?? [] as $p)
+                                                <option value="{{ $p->id }}" {{ old('professional_id') == $p->id ? 'selected' : '' }}>{{ $p->name }} ({{ $p->specialty }})</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
                                 </div>
 
                                 <!-- Galería de Referencia Inline -->
@@ -510,6 +523,13 @@
             }
         });
 
+        // Re-fetch slots if professional changes
+        document.getElementById('professional_id').addEventListener('change', function() {
+            if (selectedDate) {
+                fetchBusySlots(selectedDate);
+            }
+        });
+
         // Lógica de Segmentación
         let allAvailableSlots = [];
         let currentSegment = 'all';
@@ -569,6 +589,7 @@
         }
 
         async function fetchBusySlots(date) {
+            const professionalId = document.getElementById('professional_id').value;
             const container = document.getElementById('slots_container');
             const msg = document.getElementById('no_slots_msg');
             const inlineContainer = document.getElementById('inline-slots-container');
@@ -585,7 +606,7 @@
             if (prevCustomMsg) prevCustomMsg.remove();
 
             try {
-                const resp = await fetch(`{{ url('api/bot/busy-slots') }}?date=${date}`);
+                const resp = await fetch(`{{ url('api/bot/busy-slots') }}?date=${date}&professional_id=${professionalId}`);
                 if (!resp.ok) {
                      let errText = resp.statusText;
                      try {

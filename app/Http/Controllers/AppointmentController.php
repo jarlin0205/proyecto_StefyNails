@@ -9,20 +9,26 @@ class AppointmentController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Appointment::with('service')->latest();
+        $user = auth()->user();
+        $query = Appointment::with('service', 'professional')->latest();
 
-        if ($request->has('status')) {
+        if ($user->role === 'employee' && $user->professional) {
+            $query->where('professional_id', $user->professional->id);
+        }
+
+        if ($request->has('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
         }
 
-        $appointments = $query->paginate(10)->withQueryString();
+        $appointments = $query->paginate(15)->withQueryString();
         return view('appointments.index', compact('appointments'));
     }
 
     public function create()
     {
         $services = \App\Models\Service::where('is_active', true)->get();
-        return view('appointments.admin_create', compact('services'));
+        $professionals = \App\Models\Professional::where('is_active', true)->get();
+        return view('appointments.admin_create', compact('services', 'professionals'));
     }
 
     public function store(Request $request)
@@ -42,6 +48,34 @@ class AppointmentController extends Controller
             $validated['customer_phone'] = $request->input('customer_phone_full');
         }
         unset($validated['customer_phone_full']);
+
+        // Asignar profesional
+        if (auth()->user()->isAdmin()) {
+            $validated['professional_id'] = $request->input('professional_id');
+        } else {
+            $validated['professional_id'] = auth()->user()->professional->id ?? null;
+        }
+
+        // --- AVAILABILITY CHECK ---
+        $requestedStart = \Carbon\Carbon::parse($validated['appointment_date']);
+        $service = \App\Models\Service::find($validated['service_id']);
+        $durationMinutes = $service ? $service->duration_in_minutes : 60;
+        $requestedEnd = $requestedStart->copy()->addMinutes($durationMinutes);
+
+        $conflict = Appointment::whereIn('status', ['confirmed', 'completed', 'pending_client'])
+            ->where('professional_id', $validated['professional_id'])
+            ->whereDate('appointment_date', $requestedStart->format('Y-m-d'))
+            ->get()
+            ->filter(function ($existingApp) use ($requestedStart, $requestedEnd) {
+                $existingStart = \Carbon\Carbon::parse($existingApp->appointment_date);
+                $existingDuration = $existingApp->service ? $existingApp->service->duration_in_minutes : 60;
+                $existingEnd = $existingStart->copy()->addMinutes($existingDuration);
+                return $requestedStart->lt($existingEnd) && $requestedEnd->gt($existingStart);
+            })->first();
+
+        if ($conflict) {
+            return back()->withInput()->with('error', '⚠️ Horario no disponible para este profesional. Choca con la cita de ' . $conflict->customer_name);
+        }
 
         $appointment = Appointment::create($validated + ['status' => 'confirmed']);
 
@@ -88,9 +122,10 @@ class AppointmentController extends Controller
         $durationMinutes = $service ? $service->duration_in_minutes : 60; // Default 60 if somehow missing
         $requestedEnd = $requestedStart->copy()->addMinutes($durationMinutes);
 
-        // Check against existing appointments (ONLY confirmed, pending_client or completed AND THIS APPOINTMENT)
+        // Check against existing appointments (ONLY confirmed, pending_client or completed AND THIS APPOINTMENT) for THIS professional
         $conflictingAppointment = Appointment::whereIn('status', ['confirmed', 'completed', 'pending_client'])
             ->where('id', '!=', $appointment->id) // CRITICAL: Exclude itself
+            ->where('professional_id', $appointment->professional_id)
             ->whereDate('appointment_date', $requestedStart->format('Y-m-d'))
             ->get()
             ->filter(function ($existingApp) use ($requestedStart, $requestedEnd) {
@@ -159,9 +194,10 @@ class AppointmentController extends Controller
             $durationMinutes = $service ? $service->duration_in_minutes : 60;
             $requestedEnd = $requestedStart->copy()->addMinutes($durationMinutes);
 
-            // Check against existing confirmed/completed/pending_client (acting as rescheduled) appointments
+            // Check against existing confirmed/completed/pending_client (acting as rescheduled) appointments for THIS professional
             $conflict = Appointment::whereIn('status', ['confirmed', 'completed', 'pending_client'])
                 ->where('id', '!=', $appointment->id)
+                ->where('professional_id', $appointment->professional_id)
                 ->whereDate('appointment_date', $requestedStart->format('Y-m-d'))
                 ->with('service') // Cargar servicio para el mensaje
                 ->get()
@@ -272,15 +308,17 @@ class AppointmentController extends Controller
         $validated = $request->validate([
             'date' => 'required|date',
             'service_id' => 'required|exists:services,id',
-            'appointment_id' => 'nullable|exists:appointments,id' // Para excluir la cita actual al reprogramar
+            'professional_id' => 'required|exists:professionals,id',
+            'appointment_id' => 'nullable|exists:appointments,id' 
         ]);
 
         $date = \Carbon\Carbon::parse($validated['date'])->format('Y-m-d');
         $service = \App\Models\Service::find($validated['service_id']);
         $serviceDuration = $service ? $service->duration_in_minutes : 60;
 
-        // Obtener todas las citas confirmadas o que el cliente debe confirmar para ese día
+        // Obtener todas las citas confirmadas o que el cliente debe confirmar para ese día y ESE PROFESIONAL
         $query = Appointment::whereIn('status', ['confirmed', 'completed', 'pending_client'])
+            ->where('professional_id', $validated['professional_id'])
             ->whereDate('appointment_date', $date)
             ->with('service');
 
@@ -310,6 +348,10 @@ class AppointmentController extends Controller
 
     public function destroy(Appointment $appointment)
     {
+        if (!auth()->user()->isAdmin()) {
+            abort(403, 'No tienes permiso para eliminar citas.');
+        }
+
         $appointment->delete();
         return back()->with('success', 'Cita eliminada.');
     }

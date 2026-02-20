@@ -69,9 +69,11 @@
                 <button id="btn-reschedule-link" onclick="openRescheduleModal(currentGlobalApp)" class="flex-1 min-w-[120px] bg-yellow-400 text-white text-center rounded px-4 py-2 font-bold hover:bg-yellow-500 transition shadow-sm">
                     Reprogramar
                 </button>
+                @if(auth()->user()->isAdmin())
                 <button id="btn-delete" onclick="handleAction('eliminar')" class="flex-1 min-w-[120px] border border-red-300 text-red-600 rounded px-4 py-2 font-bold hover:bg-red-50 transition">
                     Eliminar
                 </button>
+                @endif
             </div>
         </div>
     </div>
@@ -110,6 +112,14 @@
                         <div class="flex flex-col lg:flex-row gap-4">
                             <div id="reschedule-inline-calendar" class="shadow-sm border border-yellow-100 rounded-lg overflow-hidden flex-shrink-0"></div>
                             <div id="reschedule_time_selection" class="flex-1 hidden">
+                                <div class="mb-4">
+                                    <label class="block text-sm font-bold text-gray-700 mb-1">Profesional</label>
+                                    <select id="reschedule_professional_selector" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-yellow-500">
+                                        @foreach($professionals ?? [] as $p)
+                                            <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
                                 <label class="block text-xs font-semibold text-gray-600 mb-2 uppercase tracking-wider">2. Selecciona la Hora</label>
                                 <div id="reschedule_slots_container" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-80 overflow-y-auto pr-2">
                                     <!-- slots dynamically injected -->
@@ -181,6 +191,18 @@
                                         @foreach($allServices ?? [] as $service)
                                             <option value="{{ $service->id }}">{{ $service->name }} (${{ number_format($service->price, 0) }})</option>
                                         @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700">Profesional</label>
+                                    <select name="professional_id" id="create_modal_professional_selector" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pink-500">
+                                        @if(auth()->user()->isAdmin())
+                                            @foreach($professionals ?? [] as $p)
+                                                <option value="{{ $p->id }}">{{ $p->name }}</option>
+                                            @endforeach
+                                        @else
+                                            <option value="{{ auth()->user()->professional->id ?? '' }}">{{ auth()->user()->professional->name ?? 'Mío' }}</option>
+                                        @endif
                                     </select>
                                 </div>
                                 <div>
@@ -273,10 +295,15 @@ let currentGlobalApp = null;
                     fetchRescheduleBusySlots(dateStr);
                 }
             });
+
+            document.getElementById('reschedule_professional_selector').addEventListener('change', () => {
+                if(selectedRescheduleDate) fetchRescheduleBusySlots(selectedRescheduleDate);
+            });
         }
     });
 
     async function fetchRescheduleBusySlots(date) {
+        const professionalId = document.getElementById('reschedule_professional_selector').value;
         const timeDiv = document.getElementById('reschedule_time_selection');
         const container = document.getElementById('reschedule_slots_container');
         const msg = document.getElementById('reschedule_no_slots_msg');
@@ -286,10 +313,10 @@ let currentGlobalApp = null;
         msg.classList.add('hidden');
 
         try {
-            const resp = await fetch(`{{ url('api/bot/busy-slots') }}?date=${date}`);
+            const resp = await fetch(`{{ url('api/bot/busy-slots') }}?date=${date}&professional_id=${professionalId}`);
             if (!resp.ok) throw new Error('Error en el servidor');
-            const busySlots = await resp.json();
-            generateRescheduleSlots(busySlots);
+            const data = await resp.json();
+            generateRescheduleSlots(data);
         } catch (e) {
             container.innerHTML = '<div class="col-span-full py-4 text-center text-red-400">Error cargando horarios.</div>';
             console.error(e);
@@ -395,6 +422,10 @@ let currentGlobalApp = null;
                     fetchCreateBusySlots(dateStr);
                 }
             });
+
+            document.getElementById('create_modal_professional_selector').addEventListener('change', () => {
+                if(selectedCreateDate) fetchCreateBusySlots(selectedCreateDate);
+            });
         }
     }
 
@@ -403,13 +434,14 @@ let currentGlobalApp = null;
     }
 
     async function fetchCreateBusySlots(date) {
+        const professionalId = document.getElementById('create_modal_professional_selector').value;
         const container = document.getElementById('create_slots_container');
         const timeDiv = document.getElementById('create_time_selection');
         container.innerHTML = '<div class="col-span-full py-4 text-center text-pink-300">...</div>';
         timeDiv.classList.remove('hidden');
 
         try {
-            const resp = await fetch(`{{ url('api/bot/busy-slots') }}?date=${date}`);
+            const resp = await fetch(`{{ url('api/bot/busy-slots') }}?date=${date}&professional_id=${professionalId}`);
             const data = await resp.json();
             generateCreateSlots(data);
         } catch (e) {
@@ -535,6 +567,18 @@ let currentGlobalApp = null;
         const statusInput = form.querySelector('input[name="status"]');
         if (statusInput) statusInput.value = 'pending_client';
         
+        // Pre-select professional
+        const profSelect = document.getElementById('reschedule_professional_selector');
+        if (profSelect) {
+            if (data.professional_id) profSelect.value = data.professional_id;
+            // Employees shouldn't change professional usually, or at least they only see themselves
+            @if(auth()->user()->role === 'employee')
+                profSelect.disabled = true;
+            @else
+                profSelect.disabled = false;
+            @endif
+        }
+
         const msgEl = document.getElementById('reschedule-modal-msg');
         if (msgEl) {
             if (window.conflictDetected) {

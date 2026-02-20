@@ -21,6 +21,7 @@ class Appointment extends Model
         'reference_image_path',
         'reschedule_reason',
         'reschedule_token',
+        'professional_id',
     ];
 
     protected static function boot()
@@ -55,5 +56,10 @@ class Appointment extends Model
     public function service()
     {
         return $this->belongsTo(Service::class);
+    }
+
+    public function professional()
+    {
+        return $this->belongsTo(Professional::class);
     }
 }

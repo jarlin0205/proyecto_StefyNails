@@ -33,25 +33,36 @@ Route::post('forgot-password', [\App\Http\Controllers\Auth\ForgotPasswordControl
 Route::get('reset-password/{token}', [\App\Http\Controllers\Auth\ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('reset-password', [\App\Http\Controllers\Auth\ResetPasswordController::class, 'reset'])->name('password.update');
 
-// Admin Routes (Protected)
+// Backend routes
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
-    Route::resource('categories', CategoryController::class);
-    Route::delete('services/images/{image}', [ServiceController::class, 'destroyImage'])->name('services.destroyImage');
-    Route::delete('services/{service}/image', [ServiceController::class, 'destroyMainImage'])->name('services.destroyMainImage');
-    Route::resource('services', ServiceController::class);
-    Route::get('appointments/check-availability', [AppointmentController::class, 'checkAvailability'])->name('appointments.checkAvailability');
-    Route::post('appointments/{appointment}/status', [AppointmentController::class, 'updateStatus'])->name('appointments.updateStatus');
-    Route::resource('appointments', AppointmentController::class);
-    Route::resource('notifications', NotificationController::class);
     
-    // Availability
-    Route::get('availability', [AvailabilityController::class, 'index'])->name('availability.index');
-    Route::get('availability/get', [AvailabilityController::class, 'show'])->name('availability.show');
-    Route::post('availability', [AvailabilityController::class, 'store'])->name('availability.store');
-    Route::delete('availability', [AvailabilityController::class, 'destroy'])->name('availability.destroy');
+    // Common Routes (Admin & Employee)
+    Route::middleware(['role:admin,employee'])->group(function () {
+        Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+        
+        Route::get('appointments/check-availability', [AppointmentController::class, 'checkAvailability'])->name('appointments.checkAvailability');
+        Route::post('appointments/{appointment}/status', [AppointmentController::class, 'updateStatus'])->name('appointments.updateStatus');
+        Route::resource('appointments', AppointmentController::class);
+        
+        Route::resource('notifications', NotificationController::class);
+        
+        // Availability (Filtered by role in controller)
+        Route::get('availability', [AvailabilityController::class, 'index'])->name('availability.index');
+        Route::get('availability/get', [AvailabilityController::class, 'show'])->name('availability.show');
+        Route::post('availability', [AvailabilityController::class, 'store'])->name('availability.store');
+        Route::delete('availability', [AvailabilityController::class, 'destroy'])->name('availability.destroy');
+    });
 
-    // Expenses
-    Route::resource('expenses', ExpenseController::class);
+    // Admin Only Routes
+    Route::middleware(['role:admin'])->group(function () {
+        Route::resource('categories', CategoryController::class);
+        Route::delete('services/images/{image}', [ServiceController::class, 'destroyImage'])->name('services.destroyImage');
+        Route::delete('services/{service}/image', [ServiceController::class, 'destroyMainImage'])->name('services.destroyMainImage');
+        Route::resource('services', ServiceController::class);
+        Route::resource('expenses', ExpenseController::class);
+        
+        // Professionals Management
+        Route::resource('professionals', \App\Http\Controllers\ProfessionalController::class);
+    });
 });
 

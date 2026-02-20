@@ -121,9 +121,10 @@ class WhatsAppBotController extends Controller
         $durationMinutes = $service ? $service->duration_in_minutes : 60;
         $requestedEnd = $requestedStart->copy()->addMinutes($durationMinutes);
 
-        // Conflict check (excluding self) - confirmed, completed, and pending_client (acting as scheduled)
+        // Conflict check (excluding self) - filtered by professional
         $conflicting = Appointment::whereIn('status', ['confirmed', 'completed', 'pending_client'])
             ->where('id', '!=', $appointment->id)
+            ->where('professional_id', $appointment->professional_id)
             ->whereDate('appointment_date', $requestedStart->format('Y-m-d'))
             ->get()
             ->filter(function ($existingApp) use ($requestedStart, $requestedEnd) {
@@ -173,10 +174,22 @@ class WhatsAppBotController extends Controller
     {
         try {
             $date = $request->query('date');
+            $professionalId = $request->query('professional_id');
+            
             if (!$date) return response()->json([]);
 
-            // 1. Get standard busy slots (appointments)
+            // Si no hay profesional, y hay profesionales activos, podemos tomar el primero por defecto
+            // o devolver vacio si es requerido. Para la web de admin/booking mejor requerirlo.
+            if (!$professionalId) {
+                $firstProf = \App\Models\Professional::where('is_active', true)->first();
+                $professionalId = $firstProf ? $firstProf->id : null;
+            }
+
+            if (!$professionalId) return response()->json(['busy' => [], 'working_hours' => null]);
+
+            // 1. Get standard busy slots (appointments) for THIS professional
             $appointments = Appointment::whereDate('appointment_date', $date)
+                ->where('professional_id', $professionalId)
                 ->whereIn('status', ['confirmed', 'completed', 'pending_client'])
                 ->with('service')
                 ->get();
@@ -190,8 +203,10 @@ class WhatsAppBotController extends Controller
                 ];
             });
 
-            // 2. Get Custom Availability Override
-            $availability = \App\Models\Availability::whereDate('date', $date)->first();
+            // 2. Get Custom Availability Override for THIS professional
+            $availability = \App\Models\Availability::whereDate('date', $date)
+                ->where('professional_id', $professionalId)
+                ->first();
             
             return response()->json([
                 'busy' => $busy,

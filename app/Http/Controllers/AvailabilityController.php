@@ -6,26 +6,44 @@ use Illuminate\Http\Request;
 
 class AvailabilityController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // Show only future or recent (last 30 days?) custom days. Let's do today onwards + recent history.
-        // User asked for "really the days I customized", implies they see too many?
-        // Let's show all for now but sorted. Or better: All future + recent history.
-        $availabilities = \App\Models\Availability::whereDate('date', '>=', now()->subMonths(1)) // ample history
+        $user = auth()->user();
+        $professionals = \App\Models\Professional::where('is_active', true)->get();
+        
+        // Determinar qué profesional ver
+        $professionalId = $request->query('professional_id');
+        
+        if ($user->role === 'employee') {
+            $professionalId = $user->professional->id ?? null;
+        } elseif (!$professionalId && $professionals->count() > 0) {
+            $professionalId = $professionals->first()->id;
+        }
+
+        $availabilities = \App\Models\Availability::where('professional_id', $professionalId)
+            ->whereDate('date', '>=', now()->subMonths(1))
             ->orderBy('date', 'desc')
             ->get(['date', 'message']);
         
-        return view('admin.availability.index', compact('availabilities'));
+        return view('admin.availability.index', compact('availabilities', 'professionals', 'professionalId'));
     }
 
     public function show(Request $request)
     {
         $date = $request->query('date');
-        $availability = \App\Models\Availability::whereDate('date', $date)->first();
+        $professionalId = $request->query('professional_id');
+        
+        if (auth()->user()->role === 'employee') {
+            $professionalId = auth()->user()->professional->id ?? null;
+        }
+
+        $availability = \App\Models\Availability::whereDate('date', $date)
+            ->where('professional_id', $professionalId)
+            ->first();
         
         return response()->json([
             'exists' => !!$availability,
-            'active_slots' => $availability ? $availability->active_slots : [], // If null, means full day? No, default is empty if no record
+            'active_slots' => $availability ? $availability->active_slots : [],
             'message' => $availability ? $availability->message : null
         ]);
     }
@@ -35,18 +53,26 @@ class AvailabilityController extends Controller
         $validated = $request->validate([
             'date' => 'required|date',
             'active_slots' => 'present|array', 
-            'message' => 'nullable|string'
+            'message' => 'nullable|string',
+            'professional_id' => 'required|exists:professionals,id'
         ]);
+
+        $user = auth()->user();
+        if ($user->role === 'employee' && $validated['professional_id'] != $user->professional->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
 
         $date = \Carbon\Carbon::parse($validated['date'])->format('Y-m-d');
 
-        // Delete any existing configuration for this date (cleans up duplicates)
-        \App\Models\Availability::whereDate('date', $date)->delete();
+        \App\Models\Availability::whereDate('date', $date)
+            ->where('professional_id', $validated['professional_id'])
+            ->delete();
 
         \App\Models\Availability::create([
             'date' => $date,
             'active_slots' => $validated['active_slots'],
-            'message' => $validated['message']
+            'message' => $validated['message'],
+            'professional_id' => $validated['professional_id']
         ]);
 
         return response()->json(['success' => true]);
@@ -55,9 +81,18 @@ class AvailabilityController extends Controller
     public function destroy(Request $request)
     {
         $date = $request->query('date');
-        if(!$date) return response()->json(['error' => 'Date required'], 400);
+        $professionalId = $request->query('professional_id');
+        
+        if(!$date || !$professionalId) return response()->json(['error' => 'Missing data'], 400);
 
-        \App\Models\Availability::whereDate('date', $date)->delete();
+        $user = auth()->user();
+        if ($user->role === 'employee' && $professionalId != $user->professional->id) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        \App\Models\Availability::whereDate('date', $date)
+            ->where('professional_id', $professionalId)
+            ->delete();
         
         return response()->json(['success' => true]);
     }

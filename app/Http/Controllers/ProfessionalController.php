@@ -1,0 +1,110 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Professional;
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+
+class ProfessionalController extends Controller
+{
+    public function index()
+    {
+        $professionals = Professional::with('user')->get();
+        return view('admin.professionals.index', compact('professionals'));
+    }
+
+    public function create()
+    {
+        return view('admin.professionals.create');
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'specialty' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'photo' => 'nullable|image|max:2048',
+            'create_user' => 'boolean',
+            'email' => 'required_if:create_user,1|nullable|email|unique:users,email',
+            'password' => 'required_if:create_user,1|nullable|min:8|confirmed',
+        ]);
+
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $photoPath = $request->file('photo')->store('professionals', 'public');
+        }
+
+        $user = null;
+        if ($request->create_user) {
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => 'employee',
+            ]);
+        }
+
+        Professional::create([
+            'user_id' => $user ? $user->id : null,
+            'name' => $validated['name'],
+            'specialty' => $validated['specialty'],
+            'phone' => $validated['phone'],
+            'photo_path' => $photoPath,
+            'is_active' => true,
+        ]);
+
+        return redirect()->route('admin.professionals.index')->with('success', 'Profesional creado correctamente.');
+    }
+
+    public function edit(Professional $professional)
+    {
+        return view('admin.professionals.edit', compact('professional'));
+    }
+
+    public function update(Request $request, Professional $professional)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'specialty' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'photo' => 'nullable|image|max:2048',
+            'is_active' => 'boolean',
+        ]);
+
+        if ($request->hasFile('photo')) {
+            if ($professional->photo_path) {
+                Storage::disk('public')->delete($professional->photo_path);
+            }
+            $professional->photo_path = $request->file('photo')->store('professionals', 'public');
+        }
+
+        $professional->update([
+            'name' => $validated['name'],
+            'specialty' => $validated['specialty'],
+            'phone' => $validated['phone'],
+            'is_active' => $request->has('is_active'),
+        ]);
+
+        return redirect()->route('admin.professionals.index')->with('success', 'Profesional actualizado.');
+    }
+
+    public function destroy(Professional $professional)
+    {
+        // No eliminamos físicamente para mantener integridad de citas, solo desactivamos o lanzamos error si tiene citas
+        if ($professional->appointments()->count() > 0) {
+            $professional->update(['is_active' => false]);
+            return back()->with('success', 'El profesional ha sido desactivado porque tiene citas registradas.');
+        }
+
+        if ($professional->photo_path) {
+            Storage::disk('public')->delete($professional->photo_path);
+        }
+        
+        $professional->delete();
+        return redirect()->route('admin.professionals.index')->with('success', 'Profesional eliminado.');
+    }
+}

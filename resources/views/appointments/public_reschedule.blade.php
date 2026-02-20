@@ -104,7 +104,7 @@
             <div class="p-8">
                 <div class="mb-8 bg-pink-50 p-4 rounded-lg border border-pink-100 italic text-gray-700">
                     <p class="font-bold text-pink-700 mb-1">Hola {{ $appointment->customer_name }},</p>
-                    <p>Estás reprogramando tu cita para <strong>{{ $appointment->service->name }}</strong>.</p>
+                    <p>Estás reprogramando tu cita para <strong>{{ $appointment->service->name }}</strong> con <strong>{{ $appointment->professional->name ?? 'nuestro personal' }}</strong>.</p>
                     <p class="text-xs mt-2 text-gray-500">Fecha actual: {{ $appointment->appointment_date->format('d/m/Y h:i A') }}</p>
                 </div>
 
@@ -370,7 +370,8 @@
             if (prevCustomMsg) prevCustomMsg.remove();
 
             try {
-                const resp = await fetch(`{{ url('api/bot/busy-slots') }}?date=${date}`);
+                const professionalId = "{{ $appointment->professional_id }}";
+                const resp = await fetch(`{{ url('api/bot/busy-slots') }}?date=${date}&professional_id=${professionalId}`);
                 const data = await resp.json();
                 
                 let busySlots = data.busy || [];

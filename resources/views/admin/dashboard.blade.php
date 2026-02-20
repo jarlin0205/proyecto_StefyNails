@@ -3,7 +3,22 @@
 @section('header', 'Panel de Control')
 
 @section('content')
-<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-6">
+    <!-- Card: Producido (Nuevo) -->
+    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-pink-600">
+        <div class="flex items-center">
+            <div class="flex-shrink-0 bg-pink-100 rounded-full p-2">
+                <svg class="h-5 w-5 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="ml-3">
+                <h2 class="text-xs font-semibold text-gray-500 uppercase">Producido</h2>
+                <p class="text-2xl font-bold text-gray-800">${{ number_format($totalProduced, 2) }}</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Card: Citas Pendientes -->
     <a href="{{ route('admin.appointments.index', ['status' => 'pending']) }}" class="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-500 hover:shadow-md transition-shadow">
         <div class="flex items-center">
@@ -49,22 +64,8 @@
         </div>
     </a>
 
-    <!-- Card: Citas Canceladas -->
-    <a href="{{ route('admin.appointments.index', ['status' => 'cancelled']) }}" class="bg-white rounded-lg shadow p-4 border-l-4 border-red-500 hover:shadow-md transition-shadow">
-        <div class="flex items-center">
-            <div class="flex-shrink-0 bg-red-100 rounded-full p-2">
-                <svg class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </div>
-            <div class="ml-3">
-                <h2 class="text-xs font-semibold text-gray-500 uppercase">Canceladas</h2>
-                <p class="text-2xl font-bold text-gray-800">{{ $cancelledCount ?? 0 }}</p>
-            </div>
-        </div>
-    </a>
-
-    <!-- Card: Servicios -->
+    @if(auth()->user()->isAdmin())
+    <!-- Card: Servicios (Admin solo) -->
     <a href="{{ route('admin.services.index') }}" class="bg-white rounded-lg shadow p-4 border-l-4 border-pink-500 hover:shadow-md transition-shadow">
         <div class="flex items-center">
             <div class="flex-shrink-0 bg-pink-100 rounded-full p-2">
@@ -78,6 +79,7 @@
             </div>
         </div>
     </a>
+    @endif
 
     <!-- Card: Notificaciones -->
     <a href="{{ route('admin.notifications.index') }}" class="bg-white rounded-lg shadow p-4 border-l-4 border-purple-500 hover:shadow-md transition-shadow">
@@ -96,7 +98,9 @@
 </div>
  
 <div class="bg-white rounded-lg shadow p-6">
-    <h3 class="text-lg font-semibold mb-4 text-gray-800">Citas Recientes</h3>
+    <h3 class="text-lg font-semibold mb-4 text-gray-800">
+        {{ auth()->user()->isAdmin() ? 'Citas Recientes (Global)' : 'Mis Próximas Citas' }}
+    </h3>
     <div class="overflow-x-auto">
         <table class="min-w-full leading-normal">
             <thead>
@@ -104,9 +108,11 @@
                     <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                         Cliente
                     </th>
+                    @if(auth()->user()->isAdmin())
                     <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                        Diseño
+                        Profesional
                     </th>
+                    @endif
                     <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                         Servicio
                     </th>
@@ -131,30 +137,24 @@
                 <tr class="{{ $isVeryClose ? 'bg-red-50' : ($isPastDue ? 'bg-orange-50' : '') }} transition-colors">
                     <td class="px-5 py-5 border-b border-gray-200 text-sm">
                         <div class="flex items-center">
-                            <div class="ml-3">
-                                <p class="text-gray-900 font-medium">
-                                    {{ $appointment->customer_name }}
-                                </p>
+                            @if($appointment->reference_image_path)
+                                <img src="{{ $appointment->reference_image_path }}" alt="Referencia" class="h-8 w-8 rounded-full object-cover mr-2">
+                            @endif
+                            <div>
+                                <p class="text-gray-900 font-medium">{{ $appointment->customer_name }}</p>
                                 @if($isVeryClose)
-                                    <span class="flex items-center text-[10px] font-bold text-red-600 animate-pulse">
-                                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        PRÓXIMA
-                                    </span>
+                                    <span class="text-[10px] font-bold text-red-600 animate-pulse">PRÓXIMA</span>
                                 @endif
                             </div>
                         </div>
                     </td>
+                    @if(auth()->user()->isAdmin())
                     <td class="px-5 py-5 border-b border-gray-200 text-sm">
-                         @if($appointment->reference_image_path)
-                            <a href="{{ $appointment->reference_image_path }}" target="_blank">
-                                <img src="{{ $appointment->reference_image_path }}" alt="Referencia" class="h-10 w-10 rounded-full object-cover border-2 border-pink-200 hover:scale-150 transition-transform">
-                            </a>
-                        @else
-                            <span class="text-gray-400 text-xs">N/A</span>
-                        @endif
+                        <span class="text-xs font-medium px-2 py-1 rounded bg-gray-100 text-gray-600">
+                            {{ $appointment->professional ? $appointment->professional->name : 'Sin asignar' }}
+                        </span>
                     </td>
+                    @endif
                     <td class="px-5 py-5 border-b border-gray-200 text-sm">
                         <p class="text-gray-900 whitespace-no-wrap">{{ $appointment->service->name }}</p>
                     </td>
@@ -212,7 +212,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-center">
+                    <td colspan="{{ auth()->user()->isAdmin() ? 6 : 5 }}" class="px-5 py-12 text-center text-gray-500">
                         No hay citas pendientes o próximas.
                     </td>
                 </tr>
@@ -221,19 +221,9 @@
         </table>
     </div>
 </div>
-@push('scripts')
-<script>
-    function openAppointmentModalWrapper(data) {
-        if (typeof openAppointmentModal === 'function') {
-            openAppointmentModal(data);
-        } else {
-            console.error('La función global openAppointmentModal no está definida.');
-        }
-    }
-</script>
-@endpush
 
-<!-- Modal de Gastos -->
+@if(auth()->user()->isAdmin())
+<!-- Modal de Gastos (Admin solo) -->
 <div id="modalGasto" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="document.getElementById('modalGasto').classList.add('hidden')"></div>
@@ -281,4 +271,5 @@
         </div>
     </div>
 </div>
+@endif
 @endsection

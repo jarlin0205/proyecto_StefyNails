@@ -40,6 +40,18 @@
                     </select>
                 </div>
                 <div>
+                    <label class="block text-sm font-medium text-gray-700">Profesional</label>
+                    <select name="professional_id" id="professional_selector" required class="w-full rounded-md border-gray-300 shadow-sm focus:ring-pink-500 focus:border-pink-500">
+                        @if(auth()->user()->isAdmin())
+                            @foreach($professionals as $p)
+                                <option value="{{ $p->id }}">{{ $p->name }}</option>
+                            @endforeach
+                        @else
+                            <option value="{{ auth()->user()->professional->id ?? '' }}">{{ auth()->user()->professional->name ?? 'Mío' }}</option>
+                        @endif
+                    </select>
+                </div>
+                <div>
                     <label class="block text-sm font-medium text-gray-700">Ubicación</label>
                     <select name="location" class="w-full rounded-md border-gray-300 shadow-sm focus:ring-pink-500 focus:border-pink-500">
                         <option value="salon">En el Salón</option>
@@ -97,6 +109,11 @@
         phoneInput.addEventListener('blur', function() {
             phoneInputFull.value = iti.getNumber();
         });
+
+        // Re-fetch slots when professional changes
+        document.getElementById('professional_selector').addEventListener('change', function() {
+            if (selectedDate) fetchBusySlots(selectedDate);
+        });
         
         // Validar antes de enviar
         const form = phoneInput.closest('form');
@@ -133,6 +150,9 @@
     }
 
     async function fetchBusySlots(date) {
+        const professionalId = document.getElementById('professional_selector').value;
+        if (!professionalId) return;
+
         const container = document.getElementById('slots_container');
         const timeDiv = document.getElementById('time_selection');
         
@@ -144,7 +164,7 @@
         if (prevCustomMsg) prevCustomMsg.remove();
 
         try {
-            const resp = await fetch(`{{ url('api/bot/busy-slots') }}?date=${date}`);
+            const resp = await fetch(`{{ url('api/bot/busy-slots') }}?date=${date}&professional_id=${professionalId}`);
             const data = await resp.json();
             
             let busySlots = [];
@@ -228,6 +248,7 @@
             console.error(e);
         }
     }
+</script>
 </script>
 @endpush
 @endsection

@@ -20,8 +20,9 @@ class PublicAppointmentController extends Controller
             ->where('is_active', true)
             ->get()
             ->sortBy(['category.name', 'name']);
+        $professionals = \App\Models\Professional::where('is_active', true)->get();
             
-        return view('appointments.create', compact('services', 'selectedServiceId'));
+        return view('appointments.create', compact('services', 'selectedServiceId', 'professionals'));
     }
 
     /**
@@ -34,9 +35,12 @@ class PublicAppointmentController extends Controller
             'customer_phone' => 'required|string|max:20',
             'customer_phone_full' => 'nullable|string|max:20',
             'service_id' => 'required|exists:services,id',
+            'professional_id' => 'required|exists:professionals,id',
             'appointment_date' => 'required|date|after_or_equal:now',
             'notes' => 'nullable|string',
             'reference_image_path' => 'nullable|string',
+            'location' => 'nullable|string',
+            'offered_price' => 'nullable|numeric'
         ]);
         
         // Usar el número completo internacional si está disponible
@@ -67,8 +71,9 @@ class PublicAppointmentController extends Controller
         $durationMinutes = $service->duration_in_minutes;
         $requestedEnd = $requestedStart->copy()->addMinutes($durationMinutes);
 
-        // Check against existing appointments (ONLY confirmed, completed or pending_client)
+        // Check against existing appointments (ONLY confirmed, completed or pending_client) for THIS professional
         $conflictingAppointment = Appointment::whereIn('status', ['confirmed', 'completed', 'pending_client'])
+            ->where('professional_id', $validated['professional_id'])
             ->whereDate('appointment_date', $requestedStart->format('Y-m-d')) // Optimización basic
             ->get()
             ->filter(function ($existingApp) use ($requestedStart, $requestedEnd) {
@@ -93,14 +98,15 @@ class PublicAppointmentController extends Controller
 
         $appointment = Appointment::create([
             'service_id' => $validated['service_id'],
+            'professional_id' => $validated['professional_id'],
             'customer_name' => $validated['customer_name'],
             'customer_phone' => $validated['customer_phone'],
-            'location' => $request->input('location'),
+            'location' => $validated['location'] ?? 'salon',
             'offered_price' => $finalOfferedPrice,
             'appointment_date' => $validated['appointment_date'],
             'notes' => $validated['notes'],
             'status' => 'pending_admin',
-            'reference_image_path' => $request->input('reference_image_path'),
+            'reference_image_path' => $validated['reference_image_path'],
         ]);
 
         // Create notification for admin
@@ -152,6 +158,7 @@ class PublicAppointmentController extends Controller
 
         $conflict = Appointment::whereIn('status', ['confirmed', 'completed', 'pending_client'])
             ->where('id', '!=', $appointment->id)
+            ->where('professional_id', $appointment->professional_id)
             ->whereDate('appointment_date', $requestedStart->format('Y-m-d'))
             ->get()
             ->filter(function ($existingApp) use ($requestedStart, $requestedEnd) {
