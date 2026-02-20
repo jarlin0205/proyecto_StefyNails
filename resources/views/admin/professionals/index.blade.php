@@ -63,12 +63,23 @@
                                     <div class="text-[10px] text-gray-400 italic leading-tight">{{ $p->specialty }}</div>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-gray-900">{{ $p->phone ?: 'Sin teléfono' }}</div>
+                            <td class="px-6 py-4">
+                                <div class="text-sm font-bold text-gray-700">{{ $p->phone }}</div>
                                 @if($p->user)
-                                    <div class="text-xs text-pink-600 font-medium italic">{{ $p->user->email }}</div>
+                                    <div class="text-xs text-pink-600 italic truncate max-w-[150px]">{{ $p->user->email }}</div>
+                                    <div class="mt-1">
+                                        @if($p->user->role === 'admin')
+                                            <span class="px-2 py-0.5 text-[10px] font-black uppercase tracking-tighter bg-purple-100 text-purple-700 rounded-full border border-purple-200">
+                                                <i class="fas fa-user-shield mr-1"></i> Administrador
+                                            </span>
+                                        @ else
+                                            <span class="px-2 py-0.5 text-[10px] font-black uppercase tracking-tighter bg-blue-100 text-blue-700 rounded-full border border-blue-200">
+                                                <i class="fas fa-user mr-1"></i> Empleado
+                                            </span>
+                                        @endif
+                                    </div>
                                 @else
-                                    <div class="text-xs text-gray-400">Sin cuenta de usuario</div>
+                                    <div class="text-[10px] text-gray-400 italic">Sin cuenta de acceso</div>
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
