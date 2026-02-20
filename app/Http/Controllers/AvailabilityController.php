@@ -20,10 +20,12 @@ class AvailabilityController extends Controller
             $professionalId = $professionals->first()->id;
         }
 
-        $availabilities = \App\Models\Availability::where('professional_id', $professionalId)
-            ->whereDate('date', '>=', now()->subMonths(1))
-            ->orderBy('date', 'desc')
-            ->get(['date', 'message']);
+        $availabilities = $professionalId 
+            ? \App\Models\Availability::where('professional_id', $professionalId)
+                ->whereDate('date', '>=', now()->subMonths(1))
+                ->orderBy('date', 'desc')
+                ->get(['date', 'message'])
+            : collect();
         
         return view('admin.availability.index', compact('availabilities', 'professionals', 'professionalId'));
     }

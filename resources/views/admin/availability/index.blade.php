@@ -29,7 +29,7 @@
             <div id="availability-calendar" class="bg-white rounded-lg shadow mb-6 mx-auto"></div>
             
             <div class="w-full">
-                <h4 class="font-bold text-gray-700 mb-3 border-b pb-1">Días Personalizados ({{ auth()->user()->isAdmin() ? $professionals->find($professionalId)->name : 'Mios' }})</h4>
+                <h4 class="font-bold text-gray-700 mb-3 border-b pb-1">Días Personalizados ({{ auth()->user()->isAdmin() ? ($professionals->find($professionalId)->name ?? 'Gral') : 'Mios' }})</h4>
                 <div class="space-y-2">
                     @forelse($availabilities as $av)
                         @php $date = \Carbon\Carbon::parse($av->date); @endphp
@@ -54,7 +54,7 @@
                     <div class="flex justify-between items-start">
                         <div>
                             <h2 class="text-xl font-bold text-gray-800">Editando: <span id="selected-date-display" class="text-pink-600 capitalize"></span></h2>
-                            <p class="text-sm text-gray-500">Selecciona las horas disponibles para {{ auth()->user()->isAdmin() ? $professionals->find($professionalId)->name : 'este día' }}.</p>
+                            <p class="text-sm text-gray-500">Selecciona las horas disponibles para {{ auth()->user()->isAdmin() ? ($professionals->find($professionalId)->name ?? 'este profesional') : 'este día' }}.</p>
                         </div>
                         <span class="bg-pink-50 text-pink-700 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider border border-pink-100">
                             {{ auth()->user()->isAdmin() ? 'Modo Admin' : 'Mi Horario' }}
@@ -255,9 +255,6 @@
         hh = hh % 12 || 12;
         return `${hh}:${m}${ampm}`;
     }
-</script>
-@endpush
-@endsection
 </script>
 @endpush
 @endsection
