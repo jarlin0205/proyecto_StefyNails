@@ -7,9 +7,89 @@
 @push('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
-    .flatpickr-calendar { background: #fff; border: 1px solid #fce7f3; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-    .flatpickr-day.selected { background: #ec4899 !important; border-color: #ec4899 !important; }
-    .flatpickr-day:hover { background: #fdf2f8; }
+    .segment-btn {
+        flex: 1;
+        background: white;
+        border: 1px solid #fce7f3;
+        color: #9ca3af;
+        padding: 0.6rem 0.4rem;
+        border-radius: 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .segment-btn i { font-size: 1rem; }
+    
+    .segment-btn:hover:not(.active) {
+        border-color: #fbcfe8;
+        color: #db2777;
+        background: #fff5f8;
+        transform: translateY(-1px);
+    }
+    
+    .segment-btn.active {
+        background: #ec4899;
+        border-color: #ec4899;
+        color: white;
+        box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
+    }
+
+    .segment-btn.active i {
+        animation: heartBeat 1.3s infinite;
+    }
+
+    @keyframes heartBeat {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+    }
+
+    /* PREMIUM TIME SLOT BUTTONS */
+    .slot-btn {
+        background: white;
+        border: 1px solid #f3f4f6;
+        color: #4b5563;
+        padding: 0.75rem 0.5rem;
+        border-radius: 1rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-align: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .slot-btn:hover:not(.active) {
+        border-color: #fbcfe8;
+        background: #fff5f8;
+        color: #db2777;
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .slot-btn.active {
+        background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+        border-color: #be185d;
+        color: white;
+        transform: scale(1.05);
+        box-shadow: 0 10px 15px -3px rgba(236, 72, 153, 0.4);
+        z-index: 10;
+    }
+
+    #time_placeholder_container {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    #time_placeholder_container:hover .shadow-sm {
+        border-color: #fbcfe8;
+        background: #fff5f8;
+    }
 </style>
 @endpush
 
@@ -28,24 +108,72 @@
                     <p class="text-xs mt-2 text-gray-500">Fecha actual: {{ $appointment->appointment_date->format('d/m/Y h:i A') }}</p>
                 </div>
 
-                <form action="{{ route('public.appointments.updateReschedule', $appointment->reschedule_token) }}" method="POST">
+                <form action="{{ route('public.appointments.updateReschedule', $appointment->reschedule_token) }}" method="POST" id="rescheduleForm">
                     @csrf
                     
                     <div class="space-y-6">
                         <!-- Fecha y Hora Moderno -->
                         <div class="space-y-4">
-                            <label class="block text-gray-700 font-bold mb-2">1. Selecciona el Nuevo Día</label>
-                            <div class="flex flex-col md:flex-row gap-6">
-                                <div id="inline-calendar" class="shadow-sm border border-pink-100 rounded-lg overflow-hidden mx-auto md:mx-0"></div>
-                                <div id="time_selection" class="flex-1 hidden">
-                                    <label class="block text-sm font-semibold text-gray-600 mb-1 uppercase tracking-wider">2. Selecciona tu Nueva Hora</label>
-                                    <p class="text-xs text-pink-600 font-bold mb-3"><i class="fas fa-clock mr-1"></i> Horario disponible</p>
-                                    <div id="slots_container" class="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                                        <!-- slots dynamically injected -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Selector de Fecha -->
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 ml-1 uppercase">Nuevo Día</label>
+                                    <div class="relative group">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-300">
+                                            <i class="far fa-calendar-alt"></i>
+                                        </div>
+                                        <input type="text" id="date_selector" readonly
+                                               class="shadow-sm border border-gray-200 rounded-xl w-full py-4 pl-10 pr-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-pink-500 cursor-pointer bg-white transition-all font-semibold" 
+                                               placeholder="Toca para elegir fecha...">
                                     </div>
-                                    <p id="no_slots_msg" class="text-xs text-red-500 hidden mt-2">No hay horarios disponibles para este día.</p>
+                                </div>
+
+                                <!-- Hora Seleccionada (Visual) -->
+                                <div id="time_placeholder_container">
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 ml-1 uppercase">Hora Elegida</label>
+                                    <div class="shadow-sm border border-gray-100 rounded-xl w-full py-4 px-4 text-pink-500 bg-gray-50 transition-all font-semibold flex justify-between items-center italic">
+                                        <span id="time_display">Selecciona un día primero</span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] font-bold bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full uppercase tracking-tighter opacity-0 transition-opacity" id="tap-to-open">Toca para abrir</span>
+                                            <i class="far fa-clock"></i>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+
+                            <!-- Contenedor INLINE de Horas -->
+                            <div id="inline-slots-container" style="display: none;" class="animate-fade-in">
+                                <div class="flex items-center justify-between mb-4 border-b border-pink-100 pb-2">
+                                    <h4 class="text-xs font-black text-pink-600 uppercase tracking-widest">Turnos Disponibles</h4>
+                                    <span id="slots-count-badge" class="bg-pink-500 text-white text-[9px] px-2 py-0.5 rounded-full font-bold hidden"></span>
+                                </div>
+
+                                <!-- Segmentadores de Tiempo -->
+                                <div class="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+                                    <button type="button" class="segment-btn active" data-segment="all">
+                                        <i class="fas fa-th-large text-pink-400"></i>
+                                        Todos
+                                    </button>
+                                    <button type="button" class="segment-btn" data-segment="morning">
+                                        <i class="fas fa-sun text-amber-400"></i>
+                                        Mañana
+                                    </button>
+                                    <button type="button" class="segment-btn" data-segment="afternoon">
+                                        <i class="fas fa-cloud-sun text-orange-400"></i>
+                                        Tarde
+                                    </button>
+                                    <button type="button" class="segment-btn" data-segment="evening">
+                                        <i class="fas fa-moon text-indigo-400"></i>
+                                        Noche
+                                    </button>
+                                </div>
+
+                                <div id="slots_container" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+                                    <!-- Slots dynamically injected -->
+                                </div>
+                                <p id="no_slots_msg" class="text-center text-sm text-red-400 font-medium hidden py-4">No hay turnos para esta franja 🌸</p>
+                            </div>
+                            
                             <input type="hidden" name="appointment_date" id="appointment_date_raw" required>
                         </div>
 
@@ -77,28 +205,166 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         let selectedDate = null;
+        let selectedTime = null;
 
         // INITIALIZE FLATPICKR
-        const fp = flatpickr("#inline-calendar", {
-            inline: true,
+        const dateSelector = document.getElementById('date_selector');
+        const fp = flatpickr(dateSelector, {
+            inline: false,
             locale: "es",
             minDate: "today",
             dateFormat: "Y-m-d",
-            onChange: function(selectedDates, dateStr) {
-                selectedDate = dateStr;
-                document.getElementById('appointment_date_raw').value = '';
-                fetchBusySlots(dateStr);
+            altInput: true,
+            altFormat: "F j, Y",
+            onClose: function(selectedDates, dateStr) {
+                if (dateStr) {
+                    selectedDate = dateStr;
+                    selectedTime = null;
+                    document.getElementById('appointment_date_raw').value = '';
+                    
+                    // Reset UI
+                    document.getElementById('time_display').innerText = 'Toca aquí para elegir hora...';
+                    document.getElementById('time_display').classList.remove('text-gray-400', 'text-pink-600');
+                    document.getElementById('time_display').classList.add('text-pink-500');
+                    document.getElementById('tap-to-open').classList.remove('opacity-0');
+                    
+                    document.getElementById('inline-slots-container').style.display = 'none';
+
+                    fetchBusySlots(dateStr);
+                }
             }
         });
+
+        // Toggle para mostrar/ocultar slots
+        document.getElementById('time_placeholder_container').addEventListener('click', function() {
+            if (!selectedDate) {
+                Swal.fire({
+                    icon: 'info',
+                    text: 'Por favor, selecciona una fecha primero 📅',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+                return;
+            }
+            
+            const container = document.getElementById('inline-slots-container');
+            if (container.style.display === 'none') {
+                container.style.display = 'block';
+                container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                document.getElementById('tap-to-open').classList.add('opacity-0');
+            } else {
+                container.style.display = 'none';
+                if (!selectedTime) {
+                    document.getElementById('tap-to-open').classList.remove('opacity-0');
+                }
+            }
+        });
+
+        // Validar antes de enviar el formulario
+        const form = document.getElementById('rescheduleForm');
+        form.addEventListener('submit', function(e) {
+            // 1. Validar Fecha
+            if (!selectedDate) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Selecciona una fecha',
+                    text: 'Aun no has elegido el día para tu servicio.',
+                    confirmButtonColor: '#ec4899'
+                });
+                document.getElementById('date_selector').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return false;
+            }
+
+            // 2. Validar Hora
+            if (!selectedTime) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Elige una hora',
+                    text: '¡Casi terminamos! Por favor selecciona un horario disponible.',
+                    confirmButtonColor: '#ec4899'
+                });
+                // Abrir el contenedor de slots si está cerrado
+                const container = document.getElementById('inline-slots-container');
+                if (container.style.display === 'none') {
+                    document.getElementById('time_placeholder_container').click();
+                } else {
+                    container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return false;
+            }
+        });
+
+        // Lógica de Segmentación
+        let allAvailableSlots = [];
+        let currentSegment = 'all';
+
+        document.querySelectorAll('.segment-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.segment-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentSegment = btn.dataset.segment;
+                renderFilteredSlots();
+            });
+        });
+
+        function renderFilteredSlots() {
+            const container = document.getElementById('slots_container');
+            const msg = document.getElementById('no_slots_msg');
+            container.innerHTML = '';
+            
+            const filtered = allAvailableSlots.filter(time => {
+                const hour = parseInt(time.split(':')[0]);
+                if (currentSegment === 'morning') return hour < 12;
+                if (currentSegment === 'afternoon') return hour >= 12 && hour < 17;
+                if (currentSegment === 'evening') return hour >= 17;
+                return true; // includes 'all'
+            });
+
+            if (filtered.length === 0) {
+                msg.classList.remove('hidden');
+                document.getElementById('slots-count-badge').classList.add('hidden');
+                return;
+            }
+
+            msg.classList.add('hidden');
+            const badge = document.getElementById('slots-count-badge');
+            badge.innerText = `${filtered.length} ${currentSegment === 'all' ? 'total' : 'disponibles'}`;
+            badge.classList.remove('hidden');
+            
+            filtered.forEach(time => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.innerText = formatTo12h(time);
+                btn.className = "slot-btn" + (selectedTime === time ? " active" : "");
+                btn.onclick = () => {
+                    document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedTime = time;
+                    document.getElementById('time_display').innerText = formatTo12h(time);
+                    document.getElementById('time_display').classList.replace('text-pink-500', 'text-pink-600');
+                    document.getElementById('time_display').classList.add('font-black');
+                    document.getElementById('appointment_date_raw').value = `${selectedDate} ${time}`;
+                };
+                container.appendChild(btn);
+            });
+        }
 
         async function fetchBusySlots(date) {
             const container = document.getElementById('slots_container');
             const msg = document.getElementById('no_slots_msg');
-            const timeDiv = document.getElementById('time_selection');
+            const inlineContainer = document.getElementById('inline-slots-container');
+            const badge = document.getElementById('slots-count-badge');
             
-            container.innerHTML = '<div class="col-span-full py-4 text-center text-pink-300"><i class="fas fa-spinner fa-spin"></i> Cargando...</div>';
-            timeDiv.classList.remove('hidden');
+            container.innerHTML = '<div class="col-span-full py-6 text-center text-pink-400 font-medium"><i class="fas fa-spinner fa-spin mr-2"></i> Buscando horarios...</div>';
+            // inlineContainer.style.display = 'block';
             msg.classList.add('hidden');
+            badge.classList.add('hidden');
+            allAvailableSlots = [];
             
             const prevCustomMsg = document.getElementById('custom_availability_msg');
             if (prevCustomMsg) prevCustomMsg.remove();
@@ -136,6 +402,7 @@
         function generateSlots(busySlots, workingHours = null) {
             const container = document.getElementById('slots_container');
             const msg = document.getElementById('no_slots_msg');
+            const badge = document.getElementById('slots-count-badge');
             container.innerHTML = '';
             
             let possibleSlots = workingHours && workingHours.length > 0 ? workingHours : [];
@@ -167,22 +434,26 @@
                 });
 
                 if (!isBusy) {
-                    availableCount++;
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.innerText = formatTo12h(time);
-                    btn.className = "py-2 border-2 border-pink-50 rounded-lg text-sm font-semibold text-gray-700 hover:border-pink-500 hover:bg-pink-50 transition-all";
-                    btn.onclick = () => {
-                        document.querySelectorAll('#slots_container button').forEach(b => b.className = "py-2 border-2 border-pink-50 rounded-lg text-sm font-semibold text-gray-700 hover:border-pink-500 hover:bg-pink-50 transition-all");
-                        btn.className = "py-2 border-2 border-pink-600 bg-pink-600 text-white rounded-lg text-sm font-bold shadow-md transform scale-105 transition-all";
-                        document.getElementById('appointment_date_raw').value = `${selectedDate} ${time}`;
-                    };
-                    container.appendChild(btn);
+                    allAvailableSlots.push(time);
                 }
             });
 
-            if (availableCount === 0) msg.classList.remove('hidden');
-            else msg.classList.add('hidden');
+            if (allAvailableSlots.length === 0) {
+                container.innerHTML = '';
+                msg.classList.remove('hidden');
+                badge.classList.add('hidden');
+            } else {
+                badge.innerText = `${allAvailableSlots.length} total`;
+                badge.classList.remove('hidden');
+                
+                // Set default segment to 'all' as requested
+                currentSegment = 'all';
+                document.querySelectorAll('.segment-btn').forEach(b => {
+                    b.classList.toggle('active', b.dataset.segment === 'all');
+                });
+
+                renderFilteredSlots();
+            }
         }
     });
 </script>

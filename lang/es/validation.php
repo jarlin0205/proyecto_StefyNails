@@ -96,7 +96,7 @@ return [
     'password' => 'La contraseña es incorrecta.',
     'present' => 'El campo :attribute debe estar presente.',
     'regex' => 'El formato del campo :attribute es inválido.',
-    'required' => 'El campo :attribute es obligatorio.',
+    'required' => 'El campo :attribute no puede estar vacío.',
     'required_if' => 'El campo :attribute es obligatorio cuando :other es :value.',
     'required_unless' => 'El campo :attribute es obligatorio a menos que :other esté en :values.',
     'required_with' => 'El campo :attribute es obligatorio cuando :values está presente.',
@@ -146,6 +146,16 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'customer_name' => 'nombre completo',
+        'customer_phone' => 'teléfono / WhatsApp',
+        'customer_phone_full' => 'teléfono completo',
+        'service_id' => 'servicio',
+        'appointment_date' => 'día y hora',
+        'location' => 'donde será el servicio',
+        'offered_price' => 'precio de oferta',
+        'notes' => 'notas especiales',
+        'reschedule_reason' => 'motivo del cambio',
+    ],
 
 ];

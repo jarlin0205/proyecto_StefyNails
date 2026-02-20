@@ -17,8 +17,89 @@
     .iti__selected-flag { padding: 0 8px 0 12px; }
     .iti__country-list { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border: 1px solid #fce7f3; }
     .iti__country:hover { background-color: #fdf2f8; }
-    .iti__country.iti__highlight { background-color: #fce7f3; }
+    .segment-btn {
+        flex: 1;
+        background: white;
+        border: 1px solid #fce7f3;
+        color: #9ca3af;
+        padding: 0.6rem 0.4rem;
+        border-radius: 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.025em;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+    }
     
+    .segment-btn i { font-size: 1rem; }
+    
+    .segment-btn:hover:not(.active) {
+        border-color: #fbcfe8;
+        color: #db2777;
+        background: #fff5f8;
+        transform: translateY(-1px);
+    }
+    
+    .segment-btn.active {
+        background: #ec4899;
+        border-color: #ec4899;
+        color: white;
+        box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
+    }
+
+    .segment-btn.active i {
+        animation: heartBeat 1.3s infinite;
+    }
+
+    @keyframes heartBeat {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.15); }
+    }
+
+    /* PREMIUM TIME SLOT BUTTONS */
+    .slot-btn {
+        background: white;
+        border: 1px solid #f3f4f6;
+        color: #4b5563;
+        padding: 0.75rem 0.5rem;
+        border-radius: 1rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        text-align: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .slot-btn:hover:not(.active) {
+        border-color: #fbcfe8;
+        background: #fff5f8;
+        color: #db2777;
+        transform: translateY(-2px) scale(1.02);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .slot-btn.active {
+        background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+        border-color: #be185d;
+        color: white;
+        transform: scale(1.05);
+        box-shadow: 0 10px 15px -3px rgba(236, 72, 153, 0.4);
+        z-index: 10;
+    }
+
+    #time_placeholder_container .shadow-sm {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    #time_placeholder_container:hover .shadow-sm {
+        border-color: #fbcfe8;
+        background: #fff5f8;
+    }
 </style>
 @endpush
 
@@ -47,145 +128,182 @@
                     </div>
                 @endif
 
-                <form action="{{ route('appointments.store') }}" method="POST">
+                <form action="{{ route('appointments.store') }}" method="POST" id="appointmentForm">
                     @csrf
                     <input type="hidden" name="reference_image_path" id="reference_image_path">
                     
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <!-- Nombre -->
+                    <div class="space-y-8">
+                        <!-- Sección 1: Información Personal -->
                         <div>
-                            <label class="block text-gray-700 font-bold mb-2 cursor-pointer" for="customer_name">
-                                Tu Nombre Completo
-                            </label>
-                            <input class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent" 
-                                   id="customer_name" type="text" name="customer_name" required placeholder="Ej: María Pérez" value="{{ old('customer_name') }}">
-                        </div>
-
-                        <!-- Telefono -->
-                        <div>
-                            <label class="block text-gray-700 font-bold mb-2 cursor-pointer" for="customer_phone">
-                                Teléfono/WhatsApp
-                            </label>
-                            <input class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent" 
-                                   id="customer_phone" type="tel" name="customer_phone" required value="{{ old('customer_phone') }}">
-                            <input type="hidden" id="customer_phone_full" name="customer_phone_full">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <!-- Servicio -->
-                        <div>
-                            <label class="block text-gray-700 font-bold mb-2 cursor-pointer" for="service_id">
-                                Servicio Deseado
-                            </label>
-                            <select class="shadow border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent" 
-                                    id="service_id" name="service_id" required>
-                                <option value="">Selecciona un servicio...</option>
-                                @php
-                                    $currentCategory = null;
-                                @endphp
-                                @foreach($services as $service)
-                                    @if($service->category->name !== $currentCategory)
-                                        @if($currentCategory !== null)
-                                            </optgroup>
-                                        @endif
-                                        <optgroup label="{{ $service->category->name }}">
-                                        @php $currentCategory = $service->category->name; @endphp
-                                    @endif
-                                    
-                                    <option value="{{ $service->id }}" 
-                                            data-price="{{ $service->price }}" 
-                                            data-image="{{ $service->image_path ? asset($service->image_path) : '' }}"
-                                            data-gallery="{{ $service->images->pluck('image_path')->map(fn($p) => asset($p))->toJson() }}"
-                                            {{ (old('service_id') == $service->id || (isset($selectedServiceId) && $selectedServiceId == $service->id)) ? 'selected' : '' }}>
-                                        {{ $service->name }} - {{ $service->price_display }}
-                                    </option>
-                                @endforeach
-                                @if($currentCategory !== null)
-                                    </optgroup>
-                                @endif
-                            </select>
-                            
-
-                        </div>
-
-                        <!-- Fecha y Hora Moderno -->
-                        <div class="md:col-span-2 space-y-4">
-                            <label class="block text-gray-700 font-bold mb-2">1. Selecciona el Día</label>
-                            <div class="flex flex-col md:flex-row gap-6">
-                                <div id="inline-calendar" class="shadow-sm border border-pink-100 rounded-lg overflow-hidden"></div>
-                                <div id="time_selection" class="flex-1 hidden">
-                                    <label class="block text-sm font-semibold text-gray-600 mb-1 uppercase tracking-wider">2. Selecciona tu Hora</label>
-                                    <p class="text-xs text-pink-600 font-bold mb-3"><i class="fas fa-clock mr-1"></i> Horario de Atención: 8:00 AM - 9:30 PM</p>
-                                    <div id="slots_container" class="grid grid-cols-4 sm:grid-cols-5 gap-2">
-                                        <!-- slots dynamically injected -->
-                                    </div>
-                                    <p id="no_slots_msg" class="text-xs text-red-500 hidden mt-2">No hay horarios disponibles para este día.</p>
+                            <h3 class="text-lg font-bold text-pink-700 mb-4 flex items-center">
+                                <span class="bg-pink-100 text-pink-600 w-8 h-8 rounded-full flex items-center justify-center mr-2 text-sm">1</span>
+                                Información de Contacto
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-gray-50 rounded-xl border border-gray-100">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 mb-2 uppercase tracking-wide" for="customer_name">Nombre Completo</label>
+                                    <input class="shadow-sm border border-gray-200 rounded-lg w-full py-3 px-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all" 
+                                           id="customer_name" type="text" name="customer_name" required placeholder="Ej: María Pérez" value="{{ old('customer_name') }}">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 mb-2 uppercase tracking-wide" for="customer_phone">Teléfono / WhatsApp</label>
+                                    <input class="shadow-sm border border-gray-200 rounded-lg w-full py-3 px-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all" 
+                                           id="customer_phone" type="tel" name="customer_phone" required value="{{ old('customer_phone') }}">
+                                    <input type="hidden" id="customer_phone_full" name="customer_phone_full">
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Sección 2: Elige tu Servicio -->
+                        <div>
+                            <h3 class="text-lg font-bold text-pink-700 mb-4 flex items-center">
+                                <span class="bg-pink-100 text-pink-600 w-8 h-8 rounded-full flex items-center justify-center mr-2 text-sm">2</span>
+                                ¿Qué servicio deseas?
+                            </h3>
+                            <div class="p-6 bg-pink-50 bg-opacity-30 rounded-xl border border-pink-100 space-y-6">
+                                <div>
+                                    <select class="shadow-sm border border-pink-200 rounded-lg w-full py-3 px-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white transition-all font-medium" 
+                                            id="service_id" name="service_id" required>
+                                        <option value="">Selecciona un servicio...</option>
+                                        @php $currentCategory = null; @endphp
+                                        @foreach($services as $service)
+                                            @if($service->category->name !== $currentCategory)
+                                                @if($currentCategory !== null) </optgroup> @endif
+                                                <optgroup label="✨ {{ $service->category->name }} ✨">
+                                                @php $currentCategory = $service->category->name; @endphp
+                                            @endif
+                                            <option value="{{ $service->id }}" data-price="{{ $service->price }}" 
+                                                    data-image="{{ $service->image_path ? asset($service->image_path) : '' }}"
+                                                    data-gallery="{{ $service->images->pluck('image_path')->map(fn($p) => asset($p))->toJson() }}"
+                                                    {{ (old('service_id') == $service->id || (isset($selectedServiceId) && $selectedServiceId == $service->id)) ? 'selected' : '' }}>
+                                                {{ $service->name }} — {{ $service->price_display }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <!-- Galería de Referencia Inline -->
+                                <div id="service-image-preview" class="hidden animate-fade-in border-t border-pink-100 pt-6">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <p class="text-sm font-bold text-pink-600 uppercase tracking-tighter">Diseños Inspiradores</p>
+                                        <p class="text-[10px] text-gray-400 font-medium italic">Selecciona uno si te encanta ✨</p>
+                                    </div>
+                                    <div id="preview-grid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-3">
+                                        <!-- Dynamic Images -->
+                                    </div>
+                                    <div class="text-center mt-4">
+                                        <button type="button" id="view-more-btn" class="hidden text-pink-500 text-xs font-bold hover:underline transition-all">
+                                            + Ver todos los diseños
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sección 3: Agenda tu Cita -->
+                        <div>
+                            <h3 class="text-lg font-bold text-pink-700 mb-4 flex items-center">
+                                <span class="bg-pink-100 text-pink-600 w-8 h-8 rounded-full flex items-center justify-center mr-2 text-sm">3</span>
+                                ¿Cuándo nos vemos?
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Fecha -->
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 ml-1 uppercase">Día del Servicio</label>
+                                    <div class="relative group">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none transition-colors group-focus-within:text-pink-500 text-gray-300">
+                                            <i class="far fa-calendar-alt"></i>
+                                        </div>
+                                        <input type="text" id="date_selector" readonly
+                                               class="shadow-sm border border-gray-200 rounded-xl w-full py-4 pl-10 pr-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent cursor-pointer bg-white transition-all font-semibold" 
+                                               placeholder="Toca para elegir fecha...">
+                                    </div>
+                                </div>
+                                
+                                <!-- Placeholder de Hora (Visual) -->
+                                <div id="time_placeholder_container">
+                                    <label class="block text-xs font-bold text-gray-500 mb-1 ml-1 uppercase">Hora Seleccionada</label>
+                                    <div class="shadow-sm border border-gray-100 rounded-xl w-full py-4 px-4 text-pink-500 bg-gray-50 transition-all font-semibold flex justify-between items-center italic">
+                                        <span id="time_display">Selecciona un día primero</span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] font-bold bg-pink-100 text-pink-600 px-2 py-0.5 rounded-full uppercase tracking-tighter opacity-0 transition-opacity" id="tap-to-open">Toca para abrir</span>
+                                            <i class="far fa-clock"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Contenedor INLINE de Horas -->
+                            <div id="inline-slots-container" style="display: none;" class="animate-fade-in">
+                                <div class="flex items-center justify-between mb-4 border-b border-pink-100 pb-2">
+                                    <h4 class="text-xs font-black text-pink-600 uppercase tracking-widest">Turnos Disponibles</h4>
+                                    <span id="slots-count-badge" class="bg-pink-500 text-white text-[9px] px-2 py-0.5 rounded-full font-bold"></span>
+                                </div>
+
+                                <!-- Segmentadores de Tiempo -->
+                                <div class="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+                                    <button type="button" class="segment-btn active" data-segment="all">
+                                        <i class="fas fa-th-large text-pink-400"></i>
+                                        Todos
+                                    </button>
+                                    <button type="button" class="segment-btn" data-segment="morning">
+                                        <i class="fas fa-sun text-amber-400"></i>
+                                        Mañana
+                                    </button>
+                                    <button type="button" class="segment-btn" data-segment="afternoon">
+                                        <i class="fas fa-cloud-sun text-orange-400"></i>
+                                        Tarde
+                                    </button>
+                                    <button type="button" class="segment-btn" data-segment="evening">
+                                        <i class="fas fa-moon text-indigo-400"></i>
+                                        Noche
+                                    </button>
+                                </div>
+
+                                <div id="slots_container" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+                                    <!-- Slots dynamically injected -->
+                                </div>
+                                <p id="no_slots_msg" class="text-center text-sm text-red-400 font-medium hidden py-4">No hay turnos para esta franja 🌸</p>
+                            </div>
+                            
                             <input type="hidden" name="appointment_date" id="appointment_date_raw" required>
                         </div>
-                    </div>
 
-                    <!-- Full Width Gallery Container -->
-                    <div id="service-image-preview" class="hidden mb-6 bg-pink-50 rounded-lg p-4 border border-pink-100">
-                        <div class="text-center mb-4">
-                            <p class="text-lg font-bold text-pink-600">✨ Diseños de Referencia</p>
-                            <p class="text-xs text-gray-500">Haz clic en una imagen si te gustaría ese diseño</p>
-                        </div>
-                        <div id="preview-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-4 justify-center">
-                            <!-- Dynamic Images -->
-                        </div>
-                        <div class="text-center mt-4">
-                            <button type="button" id="view-more-btn" class="hidden bg-white text-pink-600 border border-pink-300 hover:bg-pink-50 px-4 py-2 rounded-full text-sm font-bold transition shadow-sm">
-                                + Ver más diseños
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <!-- Ubicación -->
+                        <!-- Sección 4: Detalles Finales -->
                         <div>
-                            <label class="block text-gray-700 font-bold mb-2 cursor-pointer" for="location">
-                                Lugar del Servicio
-                            </label>
-                            <select class="shadow border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent" 
-                                    id="location" name="location" required>
-                                <option value="salon" {{ old('location') == 'salon' ? 'selected' : '' }}>En el Salón (Precio Normal)</option>
-                                <option value="home" {{ old('location') == 'home' ? 'selected' : '' }}>A Domicilio (+ $5.000)</option>
-                            </select>
-                        </div>
-
-                        <!-- Oferta de Precio -->
-                        <div>
-                            <label class="block text-gray-700 font-bold mb-2 cursor-pointer" for="offered_price">
-                                ¿Deseas ofertar un precio?
-                            </label>
-                            <input class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent" 
-                                   id="offered_price" type="number" name="offered_price" placeholder="Ingrese su oferta..." value="{{ old('offered_price') }}">
-                            
-                            <!-- Feedback Container -->
-                            <div id="price-feedback" class="mt-2 text-sm hidden p-3 rounded bg-gray-50 border">
-                                <p class="mb-1"><span class="font-bold text-gray-700">Precio Real:</span> <span id="real-price-display">$0</span></p>
-                                <div id="offer-warning" class="hidden text-red-600 font-semibold">
-                                    <p>⚠️ Oferta demasiado baja.</p>
-                                    <p>El descuento máximo es de $5.000.</p>
-                                    <p class="mt-1 text-gray-800">Se registrará por: <span id="final-adjusted-price" class="text-lg font-bold text-green-600"></span></p>
+                            <h3 class="text-lg font-bold text-pink-700 mb-4 flex items-center">
+                                <span class="bg-pink-100 text-pink-600 w-8 h-8 rounded-full flex items-center justify-center mr-2 text-sm">4</span>
+                                Detalles Finales
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 bg-gray-50 rounded-xl border border-gray-100">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 mb-2 uppercase tracking-wide" for="location">¿Dónde será el servicio?</label>
+                                    <select class="shadow-sm border border-gray-200 rounded-lg w-full py-3 px-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all font-medium" 
+                                            id="location" name="location" required>
+                                        <option value="salon" {{ old('location') == 'salon' ? 'selected' : '' }}>💅 En el Salón (Normal)</option>
+                                        <option value="home" {{ old('location') == 'home' ? 'selected' : '' }}>🏠 A Domicilio (+ $5k)</option>
+                                    </select>
                                 </div>
-                                <div id="offer-ok" class="hidden text-green-600 font-semibold">
-                                    <p>✅ Oferta válida.</p>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-600 mb-2 uppercase tracking-wide" for="offered_price">¿Deseas ofertar un precio?</label>
+                                    <input class="shadow-sm border border-gray-200 rounded-lg w-full py-3 px-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all" 
+                                           id="offered_price" type="number" name="offered_price" placeholder="Escribe tu oferta..." value="{{ old('offered_price') }}">
+                                    <!-- Feedback Container -->
+                                    <div id="price-feedback" class="mt-2 text-[10px] hidden p-2 rounded bg-pink-50 border border-pink-100 flex items-center space-x-2">
+                                        <span class="font-bold text-pink-700">Precio Sugerido:</span>
+                                        <span id="real-price-display" class="font-black text-pink-800">$0</span>
+                                        <div id="offer-warning" class="hidden text-red-500 font-bold ml-auto">• Mínimo Sugerido: <span id="final-adjusted-price"></span></div>
+                                    </div>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-sm font-semibold text-gray-600 mb-2 uppercase tracking-wide" for="notes">Notas especiales (Color, diseño, etc.)</label>
+                                    <textarea class="shadow-sm border border-gray-200 rounded-lg w-full py-3 px-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all" 
+                                              id="notes" name="notes" rows="2" placeholder="Cuéntanos cualquier detalle adicional...">{{ old('notes') }}</textarea>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Notas -->
-                    <div class="mb-8">
-                        <label class="block text-gray-700 font-bold mb-2 cursor-pointer" for="notes">
-                            Notas Adicionales (Opcional)
-                        </label>
-                        <textarea class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent" id="notes" name="notes" rows="3" placeholder="Ej: Tengo el cabello muy largo, quiero un diseño específico...">{{ old('notes') }}</textarea>
-                    </div>
 
                     <div class="flex items-center justify-center">
                         <button class="bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-8 rounded-full focus:outline-none focus:shadow-outline transition duration-300 transform hover:scale-105" 
@@ -227,18 +345,92 @@
         });
         
         // Validar antes de enviar el formulario
-        const form = phoneInput.closest('form');
+        const form = document.getElementById('appointmentForm');
         form.addEventListener('submit', function(e) {
+            const name = document.getElementById('customer_name').value.trim();
             const fullNumber = iti.getNumber();
             phoneInputFull.value = fullNumber;
             
+            // 1. Validar Nombre
+            if (!name) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Falta tu nombre',
+                    text: 'Por favor, dinos quién eres para agendar tu cita.',
+                    confirmButtonColor: '#ec4899'
+                });
+                return false;
+            }
+
+            // 2. Validar Servicio
+            const service = document.getElementById('service_id').value;
+            if (!service) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Selecciona un servicio',
+                    text: 'Por favor, elige el servicio que deseas realizarte.',
+                    confirmButtonColor: '#ec4899'
+                });
+                return false;
+            }
+
+            // 3. Validar Teléfono / WhatsApp
             if (!iti.isValidNumber()) {
                 e.preventDefault();
                 Swal.fire({
                     icon: 'error',
                     title: 'Número inválido',
-                    text: 'Por favor ingresa un número de teléfono válido para el país seleccionado.',
+                    text: 'El número de teléfono ingresado no es válido para el país seleccionado.',
+                    confirmButtonColor: '#ec4899'
                 });
+                return false;
+            }
+
+            // 3. Validar que sea Celular (WhatsApp)
+            const numberType = iti.getNumberType();
+            if (numberType !== intlTelInputUtils.numberType.MOBILE && numberType !== intlTelInputUtils.numberType.FIXED_LINE_OR_MOBILE) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: '¿Es un celular?',
+                    text: 'Para enviarte recordatorios por WhatsApp, necesitamos un número de celular válido.',
+                    confirmButtonColor: '#ec4899'
+                });
+                return false;
+            }
+
+            // 4. Validar Fecha
+            if (!selectedDate) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Selecciona una fecha',
+                    text: 'Aun no has elegido el día para tu servicio.',
+                    confirmButtonColor: '#ec4899'
+                });
+                // Hacer scroll al selector de fecha si es necesario
+                document.getElementById('date_selector').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return false;
+            }
+
+            // 5. Validar Hora
+            if (!selectedTime) {
+                e.preventDefault();
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Elige una hora',
+                    text: '¡Casi terminamos! Por favor selecciona un horario disponible.',
+                    confirmButtonColor: '#ec4899'
+                });
+                // Abrir el contenedor de slots si está cerrado
+                const container = document.getElementById('inline-slots-container');
+                if (container.style.display === 'none') {
+                    document.getElementById('time_placeholder_container').click();
+                } else {
+                    container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
                 return false;
             }
         });
@@ -263,27 +455,130 @@
         let selectedTime = null;
 
         // INITIALIZE FLATPICKR
-        const fp = flatpickr("#inline-calendar", {
-            inline: true,
+        const dateSelector = document.getElementById('date_selector');
+        const fp = flatpickr(dateSelector, {
+            inline: false,
             locale: "es",
             minDate: "today",
             dateFormat: "Y-m-d",
-            onChange: function(selectedDates, dateStr) {
-                selectedDate = dateStr;
-                selectedTime = null;
-                document.getElementById('appointment_date_raw').value = '';
-                fetchBusySlots(dateStr);
+            altInput: true,
+            altFormat: "F j, Y",
+            onClose: function(selectedDates, dateStr) {
+                if (dateStr) {
+                    selectedDate = dateStr;
+                    selectedTime = null;
+                    document.getElementById('appointment_date_raw').value = '';
+                    
+                    // Reset UI
+                    document.getElementById('time_display').innerText = 'Toca aquí para elegir hora...';
+                    document.getElementById('time_display').classList.remove('text-gray-400', 'text-pink-600');
+                    document.getElementById('time_display').classList.add('text-pink-500');
+                    document.getElementById('tap-to-open').classList.remove('opacity-0');
+                    
+                    document.getElementById('inline-slots-container').style.display = 'none';
+                    
+                    fetchBusySlots(dateStr);
+                }
             }
         });
+
+        // Toggle para mostrar/ocultar slots
+        document.getElementById('time_placeholder_container').addEventListener('click', function() {
+            if (!selectedDate) {
+                Swal.fire({
+                    icon: 'info',
+                    text: 'Por favor, selecciona una fecha primero 📅',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+                return;
+            }
+            
+            const container = document.getElementById('inline-slots-container');
+            if (container.style.display === 'none') {
+                container.style.display = 'block';
+                container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                document.getElementById('tap-to-open').classList.add('opacity-0');
+            } else {
+                container.style.display = 'none';
+                if (!selectedTime) {
+                    document.getElementById('tap-to-open').classList.remove('opacity-0');
+                }
+            }
+        });
+
+        // Lógica de Segmentación
+        let allAvailableSlots = [];
+        let currentSegment = 'all';
+
+        document.querySelectorAll('.segment-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.segment-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentSegment = btn.dataset.segment;
+                renderFilteredSlots();
+            });
+        });
+
+        function renderFilteredSlots() {
+            const container = document.getElementById('slots_container');
+            const msg = document.getElementById('no_slots_msg');
+            container.innerHTML = '';
+            
+            const filtered = allAvailableSlots.filter(time => {
+                const hour = parseInt(time.split(':')[0]);
+                if (currentSegment === 'morning') return hour < 12;
+                if (currentSegment === 'afternoon') return hour >= 12 && hour < 17;
+                if (currentSegment === 'evening') return hour >= 17;
+                return true; // includes 'all'
+            });
+
+            if (filtered.length === 0) {
+                msg.classList.remove('hidden');
+                document.getElementById('slots-count-badge').classList.add('hidden');
+                return;
+            }
+
+            msg.classList.add('hidden');
+            const badge = document.getElementById('slots-count-badge');
+            badge.innerText = `${filtered.length} ${currentSegment === 'all' ? 'total' : 'disponibles'}`;
+            badge.classList.remove('hidden');
+            filtered.forEach(time => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.innerText = formatTo12h(time);
+                btn.className = "slot-btn" + (selectedTime === time ? " active" : "");
+                btn.onclick = () => {
+                    document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedTime = time;
+                    document.getElementById('time_display').innerText = formatTo12h(time);
+                    document.getElementById('time_display').classList.remove('text-pink-500', 'italic');
+                    document.getElementById('time_display').classList.add('text-pink-600', 'font-black');
+                    document.getElementById('appointment_date_raw').value = `${selectedDate} ${time}`;
+                    
+                    if (window.innerWidth < 768) {
+                        btn.closest('form').querySelector('button[type="submit"]').scrollIntoView({ behavior: 'smooth', block: 'end' });
+                    }
+                };
+                container.appendChild(btn);
+            });
+        }
 
         async function fetchBusySlots(date) {
             const container = document.getElementById('slots_container');
             const msg = document.getElementById('no_slots_msg');
-            const timeDiv = document.getElementById('time_selection');
+            const inlineContainer = document.getElementById('inline-slots-container');
+            const badge = document.getElementById('slots-count-badge');
             
-            container.innerHTML = '<div class="col-span-full py-4 text-center text-pink-300"><i class="fas fa-spinner fa-spin"></i> Cargando horarios...</div>';
-            timeDiv.classList.remove('hidden');
+            container.innerHTML = '<div class="col-span-full py-8 text-center text-pink-400 font-medium"><i class="fas fa-magic fa-spin mr-2"></i> Buscando turnos disponibles...</div>';
+            // inlineContainer.style.display = 'block'; // Hacemos que sea manual
             msg.classList.add('hidden');
+            badge.classList.add('hidden');
+            allAvailableSlots = [];
             
             // Remove previous custom message if exists
             const prevCustomMsg = document.getElementById('custom_availability_msg');
@@ -341,14 +636,14 @@
             const [h, m] = timeStr.split(':');
             let hh = parseInt(h);
             const ampm = hh >= 12 ? ' PM' : ' AM';
-            hh = hh % 12;
-            if (hh === 0) hh = 12;
+            hh = hh % 12 || 12;
             return `${hh}:${m}${ampm}`;
         }
 
         function generateSlots(busySlots, workingHours = null) {
             const container = document.getElementById('slots_container');
             const msg = document.getElementById('no_slots_msg');
+            const badge = document.getElementById('slots-count-badge');
             container.innerHTML = '';
             
             let possibleSlots = [];
@@ -373,29 +668,6 @@
             const currentM = now.getMinutes();
             const currentTimeVal = currentH * 60 + currentM;
 
-            const selectedDateInput = document.getElementById('appointment_date_raw').dataset.selectedDate || todayStr; 
-            // fallback if dataset not set? Actually flatpickr sets input value. 
-            // Use 'selectedDate' global var if available? It's not global here.
-            // Let's rely on the module-level 'selectedDate' (it was missing in snippets, assuming global scope or argument)
-            // Wait, fetchBusySlots(date) passes date. generateSlots was relying on implicit scope or argument.
-            // Let's assume 'selectedDate' variable exists in the broader scope or pass it.
-            // The previous code used `selectedDate` which must be defined in the script scope of create.blade.php.
-            // Checking view_file output... it's NOT in the visible scope of generateSlots in lines 323+.
-            // However, fetchBusySlots receives `date`. I'll pass it to generateSlots.
-             
-            // Re-check fetch logic: `generateSlots(busySlots, workingHours);` - I missed passing `date`.
-            // But I can infer it or just use the variable from flatpickr if global.
-            // Let's look at lines 289: `fetch... ?date=${date}`. `date` is passed to fetchBusySlots.
-            // I should modify fetchBusySlots to pass `date` to generateSlots.
-            
-            // Correction: I can't modify the function signature easily in a replacement if I don't see the call site outside.
-            // BETTER: pass it along.
-            
-            // Wait, `selectedDate` variable usage in previous code (line 347) implies it IS available in scope.
-            // I will assume `selectedDate` is available or I will fix it by passing it.
-            
-            // Let's stick to using the `date` argument from `fetchBusySlots` and passing it.
-            
             possibleSlots.forEach(time => {
                 const [h, m] = time.split(':').map(Number);
                 const slotTimeVal = h * 60 + m;
@@ -424,27 +696,25 @@
                 }
 
                 if (!isBusy) {
-                    availableCount++;
-                    const btn = document.createElement('button');
-                    btn.type = 'button';
-                    btn.innerText = formatTo12h(time);
-                    btn.className = "py-2 border-2 border-pink-50 rounded-lg text-sm font-semibold text-gray-700 hover:border-pink-500 hover:bg-pink-50 transition-all";
-                    btn.onclick = () => {
-                        document.querySelectorAll('#slots_container button').forEach(b => b.className = "py-2 border-2 border-pink-50 rounded-lg text-sm font-semibold text-gray-700 hover:border-pink-500 hover:bg-pink-50 transition-all");
-                        btn.className = "py-2 border-2 border-pink-600 bg-pink-600 text-white rounded-lg text-sm font-bold shadow-md transform scale-105 transition-all";
-                        
-                        // We need to set the value. existing code used appointment_date_raw.value
-                        const finalDate = (typeof selectedDate !== 'undefined') ? selectedDate : todayStr;
-                        document.getElementById('appointment_date_raw').value = `${finalDate} ${time}`;
-                    };
-                    container.appendChild(btn);
+                    allAvailableSlots.push(time);
                 }
             });
 
-            if (availableCount === 0) {
+            if (allAvailableSlots.length === 0) {
+                container.innerHTML = '';
                 msg.classList.remove('hidden');
+                badge.classList.add('hidden');
             } else {
-                msg.classList.add('hidden');
+                badge.innerText = `${allAvailableSlots.length} total`;
+                badge.classList.remove('hidden');
+                
+                // Set default segment to 'all' as requested
+                currentSegment = 'all';
+                document.querySelectorAll('.segment-btn').forEach(b => {
+                    b.classList.toggle('active', b.dataset.segment === 'all');
+                });
+
+                renderFilteredSlots();
             }
         }
 
