@@ -15,7 +15,7 @@ class ProfessionalController extends Controller
 {
     public function index()
     {
-        $professionals = Professional::with('user')->get();
+        $professionals = Professional::with(['user', 'categories'])->get();
         return view('admin.professionals.index', compact('professionals'));
     }
 
