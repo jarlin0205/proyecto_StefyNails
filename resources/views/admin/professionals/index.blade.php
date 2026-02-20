@@ -72,7 +72,7 @@
                                             <span class="px-2 py-0.5 text-[10px] font-black uppercase tracking-tighter bg-purple-100 text-purple-700 rounded-full border border-purple-200">
                                                 <i class="fas fa-user-shield mr-1"></i> Administrador
                                             </span>
-                                        @ else
+                                        @else
                                             <span class="px-2 py-0.5 text-[10px] font-black uppercase tracking-tighter bg-blue-100 text-blue-700 rounded-full border border-blue-200">
                                                 <i class="fas fa-user mr-1"></i> Empleado
                                             </span>
