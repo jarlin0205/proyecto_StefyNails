@@ -53,9 +53,9 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-2">WhatsApp de Contacto (Para el Bot) *</label>
-                        <input type="text" name="phone" value="{{ old('phone') }}" required placeholder="Ej: 573001234567"
-                               class="w-full border-gray-200 rounded-lg focus:ring-pink-500 focus:border-pink-500 transition-all">
-                        <p class="text-[10px] text-gray-500 mt-1 italic">Ingresa el número con código de país sin el + (ej: 57).</p>
+                        <input type="tel" id="phone" name="phone" value="{{ old('phone') }}" required 
+                               class="w-full border-gray-200 rounded-lg focus:ring-pink-500 focus:border-transparent transition-all">
+                        <input type="hidden" name="phone_full" id="phone_full" value="{{ old('phone_full') }}">
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-2">Foto de Perfil</label>
@@ -63,6 +63,50 @@
                                class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-pink-50 file:text-pink-700 hover:file:bg-pink-100 transition-all">
                     </div>
                 </div>
+
+                @push('styles')
+                <style>
+                    .iti { width: 100%; }
+                    .iti__flag-container { border-right: 1px solid #e5e7eb; }
+                </style>
+                @endpush
+
+                @push('scripts')
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const phoneInput = document.querySelector("#phone");
+                        const phoneFullInput = document.querySelector("#phone_full");
+                        
+                        const iti = window.intlTelInput(phoneInput, {
+                            initialCountry: "co",
+                            preferredCountries: ["co", "us", "es"],
+                            separateDialCode: true,
+                            utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@23.0.12/build/js/utils.js",
+                        });
+
+                        // Sincronizar número completo al cambiar o enviar
+                        const updatePhone = () => {
+                            phoneFullInput.value = iti.getNumber();
+                        };
+
+                        phoneInput.addEventListener('change', updatePhone);
+                        phoneInput.addEventListener('keyup', updatePhone);
+                        
+                        // Validar antes de enviar
+                        phoneInput.closest('form').addEventListener('submit', function(e) {
+                            if (!iti.isValidNumber()) {
+                                e.preventDefault();
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Número inválido',
+                                    text: 'Por favor ingresa un número de WhatsApp válido.',
+                                    confirmButtonColor: '#db2777'
+                                });
+                            }
+                        });
+                    });
+                </script>
+                @endpush
             </div>
 
             <div class="bg-pink-50 rounded-xl border border-pink-100 p-6 space-y-6">

@@ -31,6 +31,7 @@ class ProfessionalController extends Controller
             'name' => 'required|string|max:255',
             'specialty' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
+            'phone_full' => 'nullable|string|max:25',
             'photo' => 'nullable|image|max:2048',
             'categories' => 'nullable|array',
             'categories.*' => 'exists:categories,id',
@@ -77,7 +78,7 @@ class ProfessionalController extends Controller
             'user_id' => $user ? $user->id : null,
             'name' => $validated['name'],
             'specialty' => $validated['specialty'],
-            'phone' => $validated['phone'],
+            'phone' => $validated['phone_full'] ?? $validated['phone'],
             'photo_path' => $photoPath,
             'is_active' => true,
         ]);
@@ -101,6 +102,7 @@ class ProfessionalController extends Controller
             'name' => 'required|string|max:255',
             'specialty' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
+            'phone_full' => 'nullable|string|max:25',
             'photo' => 'nullable|image|max:2048',
             'categories' => 'nullable|array',
             'categories.*' => 'exists:categories,id',
@@ -171,7 +173,7 @@ class ProfessionalController extends Controller
         $professional->update([
             'name' => $validated['name'],
             'specialty' => $validated['specialty'],
-            'phone' => $validated['phone'],
+            'phone' => $validated['phone_full'] ?? $validated['phone'],
             'is_active' => $request->has('is_active'),
         ]);
 

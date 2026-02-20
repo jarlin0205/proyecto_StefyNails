@@ -80,17 +80,10 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                 <div class="flex justify-end gap-2">
-                                    <a href="{{ route('admin.professionals.edit', $p->id) }}" class="bg-blue-50 text-blue-600 hover:bg-blue-100 p-2.5 rounded-lg transition-all shadow-sm border border-blue-100" title="Editar Perfil">
+                                    <a href="{{ route('admin.professionals.edit', $p->id) }}" class="bg-blue-50 text-blue-600 hover:bg-blue-100 p-2.5 rounded-lg transition-all shadow-sm border border-blue-100 flex items-center gap-2" title="Editar Perfil">
                                         <i class="fas fa-edit text-lg"></i>
+                                        <span class="font-bold">Gestionar</span>
                                     </a>
-                                    
-                                    <form action="{{ route('admin.professionals.destroy', $p->id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar a este profesional? Si tiene citas, solo se desactivará su perfil.');" class="inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="bg-red-50 text-red-600 hover:bg-red-100 p-2.5 rounded-lg transition-all shadow-sm border border-red-100" title="Eliminar profesional">
-                                            <i class="fas fa-trash-alt text-lg"></i>
-                                        </button>
-                                    </form>
                                 </div>
                             </td>
                         </tr>
