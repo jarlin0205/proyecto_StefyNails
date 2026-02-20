@@ -21,7 +21,7 @@
                 <span class="group-hover:hidden">SN</span>
                 <span class="hidden group-hover:inline">Stefy Nails</span>
             </div>
-            <nav class="flex-1 px-3 py-6 space-y-2 overflow-hidden">
+            <nav class="flex-1 px-3 py-6 space-y-2 overflow-y-auto scrollbar-hide">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center px-4 py-3 rounded hover:bg-pink-800 transition-colors group/link {{ request()->routeIs('admin.dashboard') ? 'bg-pink-800' : '' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -30,40 +30,48 @@
                 </a>
 
                 @if(auth()->user()->isAdmin())
-                <!-- Nueva sección: Profesionales -->
-                <a href="{{ route('admin.professionals.index') }}" class="flex items-center px-4 py-3 rounded hover:bg-pink-800 transition-colors group/link {{ request()->routeIs('admin.professionals.*') ? 'bg-pink-800' : '' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                    <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Profesionales</span>
-                </a>
+                    <!-- Profesionales -->
+                    <a href="{{ route('admin.professionals.index') }}" class="flex items-center px-4 py-3 rounded hover:bg-pink-800 transition-colors group/link {{ request()->routeIs('admin.professionals.*') ? 'bg-pink-800' : '' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Profesionales</span>
+                    </a>
 
-                <a href="{{ route('admin.expenses.index') }}" class="flex items-center px-4 py-3 rounded hover:bg-pink-800 transition-colors group/link {{ request()->routeIs('admin.expenses.*') ? 'bg-pink-800' : '' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Finanzas (Gastos)</span>
-                </a>
-                <a href="{{ route('admin.categories.index') }}" class="flex items-center px-4 py-3 rounded hover:bg-pink-800 transition-colors group/link {{ request()->routeIs('admin.categories.*') ? 'bg-pink-800' : '' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                    </svg>
-                    <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Categorías</span>
-                </a>
-                <a href="{{ route('admin.services.index') }}" class="flex items-center px-4 py-3 rounded hover:bg-pink-800 transition-colors group/link {{ request()->routeIs('admin.services.*') ? 'bg-pink-800' : '' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                    </svg>
-                    <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Servicios</span>
-                </a>
+                    <!-- Finanzas -->
+                    <a href="{{ route('admin.expenses.index') }}" class="flex items-center px-4 py-3 rounded hover:bg-pink-800 transition-colors group/link {{ request()->routeIs('admin.expenses.*') ? 'bg-pink-800' : '' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Finanzas (Gastos)</span>
+                    </a>
+
+                    <!-- Categorías -->
+                    <a href="{{ route('admin.categories.index') }}" class="flex items-center px-4 py-3 rounded hover:bg-pink-800 transition-colors group/link {{ request()->routeIs('admin.categories.*') ? 'bg-pink-800' : '' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                        <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Categorías</span>
+                    </a>
+
+                    <!-- Servicios -->
+                    <a href="{{ route('admin.services.index') }}" class="flex items-center px-4 py-3 rounded hover:bg-pink-800 transition-colors group/link {{ request()->routeIs('admin.services.*') ? 'bg-pink-800' : '' }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                        </svg>
+                        <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Servicios</span>
+                    </a>
                 @endif
 
+                <!-- Citas -->
                 <a href="{{ route('admin.appointments.index') }}" class="flex items-center px-4 py-3 rounded hover:bg-pink-800 transition-colors group/link {{ request()->routeIs('admin.appointments.*') ? 'bg-pink-800' : '' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Citas</span>
                 </a>
+
+                <!-- Disponibilidad -->
                 <a href="{{ route('admin.availability.index') }}" class="flex items-center px-4 py-3 rounded hover:bg-pink-800 transition-colors group/link {{ request()->routeIs('admin.availability.*') ? 'bg-pink-800' : '' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -71,7 +79,8 @@
                     <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Disponibilidad</span>
                 </a>
             </nav>
-            <div class="p-4 border-t border-pink-800 overflow-hidden">
+
+            <!-- Logout -->
             <div class="p-4 border-t border-pink-800 overflow-hidden">
                 <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
                     @csrf
@@ -84,7 +93,6 @@
                     </svg>
                     <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Cerrar Sesión</span>
                 </a>
-            </div>
             </div>
         </aside>
 
