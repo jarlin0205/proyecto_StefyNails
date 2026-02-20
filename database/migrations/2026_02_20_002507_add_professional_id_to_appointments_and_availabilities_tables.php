@@ -11,13 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('appointments', function (Blueprint $table) {
-            $table->foreignId('professional_id')->nullable()->after('service_id')->constrained()->onDelete('set null');
-        });
+        if (!Schema::hasColumn('appointments', 'professional_id')) {
+            Schema::table('appointments', function (Blueprint $table) {
+                $table->foreignId('professional_id')->nullable()->after('service_id')->constrained()->onDelete('set null');
+            });
+        }
 
-        Schema::table('availabilities', function (Blueprint $table) {
-            $table->foreignId('professional_id')->nullable()->after('id')->constrained()->onDelete('cascade');
-        });
+        if (!Schema::hasColumn('availabilities', 'professional_id')) {
+            Schema::table('availabilities', function (Blueprint $table) {
+                $table->foreignId('professional_id')->nullable()->after('id')->constrained()->onDelete('cascade');
+            });
+        }
     }
 
     /**
