@@ -3,96 +3,84 @@
 @section('header', 'Panel de Control')
 
 @section('content')
-<div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-6">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4 mb-6">
     <!-- Card: Producido (Nuevo) -->
-    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-pink-600">
-        <div class="flex items-center">
-            <div class="flex-shrink-0 bg-pink-100 rounded-full p-2">
-                <svg class="h-5 w-5 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </div>
-            <div class="ml-3">
-                <h2 class="text-xs font-semibold text-gray-500 uppercase">Producido</h2>
-                <p class="text-2xl font-bold text-gray-800">${{ number_format($totalProduced, 2) }}</p>
-            </div>
+    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-pink-600 flex items-center min-w-0">
+        <div class="flex-shrink-0 bg-pink-100 rounded-full p-2">
+            <svg class="h-5 w-5 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </div>
+        <div class="ml-3 min-w-0">
+            <h2 class="text-[10px] font-semibold text-gray-400 uppercase truncate" title="Producido">Producido</h2>
+            <p class="text-xl font-bold text-gray-800 truncate">${{ number_format($totalProduced, 2) }}</p>
         </div>
     </div>
 
     <!-- Card: Citas Pendientes -->
-    <a href="{{ route('admin.appointments.index', ['status' => 'pending']) }}" class="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-500 hover:shadow-md transition-shadow">
-        <div class="flex items-center">
-            <div class="flex-shrink-0 bg-yellow-100 rounded-full p-2">
-                <svg class="h-5 w-5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </div>
-            <div class="ml-3">
-                <h2 class="text-xs font-semibold text-gray-500 uppercase">Pendientes</h2>
-                <p class="text-2xl font-bold text-gray-800">{{ $pendingCount ?? 0 }}</p>
-            </div>
+    <a href="{{ route('admin.appointments.index', ['status' => 'pending']) }}" class="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-500 hover:shadow-md transition-shadow flex items-center min-w-0">
+        <div class="flex-shrink-0 bg-yellow-100 rounded-full p-2">
+            <svg class="h-5 w-5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </div>
+        <div class="ml-3 min-w-0">
+            <h2 class="text-[10px] font-semibold text-gray-400 uppercase truncate" title="Pendientes">Pendientes</h2>
+            <p class="text-xl font-bold text-gray-800 truncate">{{ $pendingCount ?? 0 }}</p>
         </div>
     </a>
 
     <!-- Card: Citas Confirmadas -->
-    <a href="{{ route('admin.appointments.index', ['status' => 'confirmed']) }}" class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500 hover:shadow-md transition-shadow">
-        <div class="flex items-center">
-            <div class="flex-shrink-0 bg-green-100 rounded-full p-2">
-                <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </div>
-            <div class="ml-3">
-                <h2 class="text-xs font-semibold text-gray-500 uppercase">Confirmadas</h2>
-                <p class="text-2xl font-bold text-gray-800">{{ $confirmedCount ?? 0 }}</p>
-            </div>
+    <a href="{{ route('admin.appointments.index', ['status' => 'confirmed']) }}" class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500 hover:shadow-md transition-shadow flex items-center min-w-0">
+        <div class="flex-shrink-0 bg-green-100 rounded-full p-2">
+            <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </div>
+        <div class="ml-3 min-w-0">
+            <h2 class="text-[10px] font-semibold text-gray-400 uppercase truncate" title="Confirmadas">Confirmadas</h2>
+            <p class="text-xl font-bold text-gray-800 truncate">{{ $confirmedCount ?? 0 }}</p>
         </div>
     </a>
 
     <!-- Card: Citas Completadas -->
-    <a href="{{ route('admin.appointments.index', ['status' => 'completed']) }}" class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500 hover:shadow-md transition-shadow">
-        <div class="flex items-center">
-            <div class="flex-shrink-0 bg-blue-100 rounded-full p-2">
-                <svg class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                </svg>
-            </div>
-            <div class="ml-3">
-                <h2 class="text-xs font-semibold text-gray-500 uppercase">Completadas</h2>
-                <p class="text-2xl font-bold text-gray-800">{{ $completedCount ?? 0 }}</p>
-            </div>
+    <a href="{{ route('admin.appointments.index', ['status' => 'completed']) }}" class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500 hover:shadow-md transition-shadow flex items-center min-w-0">
+        <div class="flex-shrink-0 bg-blue-100 rounded-full p-2">
+            <svg class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+        </div>
+        <div class="ml-3 min-w-0">
+            <h2 class="text-[10px] font-semibold text-gray-400 uppercase truncate" title="Completadas">Completadas</h2>
+            <p class="text-xl font-bold text-gray-800 truncate">{{ $completedCount ?? 0 }}</p>
         </div>
     </a>
 
     @if(auth()->user()->isAdmin())
     <!-- Card: Servicios (Admin solo) -->
-    <a href="{{ route('admin.services.index') }}" class="bg-white rounded-lg shadow p-4 border-l-4 border-pink-500 hover:shadow-md transition-shadow">
-        <div class="flex items-center">
-            <div class="flex-shrink-0 bg-pink-100 rounded-full p-2">
-                <svg class="h-5 w-5 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-            </div>
-            <div class="ml-3">
-                <h2 class="text-xs font-semibold text-gray-500 uppercase">Servicios</h2>
-                <p class="text-2xl font-bold text-gray-800">{{ $servicesCount ?? 0 }}</p>
-            </div>
+    <a href="{{ route('admin.services.index') }}" class="bg-white rounded-lg shadow p-4 border-l-4 border-pink-500 hover:shadow-md transition-shadow flex items-center min-w-0">
+        <div class="flex-shrink-0 bg-pink-100 rounded-full p-2">
+            <svg class="h-5 w-5 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+        </div>
+        <div class="ml-3 min-w-0">
+            <h2 class="text-[10px] font-semibold text-gray-400 uppercase truncate" title="Servicios">Servicios</h2>
+            <p class="text-xl font-bold text-gray-800 truncate">{{ $servicesCount ?? 0 }}</p>
         </div>
     </a>
     @endif
 
     <!-- Card: Notificaciones -->
-    <a href="{{ route('admin.notifications.index') }}" class="bg-white rounded-lg shadow p-4 border-l-4 border-purple-500 hover:shadow-md transition-shadow">
-        <div class="flex items-center">
-            <div class="flex-shrink-0 bg-purple-100 rounded-full p-2">
-                <svg class="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-            </div>
-            <div class="ml-3">
-                <h2 class="text-xs font-semibold text-gray-500 uppercase">Notificaciones</h2>
-                <p class="text-2xl font-bold text-gray-800">{{ isset($notifications) ? $notifications->count() : 0 }}</p>
-            </div>
+    <a href="{{ route('admin.notifications.index') }}" class="bg-white rounded-lg shadow p-4 border-l-4 border-purple-500 hover:shadow-md transition-shadow flex items-center min-w-0">
+        <div class="flex-shrink-0 bg-purple-100 rounded-full p-2">
+            <svg class="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+        </div>
+        <div class="ml-3 min-w-0">
+            <h2 class="text-[10px] font-semibold text-gray-400 uppercase truncate" title="Notificaciones">Notificaciones</h2>
+            <p class="text-xl font-bold text-gray-800 truncate">{{ isset($notifications) ? $notifications->count() : 0 }}</p>
         </div>
     </a>
 </div>
