@@ -59,10 +59,19 @@
                 </div>
 
                 <div id="user_fields" class="{{ old('create_user') ? '' : 'hidden' }} space-y-4">
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Correo Electrónico (Login) *</label>
-                        <input type="email" name="email" value="{{ old('email') }}" 
-                               class="w-full border-gray-200 rounded-lg focus:ring-pink-500 focus:border-pink-500 transition-all">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Correo Electrónico (Login) *</label>
+                            <input type="email" name="email" value="{{ old('email') }}" 
+                                   class="w-full border-gray-200 rounded-lg focus:ring-pink-500 focus:border-pink-500 transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Rol de Acceso *</label>
+                            <select name="role" class="w-full border-gray-200 rounded-lg focus:ring-pink-500 focus:border-pink-500 transition-all">
+                                <option value="employee" {{ old('role') == 'employee' ? 'selected' : '' }}>Empleado (Solo sus citas)</option>
+                                <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Administrador (Control total)</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>

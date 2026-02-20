@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\WelcomeProfessional;
 
 class ProfessionalController extends Controller
 {
@@ -31,6 +33,7 @@ class ProfessionalController extends Controller
             'create_user' => 'boolean',
             'email' => 'required_if:create_user,1|nullable|email|unique:users,email',
             'password' => 'required_if:create_user,1|nullable|min:8|confirmed',
+            'role' => 'required_if:create_user,1|nullable|in:admin,employee',
         ]);
 
         $photoPath = null;
@@ -44,8 +47,15 @@ class ProfessionalController extends Controller
                 'name' => $validated['name'],
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
-                'role' => 'employee',
+                'role' => $validated['role'] ?? 'employee',
             ]);
+
+            // Enviar correo de bienvenida
+            try {
+                Mail::to($user->email)->send(new WelcomeProfessional($user, $request->password));
+            } catch (\Exception $e) {
+                \Log::error('Error enviando correo a profesional: ' . $e->getMessage());
+            }
         }
 
         Professional::create([
@@ -73,6 +83,10 @@ class ProfessionalController extends Controller
             'phone' => 'nullable|string|max:20',
             'photo' => 'nullable|image|max:2048',
             'is_active' => 'boolean',
+            'create_user' => 'boolean',
+            'email' => 'required_if:create_user,1|nullable|email|unique:users,email',
+            'password' => 'required_if:create_user,1|nullable|min:8|confirmed',
+            'role' => 'required_if:create_user,1|nullable|in:admin,employee',
         ]);
 
         if ($request->hasFile('photo')) {
@@ -80,6 +94,24 @@ class ProfessionalController extends Controller
                 Storage::disk('public')->delete($professional->photo_path);
             }
             $professional->photo_path = $request->file('photo')->store('professionals', 'public');
+        }
+
+        // Crear cuenta de acceso si se solicita y no tiene una
+        if ($request->create_user && !$professional->user_id) {
+            $user = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role' => $validated['role'] ?? 'employee',
+            ]);
+            $professional->user_id = $user->id;
+
+            // Enviar correo de bienvenida
+            try {
+                Mail::to($user->email)->send(new WelcomeProfessional($user, $request->password));
+            } catch (\Exception $e) {
+                \Log::error('Error enviando correo a profesional (desde update): ' . $e->getMessage());
+            }
         }
 
         $professional->update([

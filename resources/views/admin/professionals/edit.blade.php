@@ -74,13 +74,61 @@
                 </div>
             </div>
 
-            @if($professional->user)
+            @if(!$professional->user)
+                <div class="bg-pink-50 rounded-xl border border-pink-100 p-6 space-y-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <input type="checkbox" name="create_user" id="create_user" value="1" {{ old('create_user') ? 'checked' : '' }}
+                               class="h-5 w-5 text-pink-600 focus:ring-pink-500 border-pink-300 rounded transition-all">
+                        <label for="create_user" class="text-sm font-bold text-pink-700 cursor-pointer">Crear cuenta de acceso para este profesional</label>
+                    </div>
+
+                    <div id="user_fields" class="{{ old('create_user') ? '' : 'hidden' }} space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Correo Electrónico (Login) *</label>
+                            <input type="email" name="email" value="{{ old('email') }}" 
+                                   class="w-full border-gray-200 rounded-lg focus:ring-pink-500 focus:border-pink-500 transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">Rol de Acceso *</label>
+                            <select name="role" class="w-full border-gray-200 rounded-lg focus:ring-pink-500 focus:border-pink-500 transition-all">
+                                <option value="employee" {{ old('role') == 'employee' ? 'selected' : '' }}>Empleado (Solo sus citas)</option>
+                                <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Administrador (Control total)</option>
+                            </select>
+                        </div>
+                    </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Contraseña *</label>
+                                <input type="password" name="password" 
+                                       class="w-full border-gray-200 rounded-lg focus:ring-pink-500 focus:border-pink-500 transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-bold text-gray-700 mb-2">Confirmar Contraseña *</label>
+                                <input type="password" name="password_confirmation" 
+                                       class="w-full border-gray-200 rounded-lg focus:ring-pink-500 focus:border-pink-500 transition-all">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    document.getElementById('create_user').addEventListener('change', function() {
+                        const fields = document.getElementById('user_fields');
+                        if (this.checked) {
+                            fields.classList.remove('hidden');
+                        } else {
+                            fields.classList.add('hidden');
+                        }
+                    });
+                </script>
+            @else
                 <div class="bg-gray-50 rounded-xl border border-gray-200 p-6">
                     <h3 class="text-sm font-bold text-gray-700 mb-2 flex items-center">
                         <i class="fas fa-user-lock mr-2 text-gray-400"></i> Cuenta de Usuario Vinculada
                     </h3>
                     <p class="text-sm text-gray-600">Este profesional tiene acceso con el correo: <span class="font-bold">{{ $professional->user->email }}</span></p>
-                    <p class="text-xs text-gray-400 mt-2 italic">Para cambiar la contraseña, usa el módulo de usuarios del sistema.</p>
+                    <p class="text-xs text-gray-400 mt-2 italic">Para cambiar la contraseña, usa el módulo de usuarios del sistema o solicita un restablecimiento.</p>
                 </div>
             @endif
 
