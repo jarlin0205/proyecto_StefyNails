@@ -46,12 +46,21 @@ async function callLaravelApi(endpoint, method = 'POST', data = null) {
     const url = `${CONFIG.API_BASE_URL}/${endpoint}`;
     const options = {
         method,
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
     };
     if (data) options.body = JSON.stringify(data);
 
     try {
         const response = await fetch(url, options);
+
+        // Verificar si la respuesta es JSON antes de parsear
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            console.error(`❌ Error API [${endpoint}]: Respuesta no es JSON (Posible error de servidor PHP).`);
+            throw new Error('El servidor respondió con un error inesperado (no JSON).');
+        }
+
         const result = await response.json();
         if (!response.ok) throw new Error(result.message || 'Error en la API');
         return result;
@@ -201,3 +210,31 @@ server.listen(CONFIG.BOT_PORT, () => {
 });
 
 client.initialize();
+
+/**
+ * CIERRE GRACIOSO
+ * Asegura que Puppeteer se cierre correctamente al detener el proceso
+ */
+async function gracefulShutdown(signal) {
+    console.log(`\n--- Recibida señal ${signal}. Cerrando bot de forma segura... ---`);
+    try {
+        if (client) {
+            await client.destroy();
+            console.log('✅ Cliente de WhatsApp cerrado.');
+        }
+        if (server) {
+            server.close(() => {
+                console.log('✅ Servidor HTTP cerrado.');
+                process.exit(0);
+            });
+        } else {
+            process.exit(0);
+        }
+    } catch (err) {
+        console.error('❌ Error durante el cierre:', err.message);
+        process.exit(1);
+    }
+}
+
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
