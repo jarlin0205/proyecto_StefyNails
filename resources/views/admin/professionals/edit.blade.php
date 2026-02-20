@@ -189,7 +189,10 @@
                 </script>
             @endif
 
-            <div class="flex justify-end pt-4">
+            <div class="flex justify-end gap-3 pt-4">
+                <a href="{{ route('admin.professionals.index') }}" class="bg-gray-100 text-gray-700 px-8 py-3 rounded-xl font-bold hover:bg-gray-200 transition">
+                    Cancelar
+                </a>
                 <button type="submit" class="bg-pink-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-pink-700 transition shadow-lg transform hover:-translate-y-0.5">
                     Actualizar Profesional
                 </button>
