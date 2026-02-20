@@ -118,33 +118,54 @@ class ProfessionalController extends Controller
             $professional->photo_path = $request->file('photo')->store('professionals', 'public');
         }
 
-        // Crear cuenta de acceso si se solicita y no tiene una
-        if ($request->create_user && !$professional->user_id) {
-            // Buscar si el usuario ya existe
-            $user = User::where('email', $validated['email'])->first();
-
+        // Crear o actualizar cuenta de acceso
+        if ($request->create_user || $professional->user_id) {
+            $user = $professional->user;
+            
             if (!$user) {
-                $user = User::create([
+                // Buscar si el correo ya existe en otro usuario (por si acaso)
+                $user = User::where('email', $validated['email'])->first();
+                
+                if (!$user) {
+                    $user = User::create([
+                        'name' => $validated['name'],
+                        'email' => $validated['email'],
+                        'password' => Hash::make($validated['password']),
+                        'role' => $validated['role'] ?? 'employee',
+                    ]);
+
+                    // Enviar correo de bienvenida inicial
+                    try {
+                        Mail::to($user->email)->send(new WelcomeProfessional($user, $request->password));
+                    } catch (\Exception $e) {
+                        \Log::error('Error enviando correo (store/update): ' . $e->getMessage());
+                    }
+                }
+                $professional->user_id = $user->id;
+            } else {
+                // Actualizar usuario existente
+                $userUpdate = [
                     'name' => $validated['name'],
                     'email' => $validated['email'],
-                    'password' => Hash::make($validated['password']),
-                    'role' => $validated['role'] ?? 'employee',
-                ]);
-
-                // Enviar correo de bienvenida solo si es nuevo
-                try {
-                    Mail::to($user->email)->send(new WelcomeProfessional($user, $request->password));
-                } catch (\Exception $e) {
-                    \Log::error('Error enviando correo a profesional (desde update): ' . $e->getMessage());
-                }
-            } else {
-                // Si existe, actualizamos su rol si se seleccionó uno
+                ];
+                
                 if (isset($validated['role'])) {
-                    $user->update(['role' => $validated['role']]);
+                    $userUpdate['role'] = $validated['role'];
                 }
-            }
 
-            $professional->user_id = $user->id;
+                if (!empty($validated['password'])) {
+                    $userUpdate['password'] = Hash::make($validated['password']);
+                    
+                    // Si se cambia la contraseña, opcionalmente reenviar el correo
+                    try {
+                        Mail::to($user->email)->send(new WelcomeProfessional($user, $request->password));
+                    } catch (\Exception $e) {
+                        \Log::error('Error reenviando correo contraseña: ' . $e->getMessage());
+                    }
+                }
+                
+                $user->update($userUpdate);
+            }
         }
 
         $professional->update([

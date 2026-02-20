@@ -52,9 +52,10 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-2">Teléfono de Contacto</label>
-                        <input type="text" name="phone" value="{{ old('phone') }}" 
+                        <label class="block text-sm font-bold text-gray-700 mb-2">WhatsApp de Contacto (Para el Bot) *</label>
+                        <input type="text" name="phone" value="{{ old('phone') }}" required placeholder="Ej: 573001234567"
                                class="w-full border-gray-200 rounded-lg focus:ring-pink-500 focus:border-pink-500 transition-all">
+                        <p class="text-[10px] text-gray-500 mt-1 italic">Ingresa el número con código de país sin el + (ej: 57).</p>
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-gray-700 mb-2">Foto de Perfil</label>
