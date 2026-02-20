@@ -35,7 +35,7 @@ class ProfessionalController extends Controller
             'categories' => 'nullable|array',
             'categories.*' => 'exists:categories,id',
             'create_user' => 'boolean',
-            'email' => 'required_if:create_user,1|nullable|email|unique:users,email',
+            'email' => 'required_if:create_user,1|nullable|email', // Eliminamos unique para manejarlo nosotros
             'password' => 'required_if:create_user,1|nullable|min:8|confirmed',
             'role' => 'required_if:create_user,1|nullable|in:admin,employee',
         ]);
@@ -47,25 +47,36 @@ class ProfessionalController extends Controller
 
         $user = null;
         if ($request->create_user) {
-            $user = User::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'password' => Hash::make($validated['password']),
-                'role' => $validated['role'] ?? 'employee',
-            ]);
+            // Buscar si el usuario ya existe
+            $user = User::where('email', $validated['email'])->first();
 
-            // Enviar correo de bienvenida
-            try {
-                Mail::to($user->email)->send(new WelcomeProfessional($user, $request->password));
-            } catch (\Exception $e) {
-                \Log::error('Error enviando correo a profesional: ' . $e->getMessage());
+            if (!$user) {
+                // Si no existe, lo creamos
+                $user = User::create([
+                    'name' => $validated['name'],
+                    'email' => $validated['email'],
+                    'password' => Hash::make($validated['password']),
+                    'role' => $validated['role'] ?? 'employee',
+                ]);
+
+                // Enviar correo de bienvenida solo si es nuevo
+                try {
+                    Mail::to($user->email)->send(new WelcomeProfessional($user, $request->password));
+                } catch (\Exception $e) {
+                    \Log::error('Error enviando correo a profesional: ' . $e->getMessage());
+                }
+            } else {
+                // Si ya existe, opcionalmente actualizamos su rol si se seleccionó uno
+                if (isset($validated['role'])) {
+                    $user->update(['role' => $validated['role']]);
+                }
             }
         }
 
         $professional = Professional::create([
             'user_id' => $user ? $user->id : null,
             'name' => $validated['name'],
-            'specialty' => $validated['specialty'], // Mantener por compatibilidad temporal
+            'specialty' => $validated['specialty'],
             'phone' => $validated['phone'],
             'photo_path' => $photoPath,
             'is_active' => true,
@@ -95,7 +106,7 @@ class ProfessionalController extends Controller
             'categories.*' => 'exists:categories,id',
             'is_active' => 'boolean',
             'create_user' => 'boolean',
-            'email' => 'required_if:create_user,1|nullable|email|unique:users,email',
+            'email' => 'required_if:create_user,1|nullable|email',
             'password' => 'required_if:create_user,1|nullable|min:8|confirmed',
             'role' => 'required_if:create_user,1|nullable|in:admin,employee',
         ]);
@@ -109,20 +120,31 @@ class ProfessionalController extends Controller
 
         // Crear cuenta de acceso si se solicita y no tiene una
         if ($request->create_user && !$professional->user_id) {
-            $user = User::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'password' => Hash::make($validated['password']),
-                'role' => $validated['role'] ?? 'employee',
-            ]);
-            $professional->user_id = $user->id;
+            // Buscar si el usuario ya existe
+            $user = User::where('email', $validated['email'])->first();
 
-            // Enviar correo de bienvenida
-            try {
-                Mail::to($user->email)->send(new WelcomeProfessional($user, $request->password));
-            } catch (\Exception $e) {
-                \Log::error('Error enviando correo a profesional (desde update): ' . $e->getMessage());
+            if (!$user) {
+                $user = User::create([
+                    'name' => $validated['name'],
+                    'email' => $validated['email'],
+                    'password' => Hash::make($validated['password']),
+                    'role' => $validated['role'] ?? 'employee',
+                ]);
+
+                // Enviar correo de bienvenida solo si es nuevo
+                try {
+                    Mail::to($user->email)->send(new WelcomeProfessional($user, $request->password));
+                } catch (\Exception $e) {
+                    \Log::error('Error enviando correo a profesional (desde update): ' . $e->getMessage());
+                }
+            } else {
+                // Si existe, actualizamos su rol si se seleccionó uno
+                if (isset($validated['role'])) {
+                    $user->update(['role' => $validated['role']]);
+                }
             }
+
+            $professional->user_id = $user->id;
         }
 
         $professional->update([
