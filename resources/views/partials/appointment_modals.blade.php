@@ -530,14 +530,15 @@ let currentGlobalApp = null;
             imgContainer.classList.add('hidden');
         }
 
-        document.getElementById('btn-reschedule-link').href = data.edit_url;
-        document.getElementById('btn-reschedule-link').classList.toggle('hidden', data.status === 'completed' || data.status === 'cancelled');
-        
-        // Hide/Show complete button based on status (Cannot complete if pending, completed or cancelled)
+        // Actions for Employees and Admin: Complete and Cancel
+        // Cannot complete if pending, completed or cancelled
         document.getElementById('btn-complete').classList.toggle('hidden', data.status === 'completed' || data.status === 'cancelled' || data.status === 'pending_admin' || data.status === 'pending_client');
         
-        // Hide/Show cancel button based on status (Cannot cancel if cancelled or completed, but CAN cancel if confirmed or pending)
+        // Cannot cancel if already cancelled or completed
         document.getElementById('btn-cancel').classList.toggle('hidden', data.status === 'cancelled' || data.status === 'completed');
+        
+        // Reschedule (Reprogramar) - Available for all if not finished
+        document.getElementById('btn-reschedule-link').classList.toggle('hidden', data.status === 'completed' || data.status === 'cancelled');
         
         // Confirm button (only for pending_admin)
         const btnConf = document.getElementById('btn-confirm');
@@ -547,8 +548,11 @@ let currentGlobalApp = null;
             btnConf.classList.add('hidden');
         }
 
-        // Hide/Show delete button (only if completed or cancelled)
-        document.getElementById('btn-delete').classList.toggle('hidden', data.status !== 'completed' && data.status !== 'cancelled');
+        // Hide/Show delete button (only if completed or cancelled AND USER IS ADMIN)
+        const btnDelete = document.getElementById('btn-delete');
+        if (btnDelete) {
+            btnDelete.classList.toggle('hidden', data.status !== 'completed' && data.status !== 'cancelled');
+        }
 
         document.getElementById('appointment-modal').classList.remove('hidden');
     }

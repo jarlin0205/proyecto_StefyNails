@@ -352,6 +352,10 @@ class AppointmentController extends Controller
             abort(403, 'No tienes permiso para eliminar citas.');
         }
 
+        if (!in_array($appointment->status, ['completed', 'cancelled'])) {
+            return back()->with('error', '❌ Solo se pueden eliminar citas que estén completadas o canceladas.');
+        }
+
         $appointment->delete();
         return back()->with('success', 'Cita eliminada.');
     }
