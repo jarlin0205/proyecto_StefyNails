@@ -266,85 +266,160 @@
 @endif
 
 <!-- Modal de Detalle de Producido -->
-<div id="modalProducido" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="document.getElementById('modalProducido').classList.add('hidden')"></div>
+<div id="modalProducido" class="fixed inset-0 z-[60] overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Overlay -->
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="document.getElementById('modalProducido').classList.add('hidden')"></div>
+
+        <!-- Centering hack -->
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full sm:my-8 sm:align-middle sm:max-w-2xl">
-            <div class="bg-white px-4 pt-5 pb-4 sm:p-6">
-                <div class="flex items-center justify-between border-b pb-3 mb-4">
-                    <h3 class="text-lg leading-6 font-bold text-gray-900" id="modal-title">
-                        {{ $isAdmin ? 'Detalle de Servicios Realizados (Global)' : 'Detalle de Mis Servicios Realizados' }}
-                    </h3>
-                    <button type="button" onclick="document.getElementById('modalProducido').classList.add('hidden')" class="text-gray-400 hover:text-gray-500">
+
+        <!-- Modal Panel -->
+        <div class="relative inline-block align-middle bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:max-w-4xl w-full border border-gray-100">
+            <div class="bg-white">
+                <!-- Header -->
+                <div class="bg-pink-600 px-6 py-4 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xl font-bold text-white" id="modal-title">
+                            <i class="fas fa-chart-line mr-2"></i>
+                            Detalle de Producción
+                        </h3>
+                        <p class="text-pink-100 text-sm opacity-90">Servicios completados y montos generados</p>
+                    </div>
+                    <button type="button" onclick="document.getElementById('modalProducido').classList.add('hidden')" class="text-white hover:text-pink-100 transition-colors p-2">
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
-                
-                <div class="mt-2 max-h-[60vh] overflow-y-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Servicio / Cliente</th>
-                                @if($isAdmin)
-                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profesional</th>
-                                @endif
-                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @forelse($completedAppointments as $app)
-                                @php
-                                    $price = $app->offered_price ?? ($app->service ? $app->service->price : 0);
-                                @endphp
-                                <tr>
-                                    <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
-                                        {{ $app->appointment_date->format('d/m/y') }}<br>
-                                        {{ $app->appointment_date->format('h:i A') }}
-                                    </td>
-                                    <td class="px-4 py-3 text-sm">
-                                        <div class="font-medium text-gray-900">{{ $app->service?->name ?? 'Servicio individual' }}</div>
-                                        <div class="text-xs text-gray-500">{{ $app->customer_name }}</div>
-                                    </td>
-                                    @if($isAdmin)
-                                    <td class="px-4 py-3 text-sm text-gray-500">
-                                        {{ $app->professional?->name ?? 'Sin asignar' }}
-                                    </td>
-                                    @endif
-                                    <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-bold text-gray-900">
-                                        ${{ number_format($price, 0, ',', '.') }}
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="{{ $isAdmin ? 4 : 3 }}" class="px-4 py-8 text-center text-gray-500 text-sm">
-                                        No hay servicios completados registrados.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+
+                <div class="px-6 py-6">
+                    <!-- Filtros (Solo Admin) -->
+                    @if($isAdmin)
+                    <div class="mb-6 bg-gray-50 border border-gray-200 rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div class="w-full sm:w-auto">
+                            <label for="filterProfessional" class="block text-xs font-bold text-gray-500 uppercase mb-1">Filtrar por Empleado</label>
+                            <select id="filterProfessional" onchange="filterProduction()" class="w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring focus:ring-pink-200 focus:ring-opacity-50 text-sm">
+                                <option value="all">Todos los profesionales</option>
+                                @foreach($professionals as $prof)
+                                    <option value="{{ $prof->id }}">{{ $prof->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-md shadow-sm border border-gray-100">
+                            <span class="text-xs font-bold text-gray-400">CITAS:</span>
+                            <span id="filteredCount" class="text-sm font-bold text-gray-700">0</span>
+                        </div>
+                    </div>
+                    @endif
+
+                    <!-- Tabla -->
+                    <div class="overflow-hidden border border-gray-200 rounded-lg shadow-sm">
+                        <div class="max-h-[50vh] overflow-y-auto">
+                            <table class="min-w-full divide-y divide-gray-200" id="productionTable">
+                                <thead class="bg-gray-50 sticky top-0 z-10">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Fecha/Hora</th>
+                                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Servicio / Cliente</th>
+                                        @if($isAdmin)
+                                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Profesional</th>
+                                        @endif
+                                        <th class="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase">Valor</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-100">
+                                    @foreach($completedAppointments as $app)
+                                        <?php 
+                                            $price = $app->offered_price ?? ($app->service ? $app->service->price : 0);
+                                            $profId = $app->professional_id ?? '0';
+                                        ?>
+                                        <tr class="production-row hover:bg-gray-50 transition-colors" data-prof-id="{{ $profId }}" data-price="{{ $price }}">
+                                            <td class="px-4 py-3 whitespace-nowrap">
+                                                <div class="text-sm font-medium text-gray-900">{{ $app->appointment_date->format('d/m/Y') }}</div>
+                                                <div class="text-xs text-gray-500">{{ $app->appointment_date->format('h:i A') }}</div>
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <div class="text-sm font-bold text-pink-700">{{ $app->service?->name ?? 'Servicio Personalizado' }}</div>
+                                                <div class="text-xs text-gray-600 italic">{{ $app->customer_name }}</div>
+                                            </td>
+                                            @if($isAdmin)
+                                            <td class="px-4 py-3">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                                                    {{ $app->professional?->name ?? 'Admin / Otro' }}
+                                                </span>
+                                            </td>
+                                            @endif
+                                            <td class="px-4 py-3 whitespace-nowrap text-right font-black text-gray-800">
+                                                ${{ number_format($price, 0, ',', '.') }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Footer del Modal -->
+                    <div class="mt-8 bg-gray-900 rounded-xl p-6 text-white flex flex-col md:flex-row justify-between items-center shadow-inner">
+                        <div class="mb-4 md:mb-0">
+                            <p class="text-gray-400 text-xs uppercase tracking-widest font-bold mb-1">Total Producido</p>
+                            <p class="text-pink-400 text-xs italic">* Valores basados en servicios finalizados</p>
+                        </div>
+                        <div class="text-center md:text-right">
+                            <span id="filteredTotal" class="text-4xl font-black text-white">$0</span>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="mt-6 flex justify-between items-center border-t pt-4">
-                    <div class="text-gray-600 text-sm italic">
-                        * Incluye servicios completados y precios ofertados.
-                    </div>
-                    <div class="text-right">
-                        <span class="text-gray-500 text-sm font-medium uppercase mr-2">{{ $isAdmin ? 'Total Global:' : 'Mi Total:' }}</span>
-                        <span class="text-2xl font-black text-pink-600">${{ number_format($totalProduced, 0, ',', '.') }}</span>
-                    </div>
+                <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-200">
+                    <button type="button" onclick="document.getElementById('modalProducido').classList.add('hidden')" class="px-6 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-100 transition-colors shadow-sm focus:ring-2 focus:ring-pink-500">
+                        Cerrar Detalle
+                    </button>
                 </div>
-            </div>
-            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button type="button" onclick="document.getElementById('modalProducido').classList.add('hidden')" class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 sm:w-auto sm:text-sm">
-                    Cerrar Detalle
-                </button>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+function filterProduction() {
+    const filterVal = document.getElementById('filterProfessional')?.value || 'all';
+    const rows = document.querySelectorAll('.production-row');
+    let total = 0;
+    let count = 0;
+
+    rows.forEach(row => {
+        const rowProfId = row.getAttribute('data-prof-id');
+        const price = parseFloat(row.getAttribute('data-price')) || 0;
+
+        if (filterVal === 'all' || rowProfId === filterVal) {
+            row.style.display = '';
+            total += price;
+            count++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Actualizar UI
+    const totalEl = document.getElementById('filteredTotal');
+    const countEl = document.getElementById('filteredCount');
+    
+    if (totalEl) totalEl.innerText = '$' + new Intl.NumberFormat('es-CO').format(total);
+    if (countEl) countEl.innerText = count;
+}
+
+// Inicializar al abrir
+document.addEventListener('DOMContentLoaded', function() {
+    // Si queremos que al abrir siempre esté recalculado
+    filterProduction();
+});
+
+// Función global para abrir el modal (llamada desde fuera)
+function openProductionModal() {
+    document.getElementById('modalProducido').classList.remove('hidden');
+    filterProduction();
+}
+</script>
+
 @endsection

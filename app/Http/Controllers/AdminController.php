@@ -32,6 +32,7 @@ class AdminController extends Controller
             return $appointment->offered_price ?? ($appointment->service ? $appointment->service->price : 0);
         });
 
+        $professionals = Professional::all(); // Retrieve all professionals
         $servicesCount = Service::count();
         $notifications = Notification::where('is_read', false)->get();
         
@@ -50,7 +51,8 @@ class AdminController extends Controller
             'notifications', 
             'latestsAppointments',
             'totalProduced',
-            'completedAppointments'
+            'completedAppointments',
+            'professionals' // Pass professionals to the view
         ));
     }
 }
