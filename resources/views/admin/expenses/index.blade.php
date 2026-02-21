@@ -66,15 +66,88 @@
     </div>
 </div>
 
-<div class="mb-6 flex justify-between items-center">
-    <h3 class="text-xl font-bold text-gray-800">Listado Detallado</h3>
-    <button onclick="document.getElementById('modalGasto').classList.remove('hidden')" class="bg-pink-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-pink-700 transition-colors flex items-center shadow-sm">
-        <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
-        + Registrar Gasto
-    </button>
+<!-- Filtros y Acciones -->
+<div class="mb-8 p-6 bg-white rounded-xl shadow-sm border border-gray-100">
+    <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+        <form action="{{ route('admin.expenses.index') }}" method="GET" class="flex-grow">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
+                <div>
+                    <label for="start_date" class="block text-[10px] font-black text-gray-400 uppercase mb-1 tracking-wider">Desde</label>
+                    <input type="date" name="start_date" id="start_date" value="{{ $startDate }}" class="w-full rounded-lg border-gray-200 shadow-sm focus:border-pink-500 focus:ring focus:ring-pink-200 focus:ring-opacity-50 text-sm font-medium">
+                </div>
+                <div>
+                    <label for="end_date" class="block text-[10px] font-black text-gray-400 uppercase mb-1 tracking-wider">Hasta</label>
+                    <input type="date" name="end_date" id="end_date" value="{{ $endDate }}" class="w-full rounded-lg border-gray-200 shadow-sm focus:border-pink-500 focus:ring focus:ring-pink-200 focus:ring-opacity-50 text-sm font-medium">
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit" class="flex-grow bg-gray-900 text-white px-4 py-2 rounded-lg font-bold hover:bg-gray-800 transition-colors shadow-sm text-sm uppercase tracking-wider">
+                        Filtrar
+                    </button>
+                    <a href="{{ route('admin.expenses.index') }}" class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg font-bold hover:bg-gray-200 transition-colors text-sm uppercase flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="mt-4 flex flex-wrap gap-2">
+                <button type="button" onclick="setExpensesPreset('today')" class="px-3 py-1 text-[10px] font-bold bg-pink-50 text-pink-700 rounded-full hover:bg-pink-100 transition-colors uppercase">Hoy</button>
+                <button type="button" onclick="setExpensesPreset('week')" class="px-3 py-1 text-[10px] font-bold bg-pink-50 text-pink-700 rounded-full hover:bg-pink-100 transition-colors uppercase">Esta Semana</button>
+                <button type="button" onclick="setExpensesPreset('month')" class="px-3 py-1 text-[10px] font-bold bg-pink-50 text-pink-700 rounded-full hover:bg-pink-100 transition-colors uppercase">Este Mes</button>
+            </div>
+        </form>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+            <a href="{{ route('admin.expenses.export', request()->all()) }}" class="bg-gray-100 text-gray-700 px-6 py-2 rounded-lg font-bold hover:bg-gray-200 transition-colors flex items-center justify-center shadow-sm text-sm uppercase tracking-wider border border-gray-200">
+                <svg class="w-5 h-5 mr-2 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Exportar Reporte (PDF)
+            </a>
+            <button onclick="document.getElementById('modalGasto').classList.remove('hidden')" class="bg-pink-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-pink-700 transition-colors flex items-center justify-center shadow-sm text-sm uppercase tracking-wider">
+                <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                + Registrar Gasto
+            </button>
+        </div>
+    </div>
 </div>
+
+<div class="mb-6">
+    <h3 class="text-xl font-bold text-gray-800 flex items-center">
+        <span class="w-2 h-8 bg-pink-600 rounded-full mr-3"></span>
+        Listado Detallado de Movimientos
+    </h3>
+</div>
+
+<script>
+function setExpensesPreset(type) {
+    const today = new Date();
+    const startInput = document.getElementById('start_date');
+    const endInput = document.getElementById('end_date');
+    
+    let start = new Date();
+    let end = new Date();
+
+    if (type === 'today') {
+        // Hoy
+    } else if (type === 'week') {
+        const day = today.getDay();
+        const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+        start = new Date(today.setDate(diff));
+        end = new Date();
+    } else if (type === 'month') {
+        start = new Date(today.getFullYear(), today.getMonth(), 1);
+        end = new Date();
+    }
+
+    startInput.value = start.toISOString().split('T')[0];
+    endInput.value = end.toISOString().split('T')[0];
+    
+    startInput.closest('form').submit();
+}
+</script>
+
 
 @if(session('success'))
 <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm" role="alert">

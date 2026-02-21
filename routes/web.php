@@ -59,7 +59,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::delete('services/images/{image}', [ServiceController::class, 'destroyImage'])->name('services.destroyImage');
         Route::delete('services/{service}/image', [ServiceController::class, 'destroyMainImage'])->name('services.destroyMainImage');
         Route::resource('services', ServiceController::class);
+        Route::get('expenses/export', [ExpenseController::class, 'exportPDF'])->name('expenses.export');
         Route::resource('expenses', ExpenseController::class);
+
         
         // Professionals Management
         Route::resource('professionals', \App\Http\Controllers\ProfessionalController::class);

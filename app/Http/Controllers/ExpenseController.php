@@ -5,9 +5,48 @@ namespace App\Http\Controllers;
 use App\Models\Expense;
 use App\Models\Appointment;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ExpenseController extends Controller
 {
+    public function exportPDF(Request $request)
+    {
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
+
+        $expensesQuery = Expense::query();
+        $appointmentsQuery = Appointment::where('status', 'completed');
+
+        if ($startDate) {
+            $expensesQuery->where('date', '>=', $startDate);
+            $appointmentsQuery->whereDate('appointment_date', '>=', $startDate);
+        }
+        if ($endDate) {
+            $expensesQuery->where('date', '<=', $endDate);
+            $appointmentsQuery->whereDate('appointment_date', '<=', $endDate);
+        }
+
+        $expenses = $expensesQuery->latest()->get();
+
+        // Financial Indicators
+        $grossRevenue = $appointmentsQuery->get()->sum('final_price');
+        $totalExpenses = (clone $expensesQuery)->sum('amount');
+        $netProfit = $grossRevenue - $totalExpenses;
+
+        $pdf = Pdf::loadView('admin.expenses.financial_report', compact(
+            'expenses', 
+            'grossRevenue', 
+            'totalExpenses', 
+            'netProfit', 
+            'startDate', 
+            'endDate'
+        ));
+
+        $filename = 'reporte_financiero_' . ($startDate ?? 'inicio') . '_' . ($endDate ?? now()->format('Y-m-d')) . '.pdf';
+
+        return $pdf->download($filename);
+    }
+
     public function index(Request $request)
     {
         $startDate = $request->get('start_date');
