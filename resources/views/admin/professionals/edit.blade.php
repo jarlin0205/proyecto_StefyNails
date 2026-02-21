@@ -161,16 +161,26 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-2">Contraseña {{ $professional->user ? '(Dejar vacío para mantener)' : '*' }}</label>
-                            <input type="password" name="password" 
-                                   class="w-full border-gray-200 rounded-lg focus:ring-pink-500 focus:border-pink-500 transition-all">
+                            <div class="relative">
+                                <input type="password" name="password" id="password"
+                                       class="w-full border-gray-200 rounded-lg focus:ring-pink-500 focus:border-pink-500 transition-all pr-10">
+                                <button type="button" onclick="togglePassword('password', 'eye-icon-pass')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-pink-600 transition-colors">
+                                    <i id="eye-icon-pass" class="fas fa-eye text-xs"></i>
+                                </button>
+                            </div>
                             @if($professional->user)
                                 <p class="text-[10px] text-pink-600 mt-1 italic">Si ingresas una contraseña nueva, se le enviará un correo con sus nuevos datos.</p>
                             @endif
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-2">Confirmar Contraseña</label>
-                            <input type="password" name="password_confirmation" 
-                                   class="w-full border-gray-200 rounded-lg focus:ring-pink-500 focus:border-pink-500 transition-all">
+                            <div class="relative">
+                                <input type="password" name="password_confirmation" id="password_confirmation"
+                                       class="w-full border-gray-200 rounded-lg focus:ring-pink-500 focus:border-pink-500 transition-all pr-10">
+                                <button type="button" onclick="togglePassword('password_confirmation', 'eye-icon-conf')" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-pink-600 transition-colors">
+                                    <i id="eye-icon-conf" class="fas fa-eye text-xs"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -188,6 +198,23 @@
                     });
                 </script>
             @endif
+
+            <script>
+                function togglePassword(inputId, iconId) {
+                    const passwordInput = document.getElementById(inputId);
+                    const eyeIcon = document.getElementById(iconId);
+                    
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        eyeIcon.classList.remove('fa-eye');
+                        eyeIcon.classList.add('fa-eye-slash');
+                    } else {
+                        passwordInput.type = 'password';
+                        eyeIcon.classList.remove('fa-eye-slash');
+                        eyeIcon.classList.add('fa-eye');
+                    }
+                }
+            </script>
 
             <div class="flex justify-end gap-3 pt-4">
                 <a href="{{ route('admin.professionals.index') }}" class="bg-gray-100 text-gray-700 px-8 py-3 rounded-xl font-bold hover:bg-gray-200 transition">
