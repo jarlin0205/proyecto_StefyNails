@@ -123,4 +123,15 @@ class WhatsAppHelper
                
         self::sendMessage($appointment->customer_phone, $msg);
     }
+
+    public static function sendInvoice($appointment, $url)
+    {
+        $msg = "🧾 *¡Tu Factura de Stefy Nails!* 🧾\n\n" .
+               "Hola {$appointment->customer_name}, gracias por visitarnos. ✨\n\n" .
+               "Aquí puedes descargar el comprobante de tu servicio de *{$appointment->service->name}*:\n\n" .
+               "🔗 {$url}\n\n" .
+               "¡Esperamos verte pronto de nuevo! 🌸";
+
+        self::sendMessage($appointment->customer_phone, $msg);
+    }
 }

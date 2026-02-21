@@ -359,4 +359,35 @@ class AppointmentController extends Controller
         $appointment->delete();
         return back()->with('success', 'Cita eliminada.');
     }
+
+    public function generateInvoice(Appointment $appointment)
+    {
+        // Solo permitir facturas de citas completadas (opcional, pero recomendado)
+        if ($appointment->status !== 'completed' && !request()->has('signature')) {
+             // Si no es por link firmado, validar que esté completada
+             // return back()->with('error', 'Solo se pueden generar facturas de citas completadas.');
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.appointments.invoice_pdf', compact('appointment'));
+        
+        return $pdf->download("Factura_StefyNails_{$appointment->id}.pdf");
+    }
+
+    public function sendInvoice(Appointment $appointment)
+    {
+        if ($appointment->status !== 'completed') {
+            return response()->json(['success' => false, 'message' => 'La cita debe estar completada para enviar la factura.']);
+        }
+
+        // Generar un link firmado válido por 7 días
+        $url = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            'appointments.invoice', 
+            now()->addDays(7), 
+            ['appointment' => $appointment->id]
+        );
+
+        \App\Helpers\WhatsAppHelper::sendInvoice($appointment, $url);
+
+        return response()->json(['success' => true, 'message' => 'Factura enviada por WhatsApp correctamente.']);
+    }
 }

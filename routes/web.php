@@ -20,6 +20,7 @@ Route::get('/agendar', [PublicAppointmentController::class, 'create'])->name('ap
 Route::post('/agendar', [PublicAppointmentController::class, 'store'])->name('appointments.store');
 Route::get('/reprogramar/{token}', [PublicAppointmentController::class, 'reschedule'])->name('public.appointments.reschedule');
 Route::post('/reprogramar/{token}', [PublicAppointmentController::class, 'updateReschedule'])->name('public.appointments.updateReschedule');
+Route::get('/appointment-invoice/{appointment}', [AppointmentController::class, 'generateInvoice'])->name('appointments.invoice');
 
 
 // Auth Routes
@@ -42,6 +43,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         
         Route::get('appointments/check-availability', [AppointmentController::class, 'checkAvailability'])->name('appointments.checkAvailability');
         Route::post('appointments/{appointment}/status', [AppointmentController::class, 'updateStatus'])->name('appointments.updateStatus');
+        Route::post('appointments/{appointment}/send-invoice', [AppointmentController::class, 'sendInvoice'])->name('appointments.sendInvoice');
         Route::resource('appointments', AppointmentController::class);
         
         Route::resource('notifications', NotificationController::class);

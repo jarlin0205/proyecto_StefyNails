@@ -63,6 +63,14 @@
                 <button id="btn-complete" onclick="handleAction('completar')" class="flex-1 min-w-[120px] bg-blue-600 text-white rounded px-4 py-2 font-bold hover:bg-blue-700 transition shadow-sm">
                     Completar
                 </button>
+                <!-- Botones de Factura (Ocultos por defecto) -->
+                <button id="btn-view-invoice" onclick="handleInvoice()" class="flex-1 min-w-[120px] bg-pink-100 text-pink-700 rounded px-4 py-2 font-bold hover:bg-pink-200 transition hidden">
+                    <i class="fas fa-file-pdf mr-1"></i> Factura
+                </button>
+                <button id="btn-whatsapp-invoice" onclick="sendWhatsAppInvoice()" class="flex-1 min-w-[120px] bg-green-100 text-green-700 rounded px-4 py-2 font-bold hover:bg-green-200 transition hidden">
+                    <i class="fab fa-whatsapp mr-1"></i> Enviar
+                </button>
+                
                 <button id="btn-cancel" onclick="handleAction('cancelar')" class="flex-1 min-w-[120px] bg-red-100 text-red-700 rounded px-4 py-2 font-bold hover:bg-red-200 transition">
                     Cancelar
                 </button>
@@ -554,6 +562,10 @@ let currentGlobalApp = null;
             btnDelete.classList.toggle('hidden', data.status !== 'completed' && data.status !== 'cancelled');
         }
 
+        // Mostrar botones de factura solo si está completada
+        document.getElementById('btn-view-invoice').classList.toggle('hidden', data.status !== 'completed');
+        document.getElementById('btn-whatsapp-invoice').classList.toggle('hidden', data.status !== 'completed');
+
         document.getElementById('appointment-modal').classList.remove('hidden');
     }
 
@@ -674,6 +686,51 @@ let currentGlobalApp = null;
                 form.submit();
             }
         });
+    }
+
+    function handleInvoice() {
+        if (!currentGlobalApp) return;
+        const url = `{{ url('appointment-invoice') }}/${currentGlobalApp.id}`;
+        window.open(url, '_blank');
+    }
+
+    async function sendWhatsAppInvoice() {
+        if (!currentGlobalApp) return;
+
+        Swal.fire({
+            title: 'Enviando Factura...',
+            text: 'Por favor espera un momento.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        try {
+            const response = await fetch(`{{ url('admin/appointments') }}/${currentGlobalApp.id}/send-invoice`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                Swal.fire({
+                    title: '¡Enviada!',
+                    text: data.message,
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            } else {
+                Swal.fire('Error', data.message, 'error');
+            }
+        } catch (error) {
+            Swal.fire('Error', 'No se pudo enviar la factura por WhatsApp.', 'error');
+        }
     }
 
     // Auto-reopen logic
