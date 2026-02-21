@@ -29,20 +29,24 @@ class ExpenseController extends Controller
         $expenses = $expensesQuery->latest()->get();
 
         // Financial Indicators
-        $grossRevenue = $appointmentsQuery->get()->sum('final_price');
+        $completedAppointments = (clone $appointmentsQuery)->with('service', 'professional')->get();
+        $grossRevenue = $completedAppointments->sum('final_price');
         $totalExpenses = (clone $expensesQuery)->sum('amount');
         $netProfit = $grossRevenue - $totalExpenses;
+
 
         // Usamos el contenedor de servicios para evitar problemas si la fachada no se descubre correctamente
         $pdf = app('dompdf.wrapper');
         $pdf->loadView('admin.expenses.financial_report', compact(
             'expenses', 
+            'completedAppointments',
             'grossRevenue', 
             'totalExpenses', 
             'netProfit', 
             'startDate', 
             'endDate'
         ));
+
 
 
         $filename = 'reporte_financiero_' . ($startDate ?? 'inicio') . '_' . ($endDate ?? now()->format('Y-m-d')) . '.pdf';
