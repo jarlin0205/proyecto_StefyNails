@@ -33,7 +33,7 @@ class ExpenseController extends Controller
         $totalExpenses = (clone $expensesQuery)->sum('amount');
         $netProfit = $grossRevenue - $totalExpenses;
 
-        $pdf = Pdf::loadView('admin.expenses.financial_report', compact(
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.expenses.financial_report', compact(
             'expenses', 
             'grossRevenue', 
             'totalExpenses', 
