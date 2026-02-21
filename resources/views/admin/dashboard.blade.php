@@ -294,63 +294,97 @@
                 </div>
 
                 <div class="px-6 py-6">
-                    <!-- Filtros (Solo Admin) -->
-                    @if($isAdmin)
-                    <div class="mb-6 bg-gray-50 border border-gray-200 rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <div class="w-full sm:w-auto">
-                            <label for="filterProfessional" class="block text-xs font-bold text-gray-500 uppercase mb-1">Filtrar por Empleado</label>
-                            <select id="filterProfessional" onchange="filterProduction()" class="w-full rounded-md border-gray-300 shadow-sm focus:border-pink-500 focus:ring focus:ring-pink-200 focus:ring-opacity-50 text-sm">
-                                <option value="all">Todos los profesionales</option>
-                                @foreach($professionals as $prof)
-                                    <option value="{{ $prof->id }}">{{ $prof->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="flex items-center gap-2 bg-white px-3 py-2 rounded-md shadow-sm border border-gray-100">
-                            <span class="text-xs font-bold text-gray-400">CITAS:</span>
-                            <span id="filteredCount" class="text-sm font-bold text-gray-700">0</span>
+                    <!-- Filtros -->
+                    <div class="mb-6 bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-sm">
+                        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 items-end">
+                            <!-- Filtro Profesional (Solo Admin) -->
+                            @if($isAdmin)
+                            <div class="col-span-1">
+                                <label for="filterProfessional" class="block text-[10px] font-black text-gray-400 uppercase mb-1 tracking-wider">Empleado</label>
+                                <select id="filterProfessional" onchange="filterProduction()" class="w-full rounded-lg border-gray-200 shadow-sm focus:border-pink-500 focus:ring focus:ring-pink-200 focus:ring-opacity-50 text-sm font-medium">
+                                    <option value="all">Todos</option>
+                                    @foreach($professionals as $prof)
+                                        <option value="{{ $prof->id }}">{{ $prof->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            @endif
+
+                            <!-- Filtro Fecha Inicio -->
+                            <div class="col-span-1">
+                                <label for="filterStartDate" class="block text-[10px] font-black text-gray-400 uppercase mb-1 tracking-wider">Desde</label>
+                                <input type="date" id="filterStartDate" onchange="filterProduction()" class="w-full rounded-lg border-gray-200 shadow-sm focus:border-pink-500 focus:ring focus:ring-pink-200 focus:ring-opacity-50 text-sm font-medium">
+                            </div>
+
+                            <!-- Filtro Fecha Fin -->
+                            <div class="col-span-1">
+                                <label for="filterEndDate" class="block text-[10px] font-black text-gray-400 uppercase mb-1 tracking-wider">Hasta</label>
+                                <input type="date" id="filterEndDate" onchange="filterProduction()" class="w-full rounded-lg border-gray-200 shadow-sm focus:border-pink-500 focus:ring focus:ring-pink-200 focus:ring-opacity-50 text-sm font-medium">
+                            </div>
+
+                            <!-- Contadores Rápidos -->
+                            <div class="col-span-1 flex items-center justify-between bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-inner">
+                                <div class="text-center">
+                                    <span class="block text-[9px] font-black text-gray-300 uppercase">Citas</span>
+                                    <span id="filteredCount" class="text-lg font-black text-pink-600">0</span>
+                                </div>
+                                <div class="h-8 w-px bg-gray-100 mx-2"></div>
+                                <div class="flex flex-wrap gap-1 justify-end">
+                                    <button onclick="setPreset('today')" class="px-2 py-1 text-[9px] font-bold bg-gray-100 hover:bg-pink-100 text-gray-600 hover:text-pink-700 rounded transition-colors uppercase">Hoy</button>
+                                    <button onclick="setPreset('week')" class="px-2 py-1 text-[9px] font-bold bg-gray-100 hover:bg-pink-100 text-gray-600 hover:text-pink-700 rounded transition-colors uppercase">Semana</button>
+                                    <button onclick="setPreset('month')" class="px-2 py-1 text-[9px] font-bold bg-gray-100 hover:bg-pink-100 text-gray-600 hover:text-pink-700 rounded transition-colors uppercase">Mes</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    @endif
 
                     <!-- Tabla -->
-                    <div class="overflow-hidden border border-gray-200 rounded-lg shadow-sm">
-                        <div class="max-h-[50vh] overflow-y-auto">
+                    <div class="overflow-hidden border border-gray-200 rounded-xl shadow-sm">
+                        <div class="max-h-[50vh] overflow-y-auto custom-scrollbar">
                             <table class="min-w-full divide-y divide-gray-200" id="productionTable">
                                 <thead class="bg-gray-50 sticky top-0 z-10">
                                     <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Fecha/Hora</th>
-                                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Servicio / Cliente</th>
+                                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Fecha/Hora</th>
+                                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Servicio / Cliente</th>
                                         @if($isAdmin)
-                                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase">Profesional</th>
+                                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Profesional</th>
                                         @endif
-                                        <th class="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase">Valor</th>
+                                        <th class="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-widest">Valor</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-100">
+                                <tbody class="bg-white divide-y divide-gray-100" id="productionTableBody">
                                     @foreach($completedAppointments as $app)
                                         <?php 
                                             $price = $app->offered_price ?? ($app->service ? $app->service->price : 0);
                                             $profId = $app->professional_id ?? '0';
+                                            $rawDate = $app->appointment_date->format('Y-m-d');
                                         ?>
-                                        <tr class="production-row hover:bg-gray-50 transition-colors" data-prof-id="{{ $profId }}" data-price="{{ $price }}">
-                                            <td class="px-4 py-3 whitespace-nowrap">
-                                                <div class="text-sm font-medium text-gray-900">{{ $app->appointment_date->format('d/m/Y') }}</div>
-                                                <div class="text-xs text-gray-500">{{ $app->appointment_date->format('h:i A') }}</div>
+                                        <tr class="production-row hover:bg-pink-50/30 transition-colors" 
+                                            data-prof-id="{{ $profId }}" 
+                                            data-price="{{ $price }}"
+                                            data-date="{{ $rawDate }}">
+                                            <td class="px-4 py-3 whitespace-nowrap border-l-4 border-transparent hover:border-pink-500 transition-all">
+                                                <div class="text-sm font-bold text-gray-900">{{ $app->appointment_date->format('d/m/Y') }}</div>
+                                                <div class="text-[10px] font-medium text-gray-400 uppercase">{{ $app->appointment_date->format('h:i A') }}</div>
                                             </td>
                                             <td class="px-4 py-3">
-                                                <div class="text-sm font-bold text-pink-700">{{ $app->service?->name ?? 'Servicio Personalizado' }}</div>
-                                                <div class="text-xs text-gray-600 italic">{{ $app->customer_name }}</div>
+                                                <div class="text-sm font-bold text-gray-800">{{ $app->service?->name ?? 'Servicio Personalizado' }}</div>
+                                                <div class="flex items-center text-[11px] text-gray-500">
+                                                    <i class="fas fa-user-circle mr-1 opacity-50"></i>
+                                                    {{ $app->customer_name }}
+                                                </div>
                                             </td>
                                             @if($isAdmin)
                                             <td class="px-4 py-3">
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
-                                                    {{ $app->professional?->name ?? 'Admin / Otro' }}
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-gray-100 text-gray-600 border border-gray-200">
+                                                    {{ $app->professional?->name ?? 'Admin' }}
                                                 </span>
                                             </td>
                                             @endif
-                                            <td class="px-4 py-3 whitespace-nowrap text-right font-black text-gray-800">
-                                                ${{ number_format($price, 0, ',', '.') }}
+                                            <td class="px-4 py-3 whitespace-nowrap text-right">
+                                                <span class="text-sm font-black text-gray-900 bg-gray-50 px-3 py-1 rounded-lg border border-gray-100 shadow-sm">
+                                                    ${{ number_format($price, 0, ',', '.') }}
+                                                </span>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -359,21 +393,25 @@
                         </div>
                     </div>
 
-                    <!-- Footer del Modal -->
-                    <div class="mt-8 bg-gray-900 rounded-xl p-6 text-white flex flex-col md:flex-row justify-between items-center shadow-inner">
-                        <div class="mb-4 md:mb-0">
-                            <p class="text-gray-400 text-xs uppercase tracking-widest font-bold mb-1">Total Producido</p>
-                            <p class="text-pink-400 text-xs italic">* Valores basados en servicios finalizados</p>
+                    <!-- Resumen del Grid -->
+                    <div class="mt-8 bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-6 text-white flex flex-col md:flex-row justify-between items-center shadow-xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-8 opacity-10">
+                            <i class="fas fa-coins text-6xl rotate-12"></i>
                         </div>
-                        <div class="text-center md:text-right">
-                            <span id="filteredTotal" class="text-4xl font-black text-white">$0</span>
+                        <div class="relative z-10 mb-4 md:mb-0 text-center md:text-left">
+                            <p class="text-pink-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Análisis de Producción</p>
+                            <p id="filterDescription" class="text-white/60 text-xs italic">Mostrando todos los registros completados</p>
+                        </div>
+                        <div class="relative z-10 text-center md:text-right">
+                            <span id="filteredTotal" class="text-5xl font-black text-white">$0</span>
+                            <div class="mt-1 h-1 w-full bg-pink-600 rounded-full animate-pulse"></div>
                         </div>
                     </div>
                 </div>
 
                 <div class="bg-gray-50 px-6 py-4 flex justify-end gap-3 border-t border-gray-200">
-                    <button type="button" onclick="document.getElementById('modalProducido').classList.add('hidden')" class="px-6 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold text-gray-700 hover:bg-gray-100 transition-colors shadow-sm focus:ring-2 focus:ring-pink-500">
-                        Cerrar Detalle
+                    <button type="button" onclick="document.getElementById('modalProducido').classList.add('hidden')" class="px-8 py-2.5 bg-white border border-gray-300 rounded-xl text-sm font-black text-gray-700 hover:bg-gray-100 transition-all shadow-sm focus:ring-2 focus:ring-pink-500 active:scale-95 uppercase tracking-wider">
+                        Cerrar Analizador
                     </button>
                 </div>
             </div>
@@ -382,17 +420,53 @@
 </div>
 
 <script>
+function setPreset(type) {
+    const today = new Date();
+    const startInput = document.getElementById('filterStartDate');
+    const endInput = document.getElementById('filterEndDate');
+    
+    let start = new Date();
+    let end = new Date();
+
+    if (type === 'today') {
+        // Hoy ya está fijado
+    } else if (type === 'week') {
+        const day = today.getDay(); // 0 (Domingo) a 6 (Sábado)
+        const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Lunes
+        start = new Date(today.setDate(diff));
+        end = new Date();
+    } else if (type === 'month') {
+        start = new Date(today.getFullYear(), today.getMonth(), 1);
+        end = new Date();
+    }
+
+    startInput.value = start.toISOString().split('T')[0];
+    endInput.value = end.toISOString().split('T')[0];
+    
+    filterProduction();
+}
+
 function filterProduction() {
     const filterVal = document.getElementById('filterProfessional')?.value || 'all';
+    const startDate = document.getElementById('filterStartDate').value;
+    const endDate = document.getElementById('filterEndDate').value;
+    
     const rows = document.querySelectorAll('.production-row');
     let total = 0;
     let count = 0;
 
     rows.forEach(row => {
         const rowProfId = row.getAttribute('data-prof-id');
+        const rowDate = row.getAttribute('data-date');
         const price = parseFloat(row.getAttribute('data-price')) || 0;
 
-        if (filterVal === 'all' || rowProfId === filterVal) {
+        let matchesProf = (filterVal === 'all' || rowProfId === filterVal);
+        let matchesDate = true;
+
+        if (startDate && rowDate < startDate) matchesDate = false;
+        if (endDate && rowDate > endDate) matchesDate = false;
+
+        if (matchesProf && matchesDate) {
             row.style.display = '';
             total += price;
             count++;
@@ -404,22 +478,31 @@ function filterProduction() {
     // Actualizar UI
     const totalEl = document.getElementById('filteredTotal');
     const countEl = document.getElementById('filteredCount');
+    const descEl = document.getElementById('filterDescription');
     
     if (totalEl) totalEl.innerText = '$' + new Intl.NumberFormat('es-CO').format(total);
     if (countEl) countEl.innerText = count;
+    
+    if (descEl) {
+        if (!startDate && !endDate) {
+            descEl.innerText = "Histórico completo de servicios realizados";
+        } else {
+            descEl.innerText = `Resultados desde ${startDate || 'el inicio'} hasta ${endDate || 'hoy'}`;
+        }
+    }
 }
 
 // Inicializar al abrir
 document.addEventListener('DOMContentLoaded', function() {
-    // Si queremos que al abrir siempre esté recalculado
     filterProduction();
 });
 
-// Función global para abrir el modal (llamada desde fuera)
+// Función global para abrir el modal
 function openProductionModal() {
     document.getElementById('modalProducido').classList.remove('hidden');
     filterProduction();
 }
 </script>
+
 
 @endsection
