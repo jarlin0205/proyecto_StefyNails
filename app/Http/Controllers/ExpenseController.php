@@ -33,7 +33,9 @@ class ExpenseController extends Controller
         $totalExpenses = (clone $expensesQuery)->sum('amount');
         $netProfit = $grossRevenue - $totalExpenses;
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.expenses.financial_report', compact(
+        // Usamos el contenedor de servicios para evitar problemas si la fachada no se descubre correctamente
+        $pdf = app('dompdf.wrapper');
+        $pdf->loadView('admin.expenses.financial_report', compact(
             'expenses', 
             'grossRevenue', 
             'totalExpenses', 
@@ -41,6 +43,7 @@ class ExpenseController extends Controller
             'startDate', 
             'endDate'
         ));
+
 
         $filename = 'reporte_financiero_' . ($startDate ?? 'inicio') . '_' . ($endDate ?? now()->format('Y-m-d')) . '.pdf';
 
