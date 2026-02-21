@@ -8,22 +8,43 @@ use Illuminate\Http\Request;
 
 class ExpenseController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $expenses = Expense::latest()->paginate(20);
+        $startDate = $request->get('start_date');
+        $endDate = $request->get('end_date');
 
-        // Financial Indicators (same as AdminController)
-        $grossRevenue = Appointment::where('status', 'completed')->get()->sum('final_price');
-        $totalExpenses = Expense::sum('amount');
+        $expensesQuery = Expense::query();
+        $appointmentsQuery = Appointment::where('status', 'completed');
+
+        if ($startDate) {
+            $expensesQuery->where('date', '>=', $startDate);
+            $appointmentsQuery->whereDate('appointment_date', '>=', $startDate);
+        }
+        if ($endDate) {
+            $expensesQuery->where('date', '<=', $endDate);
+            $appointmentsQuery->whereDate('appointment_date', '<=', $endDate);
+        }
+
+        $expenses = $expensesQuery->latest()->paginate(50)->withQueryString();
+
+        // Financial Indicators
+        $grossRevenue = $appointmentsQuery->get()->sum('final_price');
+        $totalExpenses = (clone $expensesQuery)->sum('amount');
         $netProfit = $grossRevenue - $totalExpenses;
-        $projectedRevenue = Appointment::where('status', 'confirmed')->get()->sum('final_price');
+        
+        $projectedQuery = Appointment::where('status', 'confirmed');
+        if ($startDate) { $projectedQuery->whereDate('appointment_date', '>=', $startDate); }
+        if ($endDate) { $projectedQuery->whereDate('appointment_date', '<=', $endDate); }
+        $projectedRevenue = $projectedQuery->get()->sum('final_price');
 
         return view('admin.expenses.index', compact(
             'expenses', 
             'grossRevenue', 
             'totalExpenses', 
             'netProfit', 
-            'projectedRevenue'
+            'projectedRevenue',
+            'startDate',
+            'endDate'
         ));
     }
 
