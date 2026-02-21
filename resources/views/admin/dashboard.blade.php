@@ -183,7 +183,7 @@
                     </td>
                     <td class="px-5 py-5 border-b border-gray-200 text-sm text-center">
                         <button 
-                            onclick="openAppointmentModalWrapper({{ json_encode([
+                            onclick="openAppointmentModal({{ json_encode([
                                 'id' => $appointment->id,
                                 'customer_name' => $appointment->customer_name,
                                 'customer_phone' => $appointment->customer_phone,
