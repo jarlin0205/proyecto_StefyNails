@@ -4,6 +4,10 @@
 
 @section('content')
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4 mb-6">
+    @php
+        $isAdmin = auth()->user()->isAdmin();
+    @endphp
+
     <!-- Card: Producido (Nuevo) -->
     <div onclick="document.getElementById('modalProducido').classList.remove('hidden')" class="bg-white rounded-lg shadow p-4 border-l-4 border-pink-600 flex items-center min-w-0 cursor-pointer hover:shadow-md transition-shadow">
         <div class="flex-shrink-0 bg-pink-100 rounded-full p-2">
@@ -259,17 +263,18 @@
         </div>
     </div>
 </div>
+@endif
 
 <!-- Modal de Detalle de Producido -->
 <div id="modalProducido" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="document.getElementById('modalProducido').classList.add('hidden')"></div>
         <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full sm:my-8 sm:align-middle sm:max-w-2xl">
             <div class="bg-white px-4 pt-5 pb-4 sm:p-6">
                 <div class="flex items-center justify-between border-b pb-3 mb-4">
                     <h3 class="text-lg leading-6 font-bold text-gray-900" id="modal-title">
-                        Detalle de Servicios Realizados
+                        {{ $isAdmin ? 'Detalle de Servicios Realizados (Global)' : 'Detalle de Mis Servicios Realizados' }}
                     </h3>
                     <button type="button" onclick="document.getElementById('modalProducido').classList.add('hidden')" class="text-gray-400 hover:text-gray-500">
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -284,7 +289,9 @@
                             <tr>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Servicio / Cliente</th>
+                                @if($isAdmin)
                                 <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profesional</th>
+                                @endif
                                 <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
                             </tr>
                         </thead>
@@ -299,19 +306,21 @@
                                         {{ $app->appointment_date->format('h:i A') }}
                                     </td>
                                     <td class="px-4 py-3 text-sm">
-                                        <div class="font-medium text-gray-900">{{ $app->service->name }}</div>
+                                        <div class="font-medium text-gray-900">{{ $app->service->name ?? 'Servicio' }}</div>
                                         <div class="text-xs text-gray-500">{{ $app->customer_name }}</div>
                                     </td>
+                                    @if($isAdmin)
                                     <td class="px-4 py-3 text-sm text-gray-500">
                                         {{ $app->professional->name ?? 'Sin asignar' }}
                                     </td>
+                                    @endif
                                     <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-bold text-gray-900">
                                         ${{ number_format($price, 0, ',', '.') }}
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4" class="px-4 py-8 text-center text-gray-500 text-sm">
+                                    <td colspan="{{ $isAdmin ? 4 : 3 }}" class="px-4 py-8 text-center text-gray-500 text-sm">
                                         No hay servicios completados registrados.
                                     </td>
                                 </tr>
@@ -325,7 +334,7 @@
                         * Incluye servicios completados y precios ofertados.
                     </div>
                     <div class="text-right">
-                        <span class="text-gray-500 text-sm font-medium uppercase mr-2">Total Producido:</span>
+                        <span class="text-gray-500 text-sm font-medium uppercase mr-2">{{ $isAdmin ? 'Total Global:' : 'Mi Total:' }}</span>
                         <span class="text-2xl font-black text-pink-600">${{ number_format($totalProduced, 0, ',', '.') }}</span>
                     </div>
                 </div>
