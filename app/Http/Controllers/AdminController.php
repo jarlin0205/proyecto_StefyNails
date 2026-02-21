@@ -26,11 +26,11 @@ class AdminController extends Controller
         $cancelledCount = (clone $query)->where('status', 'cancelled')->count();
         
         // Calcular lo producido (solo citas completadas)
-        $totalProduced = (clone $query)->where('status', 'completed')
-            ->get()
-            ->sum(function($appointment) {
-                return $appointment->offered_price ?? ($appointment->service ? $appointment->service->price : 0);
-            });
+        $completedAppointmentsQuery = (clone $query)->where('status', 'completed')->with('service', 'professional');
+        $completedAppointments = $completedAppointmentsQuery->get();
+        $totalProduced = $completedAppointments->sum(function($appointment) {
+            return $appointment->offered_price ?? ($appointment->service ? $appointment->service->price : 0);
+        });
 
         $servicesCount = Service::count();
         $notifications = Notification::where('is_read', false)->get();
@@ -49,7 +49,8 @@ class AdminController extends Controller
             'servicesCount', 
             'notifications', 
             'latestsAppointments',
-            'totalProduced'
+            'totalProduced',
+            'completedAppointments'
         ));
     }
 }

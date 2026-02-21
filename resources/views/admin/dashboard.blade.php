@@ -5,7 +5,7 @@
 @section('content')
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6 gap-4 mb-6">
     <!-- Card: Producido (Nuevo) -->
-    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-pink-600 flex items-center min-w-0">
+    <div onclick="document.getElementById('modalProducido').classList.remove('hidden')" class="bg-white rounded-lg shadow p-4 border-l-4 border-pink-600 flex items-center min-w-0 cursor-pointer hover:shadow-md transition-shadow">
         <div class="flex-shrink-0 bg-pink-100 rounded-full p-2">
             <svg class="h-5 w-5 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -256,6 +256,85 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Detalle de Producido -->
+<div id="modalProducido" class="fixed inset-0 z-50 overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="document.getElementById('modalProducido').classList.add('hidden')"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6">
+                <div class="flex items-center justify-between border-b pb-3 mb-4">
+                    <h3 class="text-lg leading-6 font-bold text-gray-900" id="modal-title">
+                        Detalle de Servicios Realizados
+                    </h3>
+                    <button type="button" onclick="document.getElementById('modalProducido').classList.add('hidden')" class="text-gray-400 hover:text-gray-500">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="mt-2 max-h-[60vh] overflow-y-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Servicio / Cliente</th>
+                                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profesional</th>
+                                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            @forelse($completedAppointments as $app)
+                                @php
+                                    $price = $app->offered_price ?? ($app->service ? $app->service->price : 0);
+                                @endphp
+                                <tr>
+                                    <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                                        {{ $app->appointment_date->format('d/m/y') }}<br>
+                                        {{ $app->appointment_date->format('h:i A') }}
+                                    </td>
+                                    <td class="px-4 py-3 text-sm">
+                                        <div class="font-medium text-gray-900">{{ $app->service->name }}</div>
+                                        <div class="text-xs text-gray-500">{{ $app->customer_name }}</div>
+                                    </td>
+                                    <td class="px-4 py-3 text-sm text-gray-500">
+                                        {{ $app->professional->name ?? 'Sin asignar' }}
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-bold text-gray-900">
+                                        ${{ number_format($price, 0, ',', '.') }}
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="px-4 py-8 text-center text-gray-500 text-sm">
+                                        No hay servicios completados registrados.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="mt-6 flex justify-between items-center border-t pt-4">
+                    <div class="text-gray-600 text-sm italic">
+                        * Incluye servicios completados y precios ofertados.
+                    </div>
+                    <div class="text-right">
+                        <span class="text-gray-500 text-sm font-medium uppercase mr-2">Total Producido:</span>
+                        <span class="text-2xl font-black text-pink-600">${{ number_format($totalProduced, 0, ',', '.') }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" onclick="document.getElementById('modalProducido').classList.add('hidden')" class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 sm:w-auto sm:text-sm">
+                    Cerrar Detalle
+                </button>
+            </div>
         </div>
     </div>
 </div>
