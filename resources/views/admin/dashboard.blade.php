@@ -187,7 +187,7 @@
                                 'id' => $appointment->id,
                                 'customer_name' => $appointment->customer_name,
                                 'customer_phone' => $appointment->customer_phone,
-                                'service_name' => $appointment->service->name,
+                                'service_name' => $appointment->service?->name ?? 'Servicio',
                                 'date' => $appointment->appointment_date->format('d/m/Y h:i A'),
                                 'status' => $appointment->status,
                                 'price' => $appointment->offered_price ?? ($appointment->service ? $appointment->service->price : 0),
@@ -306,12 +306,12 @@
                                         {{ $app->appointment_date->format('h:i A') }}
                                     </td>
                                     <td class="px-4 py-3 text-sm">
-                                        <div class="font-medium text-gray-900">{{ $app->service->name ?? 'Servicio' }}</div>
+                                        <div class="font-medium text-gray-900">{{ $app->service?->name ?? 'Servicio individual' }}</div>
                                         <div class="text-xs text-gray-500">{{ $app->customer_name }}</div>
                                     </td>
                                     @if($isAdmin)
                                     <td class="px-4 py-3 text-sm text-gray-500">
-                                        {{ $app->professional->name ?? 'Sin asignar' }}
+                                        {{ $app->professional?->name ?? 'Sin asignar' }}
                                     </td>
                                     @endif
                                     <td class="px-4 py-3 whitespace-nowrap text-right text-sm font-bold text-gray-900">
