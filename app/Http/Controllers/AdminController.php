@@ -7,6 +7,7 @@ use App\Models\Service;
 use App\Models\Appointment;
 use App\Models\Notification;
 use App\Models\Expense;
+use App\Models\Professional;
 
 class AdminController extends Controller
 {
