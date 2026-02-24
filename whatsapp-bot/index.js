@@ -234,7 +234,7 @@ const server = http.createServer((req, res) => {
                             // REESCRITURA INTERNA: El servidor no suele poder verse a sí mismo por IP pública
                             let fetchUrl = pdfUrl;
                             if (fetchUrl.includes('3.12.104.67')) {
-                                fetchUrl = fetchUrl.replace('3.12.104.67', 'localhost');
+                                fetchUrl = fetchUrl.replace('3.12.104.67', '127.0.0.1');
                             }
 
                             console.log(`📡 Intentando descargar PDF desde: ${fetchUrl}`);
@@ -243,8 +243,7 @@ const server = http.createServer((req, res) => {
                             console.log(`📡 Factura PDF enviada a ${cleanPhone}`);
                         } catch (mediaError) {
                             console.error('❌ Error cargando PDF desde URL:', mediaError.message);
-                            console.error('Stack:', mediaError.stack);
-                            console.error('Code:', mediaError.code);
+                            console.error('JSON Error:', JSON.stringify(mediaError));
                             console.error('URL fallida:', pdfUrl);
                             if (message) await client.sendMessage(chatId, message);
                         }
