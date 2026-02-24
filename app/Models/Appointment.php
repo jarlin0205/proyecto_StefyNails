@@ -62,4 +62,34 @@ class Appointment extends Model
     {
         return $this->belongsTo(Professional::class);
     }
+
+    /**
+     * Mutator para el nombre del cliente
+     */
+    protected function customerName(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: fn (string $value) => \Illuminate\Support\Str::title($value),
+        );
+    }
+
+    /**
+     * Mutator para las notas (Primera letra de la frase en mayúscula)
+     */
+    protected function notes(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: fn (?string $value) => $value ? ucfirst(strtolower($value)) : null,
+        );
+    }
+
+    /**
+     * Mutator para el motivo de reprogramación
+     */
+    protected function rescheduleReason(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: fn (?string $value) => $value ? ucfirst(strtolower($value)) : null,
+        );
+    }
 }

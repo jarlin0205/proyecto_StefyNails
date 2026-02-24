@@ -61,4 +61,14 @@ class User extends Authenticatable
     {
         return $this->role === 'employee';
     }
+
+    /**
+     * Mutator para estandarizar el nombre (Primera letra Mayúscula en cada palabra)
+     */
+    protected function name(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: fn (string $value) => \Illuminate\Support\Str::title($value),
+        );
+    }
 }

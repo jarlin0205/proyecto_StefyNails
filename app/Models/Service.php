@@ -36,6 +36,16 @@ class Service extends Model
     }
 
     /**
+     * Mutator para estandarizar el nombre
+     */
+    protected function name(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: fn (string $value) => \Illuminate\Support\Str::title($value),
+        );
+    }
+
+    /**
      * Get duration in minutes from string.
      * Examples: "1 hora", "30 min", "1h", "2 horas"
      */
