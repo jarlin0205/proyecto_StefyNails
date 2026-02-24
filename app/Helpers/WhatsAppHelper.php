@@ -53,10 +53,14 @@ class WhatsAppHelper
     {
         $date = \Carbon\Carbon::parse($appointment->appointment_date)->format('d/m/Y h:i A');
         $location = $appointment->location === 'salon' ? 'En el Salón' : 'A Domicilio';
+        $professional = $appointment->professional ? $appointment->professional->name : 'Por asignar';
+        $price = number_format($appointment->final_price, 0, ',', '.');
         
         $msg = "✨ *¡Cita Solicitada con Éxito!* ✨\n\n" .
                "Hola {$appointment->customer_name}, hemos recibido tu solicitud:\n\n" .
                "📋 *Servicio:* {$appointment->service->name}\n" .
+               "💰 *Precio:* \${$price}\n" .
+               "👩‍🎨 *Profesional:* {$professional}\n" .
                "📅 *Fecha:* {$date}\n" .
                "📍 *Lugar:* {$location}\n\n" .
                "🔔 *Por favor espera la confirmación oficial* por parte de Stefy Nails por este mismo medio.\n\n" .
@@ -73,8 +77,14 @@ class WhatsAppHelper
         $msg = "";
         
         if ($status === 'confirmed') {
+            $professional = $appointment->professional ? $appointment->professional->name : 'Staff';
+            $price = number_format($appointment->final_price, 0, ',', '.');
+            
             $msg = "✅ *¡Tu cita ha sido CONFIRMADA!* ✅\n\n" .
-                   "Te esperamos el día *{$date}* para tu servicio de *{$appointment->service->name}*.\n\n" .
+                   "Te esperamos el día *{$date}*.\n\n" .
+                   "📋 *Servicio:* {$appointment->service->name}\n" .
+                   "💰 *Precio:* \${$price}\n" .
+                   "👩‍🎨 *Profesional:* {$professional}\n\n" .
                    "Si necesitas realizar algún cambio, puedes escribir *MENU* en cualquier momento.\n\n" .
                    "¡Gracias por elegir Stefy Nails! ✨";
         } elseif ($status === 'cancelled') {
@@ -106,18 +116,28 @@ class WhatsAppHelper
         }
 
         if ($source === 'client') {
+            $professional = $appointment->professional ? $appointment->professional->name : 'Staff';
+            $price = number_format($appointment->final_price, 0, ',', '.');
+            
             $msg = "📅 *Solicitud de Reprogramación Enviada* 📅\n\n" .
                    "Hola {$appointment->customer_name}, hemos recibido tu solicitud de cambio:\n\n" .
                    "🆕 *Nueva Fecha:* {$date}\n" .
-                   "📋 *Servicio:* {$appointment->service->name}\n\n" .
+                   "📋 *Servicio:* {$appointment->service->name}\n" .
+                   "💰 *Precio:* \${$price}\n" .
+                   "👩‍🎨 *Profesional:* {$professional}\n\n" .
                    "🔔 *Por favor espera la confirmación oficial* por parte de Stefy Nails por este mismo medio.";
         } else {
             // Cuando el admin reprograma, el estado es pending_client
+            $professional = $appointment->professional ? $appointment->professional->name : 'Staff';
+            $price = number_format($appointment->final_price, 0, ',', '.');
+            
             $msg = "📅 *Cita Reprogramada* 📅\n\n" .
                    $reasonText .
                    "He actualizado tu cita para una mejor atención:\n\n" .
                    "🆕 *Nueva Fecha:* {$date}\n" .
-                   "📋 *Servicio:* {$appointment->service->name}\n\n" .
+                   "📋 *Servicio:* {$appointment->service->name}\n" .
+                   "💰 *Precio:* \${$price}\n" .
+                   "👩‍🎨 *Profesional:* {$professional}\n\n" .
                    "Por favor responde con la palabra *CONFIRMAR* para asegurar tu espacio, o escribe *MENU* para ver más opciones. ✨";
         }
                
