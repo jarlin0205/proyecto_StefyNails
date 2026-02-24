@@ -77,8 +77,23 @@ const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
         headless: true,
-        args: CONFIG.CHROME_ARGS
+        args: CONFIG.CHROME_ARGS,
+        handleSIGINT: false, // PM2 manejará esto
+        handleSIGTERM: false
     }
+});
+
+/**
+ * MANEJO DE ERRORES GLOBAL
+ * Evita que el proceso muera por errores no capturados
+ */
+process.on('uncaughtException', (err) => {
+    console.error('💥 Error Crítico No Capturado (Uncaught):', err.message);
+    console.error(err.stack);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('💥 Promesa No Manejada (Unhandled Rejection):', reason);
 });
 
 client.on('qr', (qr) => {
@@ -90,86 +105,105 @@ client.on('ready', () => {
     console.log('✅ Bot de Stefy Nails conectado y listo.');
 });
 
+/**
+ * RECONEXIÓN AUTOMÁTICA
+ */
+client.on('disconnected', async (reason) => {
+    console.log('⚠️ Cliente de WhatsApp DESCONECTADO:', reason);
+    console.log('🔄 Intentando reiniciar cliente en 5 segundos...');
+
+    setTimeout(async () => {
+        try {
+            await client.initialize();
+            console.log('✅ Re-inicialización enviada.');
+        } catch (err) {
+            console.error('❌ Error al re-inicializar:', err.message);
+        }
+    }, 5000);
+});
+
 client.on('message', async (msg) => {
-    const body = msg.body.trim().toUpperCase();
-    const sender = msg.from.split('@')[0];
+    try {
+        const body = msg.body.trim().toUpperCase();
+        const sender = msg.from.split('@')[0];
 
-    // Inicializar estado
-    if (!userStates[sender]) userStates[sender] = { state: STATES.IDLE };
-    const userState = userStates[sender];
+        // Inicializar estado
+        if (!userStates[sender]) userStates[sender] = { state: STATES.IDLE };
+        const userState = userStates[sender];
 
-    // Comandos Globales
-    if (body === 'MENU' || body === 'AYUDA') {
-        try {
-            const res = await callLaravelApi(`get-link?phone=${sender}`, 'GET');
-            if (res.success) {
+        // Comandos Globales
+        if (body === 'MENU' || body === 'AYUDA') {
+            try {
+                const res = await callLaravelApi(`get-link?phone=${sender}`, 'GET');
+                if (res.success) {
+                    userState.state = STATES.IDLE;
+                    return msg.reply(`🌟 *Bienvenido al Bot de Stefy Nails* 🌟\n\nHola *${res.customer_name}*, podemos ayudarte a gestionar tu cita con estos comandos:\n\n1️⃣ *CONFIRMAR*\n2️⃣ *CANCELAR*\n3️⃣ *REPROGRAMAR*\n\n_Escribe "MENU" para volver a ver esto._`);
+                } else {
+                    return msg.reply(`🌸 *¡Hola!* 🌸\n\nNo encontramos una cita activa vinculada a este número. ¡Nos encantaría atenderte! ✨\n\nPuedes agendar tu cita fácilmente aquí:\n🔗 http://3.12.104.67\n\n¡Te esperamos! 💖`);
+                }
+            } catch (err) {
+                return msg.reply(`🌸 *¡Hola!* 🌸\n\nParece que no tienes citas activas. ¡Te invitamos a agendar una en nuestra web! ✨\n\n🔗 http://3.12.104.67\n\n¡Gracias! 💖`);
+            }
+        }
+
+        // Estado: Esperando Reprogramación
+        if (userState.state === STATES.AWAITING_RESCHEDULE) {
+            if (body === 'CANCELAR' || body === 'SALIR') {
                 userState.state = STATES.IDLE;
-                return msg.reply(`🌟 *Bienvenido al Bot de Stefy Nails* 🌟\n\nHola *${res.customer_name}*, podemos ayudarte a gestionar tu cita con estos comandos:\n\n1️⃣ *CONFIRMAR*\n2️⃣ *CANCELAR*\n3️⃣ *REPROGRAMAR*\n\n_Escribe "MENU" para volver a ver esto._`);
-            } else {
-                return msg.reply(`🌸 *¡Hola!* 🌸\n\nNo encontramos una cita activa vinculada a este número. ¡Nos encantaría atenderte! ✨\n\nPuedes agendar tu cita fácilmente aquí:\n🔗 http://3.12.104.67\n\n¡Te esperamos! 💖`);
+                return msg.reply('❌ Reprogramación cancelada.');
             }
-        } catch (err) {
-            // Si hay error en la API (ej: 404), sugerir agendar
-            return msg.reply(`🌸 *¡Hola!* 🌸\n\nParece que no tienes citas activas. ¡Te invitamos a agendar una en nuestra web! ✨\n\n🔗 http://3.12.104.67\n\n¡Gracias! 💖`);
-        }
-    }
 
-    // Estado: Esperando Reprogramación
-    if (userState.state === STATES.AWAITING_RESCHEDULE) {
-        if (body === 'CANCELAR' || body === 'SALIR') {
-            userState.state = STATES.IDLE;
-            return msg.reply('❌ Reprogramación cancelada.');
-        }
+            const isoDate = parseDateTimeToISO(msg.body);
+            if (!isoDate) return msg.reply('❌ Formato no válido. Usa: *DD/MM 02:30 PM*');
 
-        const isoDate = parseDateTimeToISO(msg.body);
-        if (!isoDate) return msg.reply('❌ Formato no válido. Usa: *DD/MM 02:30 PM*');
-
-        try {
-            const res = await callLaravelApi('reschedule', 'POST', {
-                phone: sender,
-                date: isoDate,
-                reason: 'Reprogramado vía WhatsApp'
-            });
-            userState.state = STATES.IDLE;
-            msg.reply(`📅 *Cita Reprogramada*\n${res.message}`);
-        } catch (err) {
-            msg.reply(`❌ Error: ${err.message}`);
-        }
-        return;
-    }
-
-    // Comandos en IDLE
-    if (body.startsWith('CONFIRMAR') || body === '1') {
-        try {
-            const res = await callLaravelApi('status', 'POST', { phone: sender, status: 'confirmed' });
-            msg.reply(`✅ *Cita Confirmada*\n${res.message}`);
-        } catch (err) {
-            msg.reply(`❌ Error: ${err.message}`);
-        }
-    } else if (body.startsWith('CANCELAR') || body === '2') {
-        try {
-            const res = await callLaravelApi('status', 'POST', { phone: sender, status: 'cancelled' });
-            msg.reply('✅ *Cita cancelada con éxito*');
-        } catch (err) {
-            msg.reply(`❌ Error: ${err.message}`);
-        }
-    } else if (body.startsWith('REPROGRAMAR') || body === '3') {
-        try {
-            const res = await callLaravelApi(`get-link?phone=${sender}`, 'GET');
-            if (res.success) {
-                msg.reply(`📅 *Reprogramar Cita*\nHola *${res.customer_name}*, usa este enlace:\n🔗 ${res.link}`);
-            } else {
-                msg.reply('❌ No encontramos cita activa.');
+            try {
+                const res = await callLaravelApi('reschedule', 'POST', {
+                    phone: sender,
+                    date: isoDate,
+                    reason: 'Reprogramado vía WhatsApp'
+                });
+                userState.state = STATES.IDLE;
+                msg.reply(`📅 *Cita Reprogramada*\n${res.message}`);
+            } catch (err) {
+                msg.reply(`❌ Error: ${err.message}`);
             }
-        } catch (err) {
-            msg.reply(`❌ Error: ${err.message}`);
+            return;
         }
+
+        // Comandos en IDLE
+        if (body.startsWith('CONFIRMAR') || body === '1') {
+            try {
+                const res = await callLaravelApi('status', 'POST', { phone: sender, status: 'confirmed' });
+                msg.reply(`✅ *Cita Confirmada*\n${res.message}`);
+            } catch (err) {
+                msg.reply(`❌ Error: ${err.message}`);
+            }
+        } else if (body.startsWith('CANCELAR') || body === '2') {
+            try {
+                const res = await callLaravelApi('status', 'POST', { phone: sender, status: 'cancelled' });
+                msg.reply('✅ *Cita cancelada con éxito*');
+            } catch (err) {
+                msg.reply(`❌ Error: ${err.message}`);
+            }
+        } else if (body.startsWith('REPROGRAMAR') || body === '3') {
+            try {
+                const res = await callLaravelApi(`get-link?phone=${sender}`, 'GET');
+                if (res.success) {
+                    msg.reply(`📅 *Reprogramar Cita*\nHola *${res.customer_name}*, usa este enlace:\n🔗 ${res.link}`);
+                } else {
+                    msg.reply('❌ No encontramos cita activa.');
+                }
+            } catch (err) {
+                msg.reply(`❌ Error: ${err.message}`);
+            }
+        }
+    } catch (globalError) {
+        console.error('❌ Error manejando mensaje:', globalError.message);
     }
 });
 
 /**
- * SERVIDOR DE NOTIFICACIONES (Puro HTTP)
- * Reemplaza a Express
+ * SERVIDOR DE NOTIFICACIONES
  */
 const server = http.createServer((req, res) => {
     if (req.method === 'POST' && req.url === '/send-message') {
@@ -177,26 +211,37 @@ const server = http.createServer((req, res) => {
         req.on('data', chunk => { body += chunk.toString(); });
         req.on('end', async () => {
             try {
-                const { phone, message } = JSON.parse(body);
+                const parsedBody = JSON.parse(body);
+                const { phone, message } = parsedBody;
+
                 if (!phone || !message) {
                     res.writeHead(400, { 'Content-Type': 'application/json' });
                     return res.end(JSON.stringify({ error: 'Faltan datos' }));
                 }
 
+                if (!client.info || !client.info.wid) {
+                    res.writeHead(503, { 'Content-Type': 'application/json' });
+                    return res.end(JSON.stringify({ error: 'El bot no está listo o está desconectado' }));
+                }
+
                 const cleanPhone = phone.replace(/[^0-9]/g, '');
                 const chatId = `${cleanPhone}@c.us`;
 
-                if (await client.isRegisteredUser(chatId)) {
+                const isRegistered = await client.isRegisteredUser(chatId);
+                if (isRegistered) {
                     await client.sendMessage(chatId, message);
+                    console.log(`📡 Mensaje enviado a ${cleanPhone}`);
                     res.writeHead(200, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ success: true }));
                 } else {
+                    console.warn(`⚠️ Intento de envío a número no registrado: ${cleanPhone}`);
                     res.writeHead(404, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ error: 'No registrado' }));
+                    res.end(JSON.stringify({ error: 'Número no registrado en WhatsApp' }));
                 }
             } catch (err) {
+                console.error('❌ Error en /send-message:', err.message);
                 res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: 'Error del servidor', details: err.message }));
+                res.end(JSON.stringify({ error: 'Error interno', details: err.message }));
             }
         });
     } else {
