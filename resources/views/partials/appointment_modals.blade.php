@@ -253,10 +253,106 @@
     </div>
 </div>
 
+<!-- Payment Method Selection Modal -->
+<div id="payment-modal" class="fixed inset-0 z-[70] hidden overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity z-0" aria-hidden="true" onclick="closePaymentModal()">
+            <div class="absolute inset-0 bg-gray-900 opacity-80 backdrop-blur-sm"></div>
+        </div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md sm:w-full border-2 border-blue-500 relative z-50">
+            <div class="bg-blue-50 px-6 py-4 border-b border-blue-100 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-blue-800 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    Método de Pago
+                </h3>
+                <button onclick="closePaymentModal()" class="text-blue-600 hover:text-blue-800">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-sm text-gray-600 mb-4">Selecciona cómo pagó el cliente el servicio de <span id="payment-modal-service" class="font-bold text-gray-800"></span>.</p>
+                
+                <div class="grid grid-cols-1 gap-3">
+                    <button onclick="selectPaymentMethod('cash')" class="flex items-center justify-between p-4 border-2 border-gray-100 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all group">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3 group-hover:bg-green-200">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                            <div class="text-left">
+                                <p class="font-bold text-gray-800">Efectivo</p>
+                                <p class="text-xs text-gray-500">Pago total en físico</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-300 group-hover:text-green-500"></i>
+                    </button>
+
+                    <button onclick="selectPaymentMethod('transfer')" class="flex items-center justify-between p-4 border-2 border-gray-100 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all group">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3 group-hover:bg-blue-200">
+                                <i class="fas fa-university"></i>
+                            </div>
+                            <div class="text-left">
+                                <p class="font-bold text-gray-800">Transferencia / Cuenta</p>
+                                <p class="text-xs text-gray-500">Pago por banco o apps</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-300 group-hover:text-blue-500"></i>
+                    </button>
+
+                    <button onclick="selectPaymentMethod('hybrid')" class="flex items-center justify-between p-4 border-2 border-gray-100 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all group">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 mr-3 group-hover:bg-purple-200">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <div class="text-left">
+                                <p class="font-bold text-gray-800">Híbrido</p>
+                                <p class="text-xs text-gray-500">Parte efectivo y parte cuenta</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-300 group-hover:text-purple-500"></i>
+                    </button>
+                </div>
+
+                <!-- Input section for Hybrid (hidden by default) -->
+                <div id="hybrid-inputs" class="hidden space-y-3 pt-4 border-t">
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">Detalle del Pago Híbrido</p>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Efectivo</label>
+                            <input type="number" id="cash_amount_input" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="0">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">Cuenta</label>
+                            <input type="number" id="transfer_amount_input" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="0">
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-gray-400 text-center">Asegúrate que la suma coincida con el precio total.</p>
+                </div>
+            </div>
+            <div class="bg-gray-50 px-6 py-4 flex gap-3 border-t">
+                <button type="button" onclick="closePaymentModal()" class="flex-1 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-bold hover:bg-gray-100 transition">
+                    Cancelar
+                </button>
+                <button id="btn-confirm-payment" onclick="confirmPaymentCompletion()" class="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition shadow-md hidden">
+                    Finalizar Cita
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <form id="global-action-form" method="POST" style="display: none;">
     @csrf
     <input type="hidden" name="status" id="global-action-status">
     <input type="hidden" name="reason" id="global-action-reason">
+    <input type="hidden" name="payment_method" id="global-payment-method">
+    <input type="hidden" name="cash_amount" id="global-cash-amount">
+    <input type="hidden" name="transfer_amount" id="global-transfer-amount">
 </form>
 
 <form id="global-delete-form" method="POST" style="display: none;">
@@ -657,15 +753,96 @@ let currentGlobalApp = null;
                     const form = document.getElementById('global-delete-form');
                     form.action = currentGlobalApp.delete_url;
                     form.submit();
+                } else if (action === 'completar') {
+                    openPaymentModal();
                 } else {
                     const form = document.getElementById('global-action-form');
                     form.action = currentGlobalApp.status_url;
                     document.getElementById('global-action-status').value = 
-                        (action === 'completar' ? 'completed' : (action === 'confirmar' ? 'confirmed' : 'pending_admin'));
+                        (action === 'confirmar' ? 'confirmed' : 'pending_admin');
                     form.submit();
                 }
             }
         });
+    }
+
+    let selectedPaymentMethod = null;
+
+    function openPaymentModal() {
+        if (!currentGlobalApp) return;
+        document.getElementById('payment-modal-service').innerText = currentGlobalApp.service_name;
+        document.getElementById('payment-modal').classList.remove('hidden');
+        resetPaymentSelections();
+    }
+
+    function closePaymentModal() {
+        document.getElementById('payment-modal').classList.add('hidden');
+    }
+
+    function resetPaymentSelections() {
+        selectedPaymentMethod = null;
+        document.querySelectorAll('#payment-modal .grid button').forEach(btn => {
+            btn.classList.remove('border-green-500', 'bg-green-50', 'border-blue-500', 'bg-blue-50', 'border-purple-500', 'bg-purple-50');
+            btn.classList.add('border-gray-100');
+        });
+        document.getElementById('hybrid-inputs').classList.add('hidden');
+        document.getElementById('btn-confirm-payment').classList.add('hidden');
+        document.getElementById('cash_amount_input').value = '';
+        document.getElementById('transfer_amount_input').value = '';
+    }
+
+    function selectPaymentMethod(method) {
+        selectedPaymentMethod = method;
+        resetPaymentSelections();
+        selectedPaymentMethod = method; // reapplying after reset
+
+        const btn = event.currentTarget;
+        btn.classList.remove('border-gray-100');
+        
+        if (method === 'cash') btn.classList.add('border-green-500', 'bg-green-50');
+        if (method === 'transfer') btn.classList.add('border-blue-500', 'bg-blue-50');
+        if (method === 'hybrid') {
+            btn.classList.add('border-purple-500', 'bg-purple-50');
+            document.getElementById('hybrid-inputs').classList.remove('hidden');
+            // Suggest split
+            const total = currentGlobalApp.price;
+            document.getElementById('cash_amount_input').value = total / 2;
+            document.getElementById('transfer_amount_input').value = total / 2;
+        }
+
+        document.getElementById('btn-confirm-payment').classList.remove('hidden');
+    }
+
+    function confirmPaymentCompletion() {
+        if (!selectedPaymentMethod) return;
+
+        const form = document.getElementById('global-action-form');
+        form.action = currentGlobalApp.status_url;
+        
+        document.getElementById('global-action-status').value = 'completed';
+        document.getElementById('global-payment-method').value = selectedPaymentMethod;
+
+        if (selectedPaymentMethod === 'hybrid') {
+            const cash = parseFloat(document.getElementById('cash_amount_input').value) || 0;
+            const transfer = parseFloat(document.getElementById('transfer_amount_input').value) || 0;
+            const total = currentGlobalApp.price;
+
+            if (Math.abs((cash + transfer) - total) > 1) {
+                Swal.fire('Atención', `La suma ($${new Intl.NumberFormat().format(cash + transfer)}) debe coincidir con el total ($${new Intl.NumberFormat().format(total)})`, 'warning');
+                return;
+            }
+
+            document.getElementById('global-cash-amount').value = cash;
+            document.getElementById('global-transfer-amount').value = transfer;
+        }
+
+        Swal.fire({
+            title: 'Finalizando...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        form.submit();
     }
 
     function promptCancellation() {

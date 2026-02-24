@@ -207,6 +207,28 @@
         </tr>
     </table>
 
+    {{-- COLLECTION BREAKDOWN --}}
+    <div style="margin-bottom: 25px;">
+        <div class="section-title">RESUMEN DE COBROS</div>
+        <div class="section-subtitle">Distribución por método de pago</div>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+                <td style="width: 50%; padding-right: 10px; border: none;">
+                    <div style="padding: 15px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
+                        <div style="font-size: 8px; color: #15803d; font-weight: bold; text-transform: uppercase;">Total en Efectivo (Caja)</div>
+                        <div style="font-size: 18px; color: #15803d; font-weight: 900;">${{ number_format($grossRevenueCash ?? 0, 0, ',', '.') }}</div>
+                    </div>
+                </td>
+                <td style="width: 50%; border: none;">
+                    <div style="padding: 15px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;">
+                        <div style="font-size: 8px; color: #1e40af; font-weight: bold; text-transform: uppercase;">Total en Cuenta (Transferencia)</div>
+                        <div style="font-size: 18px; color: #1e40af; font-weight: 900;">${{ number_format($grossRevenueTransfer ?? 0, 0, ',', '.') }}</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
     {{-- QUICK STATS --}}
     <table style="width:100%; border-collapse:collapse; margin-bottom:20px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px;">
         <tr>

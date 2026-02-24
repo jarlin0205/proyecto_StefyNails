@@ -177,7 +177,10 @@ class AppointmentController extends Controller
             'appointment_date' => 'nullable|date',
             'notification_id' => 'nullable|exists:notifications,id',
             'reason' => 'nullable|string',
-            'reason_msg' => 'nullable|string'
+            'reason_msg' => 'nullable|string',
+            'payment_method' => 'nullable|required_if:status,completed|in:cash,transfer,hybrid',
+            'cash_amount' => 'nullable|numeric|min:0',
+            'transfer_amount' => 'nullable|numeric|min:0',
         ]);
 
         // RESTRICTION: Cannot complete a pending appointment
@@ -254,6 +257,20 @@ class AppointmentController extends Controller
 
         $updateData = ['status' => $statusToSet];
         
+        if ($statusToSet === 'completed') {
+            $updateData['payment_method'] = $request->payment_method;
+            if ($request->payment_method === 'hybrid') {
+                $updateData['cash_amount'] = $request->cash_amount ?? 0;
+                $updateData['transfer_amount'] = $request->transfer_amount ?? 0;
+            } elseif ($request->payment_method === 'cash') {
+                $updateData['cash_amount'] = $appointment->final_price;
+                $updateData['transfer_amount'] = 0;
+            } elseif ($request->payment_method === 'transfer') {
+                $updateData['cash_amount'] = 0;
+                $updateData['transfer_amount'] = $appointment->final_price;
+            }
+        }
+
         if ($request->filled('appointment_date')) {
             $updateData['appointment_date'] = $validated['appointment_date'];
         }

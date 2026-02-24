@@ -31,6 +31,9 @@ class ExpenseController extends Controller
         // Financial Indicators
         $completedAppointments = (clone $appointmentsQuery)->with('service', 'professional')->get();
         $grossRevenue = $completedAppointments->sum('final_price');
+        $grossRevenueCash = $completedAppointments->sum('cash_amount');
+        $grossRevenueTransfer = $completedAppointments->sum('transfer_amount');
+        
         $totalExpenses = (clone $expensesQuery)->sum('amount');
         $netProfit = $grossRevenue - $totalExpenses;
 
@@ -41,6 +44,8 @@ class ExpenseController extends Controller
             'expenses', 
             'completedAppointments',
             'grossRevenue', 
+            'grossRevenueCash',
+            'grossRevenueTransfer',
             'totalExpenses', 
             'netProfit', 
             'startDate', 
@@ -74,7 +79,11 @@ class ExpenseController extends Controller
         $expenses = $expensesQuery->latest()->paginate(50)->withQueryString();
 
         // Financial Indicators
-        $grossRevenue = $appointmentsQuery->get()->sum('final_price');
+        $completedAppointments = $appointmentsQuery->get();
+        $grossRevenue = $completedAppointments->sum('final_price');
+        $grossRevenueCash = $completedAppointments->sum('cash_amount');
+        $grossRevenueTransfer = $completedAppointments->sum('transfer_amount');
+        
         $totalExpenses = (clone $expensesQuery)->sum('amount');
         $netProfit = $grossRevenue - $totalExpenses;
         
@@ -86,6 +95,8 @@ class ExpenseController extends Controller
         return view('admin.expenses.index', compact(
             'expenses', 
             'grossRevenue', 
+            'grossRevenueCash',
+            'grossRevenueTransfer',
             'totalExpenses', 
             'netProfit', 
             'projectedRevenue',

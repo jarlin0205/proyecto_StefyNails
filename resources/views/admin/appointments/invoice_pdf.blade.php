@@ -133,6 +133,15 @@
     </table>
 
     <div class="total-section">
+        <div style="margin-bottom: 10px;">
+            <span class="label" style="display: inline-block; width: 150px; text-align: right;">Método de Pago:</span>
+            <span class="value" style="display: inline-block; margin-bottom: 0;">
+                @php
+                    $methodMap = ['cash' => 'Efectivo', 'transfer' => 'Transferencia / Cuenta', 'hybrid' => 'Híbrido'];
+                    echo $methodMap[$appointment->payment_method] ?? 'No especificado';
+                @endphp
+            </span>
+        </div>
         <span class="total-label">Total Pago:</span>
         <span class="total-amount">${{ number_format($appointment->offered_price ?? $appointment->service->price, 0) }}</span>
     </div>

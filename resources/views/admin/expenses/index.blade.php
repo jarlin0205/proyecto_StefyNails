@@ -4,19 +4,43 @@
 
 @section('content')
 <!-- Resumen Financiero -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
     <!-- Ingresos Brutos -->
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 lg:col-span-1">
         <div class="flex items-center justify-between mb-4">
             <div class="bg-green-50 p-3 rounded-lg">
                 <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             </div>
-            <span class="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded">Ingresos</span>
+            <span class="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded">Bruto</span>
         </div>
         <h4 class="text-gray-500 text-sm font-medium">Ingresos Brutos</h4>
         <p class="text-2xl font-bold text-gray-800">${{ number_format($grossRevenue, 0, '', '') }}</p>
+    </div>
+
+    <!-- Ingresos en Efectivo -->
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div class="flex items-center justify-between mb-2">
+            <div class="bg-emerald-50 p-2 rounded-lg">
+                <i class="fas fa-money-bill-wave text-emerald-600"></i>
+            </div>
+            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded uppercase">Caja</span>
+        </div>
+        <h4 class="text-gray-400 text-xs font-medium uppercase tracking-tighter">En Efectivo</h4>
+        <p class="text-xl font-bold text-gray-700">${{ number_format($grossRevenueCash ?? 0, 0, '', '') }}</p>
+    </div>
+
+    <!-- Ingresos en Cuenta -->
+    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+        <div class="flex items-center justify-between mb-2">
+            <div class="bg-blue-50 p-2 rounded-lg">
+                <i class="fas fa-university text-blue-600"></i>
+            </div>
+            <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded uppercase">Cuenta</span>
+        </div>
+        <h4 class="text-gray-400 text-xs font-medium uppercase tracking-tighter">Transferencias</h4>
+        <p class="text-xl font-bold text-gray-700">${{ number_format($grossRevenueTransfer ?? 0, 0, '', '') }}</p>
     </div>
 
     <!-- Gastos -->
