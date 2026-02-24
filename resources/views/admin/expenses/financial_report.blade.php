@@ -182,25 +182,25 @@
         <tr>
             <td style="width:25%; border:none; padding:5px;">
                 <div class="card card-green">
-                    <div class="card-label">💰 Ingresos Brutos</div>
+                    <div class="card-label"> Ingresos Brutos</div>
                     <div class="card-value">${{ number_format($grossRevenue, 0, ',', '.') }}</div>
                 </div>
             </td>
             <td style="width:25%; border:none; padding:5px;">
                 <div class="card card-red">
-                    <div class="card-label">📤 Gastos Totales</div>
+                    <div class="card-label"> Gastos Totales</div>
                     <div class="card-value">${{ number_format($totalExpenses, 0, ',', '.') }}</div>
                 </div>
             </td>
             <td style="width:25%; border:none; padding:5px;">
                 <div class="card card-pink">
-                    <div class="card-label">📈 Utilidad Neta</div>
+                    <div class="card-label"> Utilidad Neta</div>
                     <div class="card-value">${{ number_format($netProfit, 0, ',', '.') }}</div>
                 </div>
             </td>
             <td style="width:25%; border:none; padding:5px;">
                 <div class="card" style="background:#f8fafc; border:1px solid #e2e8f0;">
-                    <div class="card-label" style="color:#475569;">🎯 Margen Neto</div>
+                    <div class="card-label" style="color:#475569;"> Margen Neto</div>
                     <div class="card-value" style="color:#0f172a;">{{ $margin }}%</div>
                 </div>
             </td>
