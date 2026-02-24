@@ -23,6 +23,7 @@ class Expense extends Model
     protected function description(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
         return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: fn (string $value) => ucfirst(strtolower($value)),
             set: fn (string $value) => ucfirst(strtolower($value)),
         );
     }

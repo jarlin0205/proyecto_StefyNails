@@ -69,6 +69,7 @@ class Appointment extends Model
     protected function customerName(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
         return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: fn (string $value) => \Illuminate\Support\Str::title($value),
             set: fn (string $value) => \Illuminate\Support\Str::title($value),
         );
     }
@@ -79,6 +80,7 @@ class Appointment extends Model
     protected function notes(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
         return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: fn (?string $value) => $value ? ucfirst(strtolower($value)) : null,
             set: fn (?string $value) => $value ? ucfirst(strtolower($value)) : null,
         );
     }
@@ -89,6 +91,7 @@ class Appointment extends Model
     protected function rescheduleReason(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
         return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: fn (?string $value) => $value ? ucfirst(strtolower($value)) : null,
             set: fn (?string $value) => $value ? ucfirst(strtolower($value)) : null,
         );
     }

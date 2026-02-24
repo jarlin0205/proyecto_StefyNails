@@ -68,6 +68,7 @@ class User extends Authenticatable
     protected function name(): \Illuminate\Database\Eloquent\Casts\Attribute
     {
         return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            get: fn (string $value) => \Illuminate\Support\Str::title($value),
             set: fn (string $value) => \Illuminate\Support\Str::title($value),
         );
     }
