@@ -211,6 +211,7 @@ const server = http.createServer((req, res) => {
         req.on('data', chunk => { body += chunk.toString(); });
         req.on('end', async () => {
             try {
+                console.log(`📡 Cuerpo recibido. Longitud: ${body.length} caracteres. Inicio: ${body.substring(0, 50)}...`);
                 if (!body) throw new Error('Cuerpo de solicitud vacío');
                 const parsedBody = JSON.parse(body);
                 const { phone, message, pdfUrl, pdfBase64, filename } = parsedBody;
