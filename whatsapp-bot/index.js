@@ -211,23 +211,21 @@ const server = http.createServer((req, res) => {
         req.on('data', chunk => { body += chunk.toString(); });
         req.on('end', async () => {
             try {
+                if (!body) throw new Error('Cuerpo de solicitud vacío');
                 const parsedBody = JSON.parse(body);
-                const { phone, message, pdfUrl } = parsedBody;
+                const { phone, message, pdfUrl, pdfBase64, filename } = parsedBody;
 
-                if (!phone || (!message && !pdfUrl)) {
-                    res.writeHead(400, { 'Content-Type': 'application/json' });
-                    return res.end(JSON.stringify({ error: 'Faltan datos' }));
-                }
-
-                if (!client.info || !client.info.wid) {
-                    res.writeHead(503, { 'Content-Type': 'application/json' });
-                    return res.end(JSON.stringify({ error: 'El bot no está listo o está desconectado' }));
-                }
+                if (!phone) throw new Error('Teléfono no proporcionado');
 
                 const cleanPhone = phone.replace(/\D/g, '');
                 const chatId = `${cleanPhone}@c.us`;
 
                 console.log(`📩 Solicitud recibida para ${cleanPhone}`);
+
+                if (!client || !client.info) {
+                    res.writeHead(503, { 'Content-Type': 'application/json' });
+                    return res.end(JSON.stringify({ error: 'El bot no está listo' }));
+                }
 
                 const isRegistered = await client.isRegisteredUser(chatId);
 
@@ -243,20 +241,15 @@ const server = http.createServer((req, res) => {
                         }
                     } else if (pdfUrl) {
                         try {
-                            // REESCRITURA INTERNA: El servidor no suele poder verse a sí mismo por IP pública
                             let fetchUrl = pdfUrl;
-                            if (fetchUrl.includes('3.12.104.67')) {
-                                fetchUrl = fetchUrl.replace('3.12.104.67', '127.0.0.1');
-                            }
+                            if (fetchUrl.includes('3.12.104.67')) fetchUrl = fetchUrl.replace('3.12.104.67', '127.0.0.1');
 
-                            console.log(`📡 Intentando descargar PDF desde: ${fetchUrl}`);
+                            console.log(`📡 Descargando PDF desde: ${fetchUrl}`);
                             const media = await MessageMedia.fromUrl(fetchUrl);
                             await client.sendMessage(chatId, media, { caption: message });
                             console.log(`📡 Factura PDF (URL) enviada a ${cleanPhone}`);
                         } catch (mediaError) {
                             console.error('❌ Error cargando PDF desde URL:', mediaError.message);
-                            console.error('JSON Error:', JSON.stringify(mediaError));
-                            console.error('URL fallida:', pdfUrl);
                             if (message) await client.sendMessage(chatId, message);
                         }
                     } else {
@@ -267,13 +260,14 @@ const server = http.createServer((req, res) => {
                     res.writeHead(200, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ success: true }));
                 } else {
+                    console.log(`❌ Número no registrado en WhatsApp: ${cleanPhone}`);
                     res.writeHead(404, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ error: 'Número no registrado' }));
                 }
             } catch (err) {
-                console.error('❌ Error en /send-message:', err.message);
-                res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: 'Error interno', details: err.message }));
+                console.error('❌ Error procesando solicitud:', err.message);
+                res.writeHead(400, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ error: err.message }));
             }
         });
     } else {
