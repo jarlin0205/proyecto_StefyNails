@@ -224,12 +224,24 @@ const server = http.createServer((req, res) => {
                     return res.end(JSON.stringify({ error: 'El bot no está listo o está desconectado' }));
                 }
 
-                const cleanPhone = phone.replace(/[^0-9]/g, '');
+                const cleanPhone = phone.replace(/\D/g, '');
                 const chatId = `${cleanPhone}@c.us`;
 
+                console.log(`📩 Solicitud recibida para ${cleanPhone}`);
+
                 const isRegistered = await client.isRegisteredUser(chatId);
+
                 if (isRegistered) {
-                    if (pdfUrl) {
+                    if (pdfBase64) {
+                        try {
+                            const media = new MessageMedia('application/pdf', pdfBase64, filename || 'factura.pdf');
+                            await client.sendMessage(chatId, media, { caption: message });
+                            console.log(`📡 Factura PDF (Base64) enviada a ${cleanPhone}`);
+                        } catch (b64Error) {
+                            console.error('❌ Error enviando PDF Base64:', b64Error.message);
+                            if (message) await client.sendMessage(chatId, message);
+                        }
+                    } else if (pdfUrl) {
                         try {
                             // REESCRITURA INTERNA: El servidor no suele poder verse a sí mismo por IP pública
                             let fetchUrl = pdfUrl;
@@ -240,7 +252,7 @@ const server = http.createServer((req, res) => {
                             console.log(`📡 Intentando descargar PDF desde: ${fetchUrl}`);
                             const media = await MessageMedia.fromUrl(fetchUrl);
                             await client.sendMessage(chatId, media, { caption: message });
-                            console.log(`📡 Factura PDF enviada a ${cleanPhone}`);
+                            console.log(`📡 Factura PDF (URL) enviada a ${cleanPhone}`);
                         } catch (mediaError) {
                             console.error('❌ Error cargando PDF desde URL:', mediaError.message);
                             console.error('JSON Error:', JSON.stringify(mediaError));
@@ -249,7 +261,7 @@ const server = http.createServer((req, res) => {
                         }
                     } else {
                         await client.sendMessage(chatId, message);
-                        console.log(`📡 Mensaje enviado a ${cleanPhone}`);
+                        console.log(`📡 Mensaje de texto enviado a ${cleanPhone}`);
                     }
 
                     res.writeHead(200, { 'Content-Type': 'application/json' });

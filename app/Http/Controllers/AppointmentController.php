@@ -379,14 +379,19 @@ class AppointmentController extends Controller
             return response()->json(['success' => false, 'message' => 'La cita debe estar completada para enviar la factura.']);
         }
 
-        // Generar un link firmado válido por 7 días
+        // Generar un link firmado (mantenemos esto como respaldo/compatibilidad)
         $url = \Illuminate\Support\Facades\URL::temporarySignedRoute(
             'appointments.invoice', 
             now()->addDays(7), 
             ['appointment' => $appointment->id]
         );
 
-        \App\Helpers\WhatsAppHelper::sendInvoice($appointment, $url);
+        // Generar el PDF y convertirlo a Base64 para envío directo más confiable
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.appointments.invoice_pdf', compact('appointment'));
+        $pdfContent = $pdf->output();
+        $pdfBase64 = base64_encode($pdfContent);
+
+        \App\Helpers\WhatsAppHelper::sendInvoice($appointment, $url, $pdfBase64);
 
         return response()->json(['success' => true, 'message' => 'Factura enviada por WhatsApp correctamente.']);
     }

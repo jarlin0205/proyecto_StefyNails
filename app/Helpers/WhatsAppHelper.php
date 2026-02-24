@@ -10,7 +10,7 @@ class WhatsAppHelper
     /**
      * Send a message through the WhatsApp bot.
      */
-    public static function sendMessage($phone, $message, $pdfUrl = null)
+    public static function sendMessage($phone, $message, $pdfUrl = null, $pdfBase64 = null, $filename = null)
     {
         // Limpiar teléfono (solo dígitos y el símbolo +)
         $phone = preg_replace('/[^0-9+]/', '', $phone);
@@ -42,7 +42,9 @@ class WhatsAppHelper
             Http::post('http://localhost:3000/send-message', [
                 'phone' => $phone,
                 'message' => $message,
-                'pdfUrl' => $pdfUrl
+                'pdfUrl' => $pdfUrl,
+                'pdfBase64' => $pdfBase64,
+                'filename' => $filename
             ]);
             Log::info("Mensaje de WhatsApp enviado a: {$phone}");
         } catch (\Exception $e) {
@@ -147,12 +149,12 @@ class WhatsAppHelper
         self::sendMessage($appointment->customer_phone, $msg);
     }
 
-    public static function sendInvoice($appointment, $url)
+    public static function sendInvoice($appointment, $url, $pdfBase64 = null)
     {
         $msg = "🧾 *¡Tu Factura de Stefy Nails!* 🧾\n\n" .
                "Hola {$appointment->customer_name}, adjunto encontrarás el comprobante de tu servicio de *{$appointment->service->name}*. ✨\n\n" .
                "¡Esperamos verte pronto de nuevo! 🌸";
 
-        self::sendMessage($appointment->customer_phone, $msg, $url);
+        self::sendMessage($appointment->customer_phone, $msg, $url, $pdfBase64, "Factura_StefyNails_{$appointment->id}.pdf");
     }
 }
