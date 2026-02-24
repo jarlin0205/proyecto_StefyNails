@@ -278,7 +278,7 @@
                 <p class="text-sm text-gray-600 mb-4">Selecciona cómo pagó el cliente el servicio de <span id="payment-modal-service" class="font-bold text-gray-800"></span>.</p>
                 
                 <div class="grid grid-cols-1 gap-3">
-                    <button onclick="selectPaymentMethod('cash')" class="flex items-center justify-between p-4 border-2 border-gray-100 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all group">
+                    <button onclick="selectPaymentMethod('cash', this)" class="flex items-center justify-between p-4 border-2 border-gray-100 rounded-xl hover:border-green-500 hover:bg-green-50 transition-all group">
                         <div class="flex items-center">
                             <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-600 mr-3 group-hover:bg-green-200">
                                 <i class="fas fa-money-bill-wave"></i>
@@ -291,7 +291,7 @@
                         <i class="fas fa-chevron-right text-gray-300 group-hover:text-green-500"></i>
                     </button>
 
-                    <button onclick="selectPaymentMethod('transfer')" class="flex items-center justify-between p-4 border-2 border-gray-100 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all group">
+                    <button onclick="selectPaymentMethod('transfer', this)" class="flex items-center justify-between p-4 border-2 border-gray-100 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all group">
                         <div class="flex items-center">
                             <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 mr-3 group-hover:bg-blue-200">
                                 <i class="fas fa-university"></i>
@@ -304,7 +304,7 @@
                         <i class="fas fa-chevron-right text-gray-300 group-hover:text-blue-500"></i>
                     </button>
 
-                    <button onclick="selectPaymentMethod('hybrid')" class="flex items-center justify-between p-4 border-2 border-gray-100 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all group">
+                    <button onclick="selectPaymentMethod('hybrid', this)" class="flex items-center justify-between p-4 border-2 border-gray-100 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all group">
                         <div class="flex items-center">
                             <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 mr-3 group-hover:bg-purple-200">
                                 <i class="fas fa-layer-group"></i>
@@ -324,14 +324,27 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">Efectivo</label>
-                            <input type="number" id="cash_amount_input" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="0">
+                            <input type="number" id="cash_amount_input" oninput="updateHybridSum()" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 font-bold" placeholder="0">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">Cuenta</label>
-                            <input type="number" id="transfer_amount_input" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="0">
+                            <input type="number" id="transfer_amount_input" oninput="updateHybridSum()" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-purple-500 font-bold" placeholder="0">
                         </div>
                     </div>
-                    <p class="text-[10px] text-gray-400 text-center">Asegúrate que la suma coincida con el precio total.</p>
+                    
+                    <div class="bg-gray-50 p-4 rounded-xl border border-dashed border-gray-200 space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-medium text-gray-500 uppercase">Suma Ingresada</span>
+                            <span id="hybrid-sum-display" class="text-lg font-black text-gray-900">$0</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-gray-100">
+                            <span class="text-xs font-medium text-gray-500 uppercase">Restante</span>
+                            <span id="hybrid-remaining-display" class="text-sm font-bold text-pink-600">$0</span>
+                        </div>
+                        <div id="hybrid-match-success" class="hidden flex items-center justify-center text-green-600 text-[10px] font-bold uppercase mt-1">
+                            <i class="fas fa-check-circle mr-1"></i> ¡Monto completado!
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="bg-gray-50 px-6 py-4 flex gap-3 border-t">
@@ -772,11 +785,13 @@ let currentGlobalApp = null;
         if (!currentGlobalApp) return;
         document.getElementById('payment-modal-service').innerText = currentGlobalApp.service_name;
         document.getElementById('payment-modal').classList.remove('hidden');
+        document.getElementById('appointment-modal').classList.add('hidden'); // Fix overlap
         resetPaymentSelections();
     }
 
     function closePaymentModal() {
         document.getElementById('payment-modal').classList.add('hidden');
+        document.getElementById('appointment-modal').classList.remove('hidden');
     }
 
     function resetPaymentSelections() {
@@ -789,14 +804,14 @@ let currentGlobalApp = null;
         document.getElementById('btn-confirm-payment').classList.add('hidden');
         document.getElementById('cash_amount_input').value = '';
         document.getElementById('transfer_amount_input').value = '';
+        updateHybridSum(); // Clear displays
     }
 
-    function selectPaymentMethod(method) {
+    function selectPaymentMethod(method, btn) {
         selectedPaymentMethod = method;
         resetPaymentSelections();
         selectedPaymentMethod = method; // reapplying after reset
 
-        const btn = event.currentTarget;
         btn.classList.remove('border-gray-100');
         
         if (method === 'cash') btn.classList.add('border-green-500', 'bg-green-50');
@@ -806,11 +821,43 @@ let currentGlobalApp = null;
             document.getElementById('hybrid-inputs').classList.remove('hidden');
             // Suggest split
             const total = currentGlobalApp.price;
-            document.getElementById('cash_amount_input').value = total / 2;
-            document.getElementById('transfer_amount_input').value = total / 2;
+            document.getElementById('cash_amount_input').value = total; // Start with total
+            document.getElementById('transfer_amount_input').value = 0;
+            updateHybridSum();
         }
 
         document.getElementById('btn-confirm-payment').classList.remove('hidden');
+    }
+
+    function updateHybridSum() {
+        if (!currentGlobalApp) return;
+        const cash = parseFloat(document.getElementById('cash_amount_input').value) || 0;
+        const transfer = parseFloat(document.getElementById('transfer_amount_input').value) || 0;
+        const total = currentGlobalApp.price;
+        const sum = cash + transfer;
+        const remaining = total - sum;
+
+        const sumDisplay = document.getElementById('hybrid-sum-display');
+        const remainingDisplay = document.getElementById('hybrid-remaining-display');
+        const successTag = document.getElementById('hybrid-match-success');
+        const btnConfirm = document.getElementById('btn-confirm-payment');
+
+        if(sumDisplay) sumDisplay.innerText = '$' + new Intl.NumberFormat().format(sum);
+        if(remainingDisplay) remainingDisplay.innerText = '$' + new Intl.NumberFormat().format(remaining);
+
+        if (Math.abs(remaining) < 1) {
+            if(remainingDisplay) remainingDisplay.classList.add('hidden');
+            if(successTag) successTag.classList.remove('hidden');
+            btnConfirm.disabled = false;
+            btnConfirm.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+            if(remainingDisplay) remainingDisplay.classList.remove('hidden');
+            if(successTag) successTag.classList.add('hidden');
+            if (selectedPaymentMethod === 'hybrid') {
+                btnConfirm.disabled = true;
+                btnConfirm.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
     }
 
     function confirmPaymentCompletion() {
