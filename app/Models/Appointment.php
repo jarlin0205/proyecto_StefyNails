@@ -22,6 +22,9 @@ class Appointment extends Model
         'reschedule_reason',
         'reschedule_token',
         'professional_id',
+        'payment_method',
+        'cash_amount',
+        'transfer_amount',
     ];
 
     protected static function boot()
