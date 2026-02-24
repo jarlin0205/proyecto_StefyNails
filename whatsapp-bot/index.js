@@ -231,8 +231,14 @@ const server = http.createServer((req, res) => {
                 if (isRegistered) {
                     if (pdfUrl) {
                         try {
-                            console.log(`📡 Intentando descargar PDF desde: ${pdfUrl}`);
-                            const media = await MessageMedia.fromUrl(pdfUrl);
+                            // REESCRITURA INTERNA: El servidor no suele poder verse a sí mismo por IP pública
+                            let fetchUrl = pdfUrl;
+                            if (fetchUrl.includes('3.12.104.67')) {
+                                fetchUrl = fetchUrl.replace('3.12.104.67', 'localhost');
+                            }
+
+                            console.log(`📡 Intentando descargar PDF desde: ${fetchUrl}`);
+                            const media = await MessageMedia.fromUrl(fetchUrl);
                             await client.sendMessage(chatId, media, { caption: message });
                             console.log(`📡 Factura PDF enviada a ${cleanPhone}`);
                         } catch (mediaError) {
