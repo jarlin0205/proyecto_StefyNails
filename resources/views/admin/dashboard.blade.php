@@ -296,7 +296,7 @@
                 <div class="px-6 py-6">
                     <!-- Filtros -->
                     <div class="mb-6 bg-gray-50 border border-gray-200 rounded-xl p-5 shadow-sm">
-                        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 items-end">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
                             <!-- Filtro Profesional (Solo Admin) -->
                             @if($isAdmin)
                             <div class="col-span-1">
@@ -309,6 +309,17 @@
                                 </select>
                             </div>
                             @endif
+
+                            <!-- Filtro Servicio -->
+                            <div class="col-span-1">
+                                <label for="filterService" class="block text-[10px] font-black text-gray-400 uppercase mb-1 tracking-wider">Servicio</label>
+                                <select id="filterService" onchange="filterProduction()" class="w-full rounded-lg border-gray-200 shadow-sm focus:border-pink-500 focus:ring focus:ring-pink-200 focus:ring-opacity-50 text-sm font-medium">
+                                    <option value="all">Todos</option>
+                                    @foreach($allServices ?? [] as $serv)
+                                        <option value="{{ $serv->id }}">{{ $serv->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
 
                             <!-- Filtro Fecha Inicio -->
                             <div class="col-span-1">
@@ -349,6 +360,7 @@
                                         @if($isAdmin)
                                         <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Profesional</th>
                                         @endif
+                                        <th class="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-widest">Pago</th>
                                         <th class="px-4 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-widest">Valor</th>
                                     </tr>
                                 </thead>
@@ -361,6 +373,7 @@
                                         ?>
                                         <tr class="production-row hover:bg-pink-50/30 transition-colors" 
                                             data-prof-id="{{ $profId }}" 
+                                            data-service-id="{{ $app->service_id ?? '0' }}"
                                             data-price="{{ $price }}"
                                             data-date="{{ $rawDate }}">
                                             <td class="px-4 py-3 whitespace-nowrap border-l-4 border-transparent hover:border-pink-500 transition-all">
@@ -381,6 +394,28 @@
                                                 </span>
                                             </td>
                                             @endif
+                                            <td class="px-4 py-3">
+                                                @if($app->payment_method === 'cash')
+                                                    <span class="inline-flex items-center text-[10px] font-bold text-green-600">
+                                                        <i class="fas fa-money-bill-wave mr-1"></i> Efectivo
+                                                    </span>
+                                                @elseif($app->payment_method === 'transfer')
+                                                    <span class="inline-flex items-center text-[10px] font-bold text-blue-600">
+                                                        <i class="fas fa-university mr-1"></i> Cuenta
+                                                    </span>
+                                                @elseif($app->payment_method === 'hybrid')
+                                                    <div class="flex flex-col">
+                                                        <span class="inline-flex items-center text-[10px] font-bold text-purple-600">
+                                                            <i class="fas fa-layer-group mr-1"></i> Híbrido
+                                                        </span>
+                                                        <span class="text-[9px] text-gray-400">
+                                                            ${{ number_format($app->cash_amount, 0) }} E / ${{ number_format($app->transfer_amount, 0) }} C
+                                                        </span>
+                                                    </div>
+                                                @else
+                                                    <span class="text-[10px] text-gray-400 italic">No especificado</span>
+                                                @endif
+                                            </td>
                                             <td class="px-4 py-3 whitespace-nowrap text-right">
                                                 <span class="text-sm font-black text-gray-900 bg-gray-50 px-3 py-1 rounded-lg border border-gray-100 shadow-sm">
                                                     ${{ number_format($price, 0, ',', '.') }}
@@ -420,34 +455,40 @@
 </div>
 
 <script>
+function toLocalDateStr(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
 function setPreset(type) {
     const today = new Date();
     const startInput = document.getElementById('filterStartDate');
     const endInput = document.getElementById('filterEndDate');
     
-    let start = new Date();
-    let end = new Date();
+    let start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    let end = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
     if (type === 'today') {
         // Hoy ya está fijado
     } else if (type === 'week') {
-        const day = today.getDay(); // 0 (Domingo) a 6 (Sábado)
+        const day = today.getDay();
         const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Lunes
-        start = new Date(today.setDate(diff));
-        end = new Date();
+        start = new Date(today.getFullYear(), today.getMonth(), diff);
     } else if (type === 'month') {
         start = new Date(today.getFullYear(), today.getMonth(), 1);
-        end = new Date();
     }
 
-    startInput.value = start.toISOString().split('T')[0];
-    endInput.value = end.toISOString().split('T')[0];
+    startInput.value = toLocalDateStr(start);
+    endInput.value = toLocalDateStr(end);
     
     filterProduction();
 }
 
 function filterProduction() {
     const filterVal = document.getElementById('filterProfessional')?.value || 'all';
+    const filterService = document.getElementById('filterService')?.value || 'all';
     const startDate = document.getElementById('filterStartDate').value;
     const endDate = document.getElementById('filterEndDate').value;
     
@@ -457,16 +498,18 @@ function filterProduction() {
 
     rows.forEach(row => {
         const rowProfId = row.getAttribute('data-prof-id');
+        const rowServiceId = row.getAttribute('data-service-id');
         const rowDate = row.getAttribute('data-date');
         const price = parseFloat(row.getAttribute('data-price')) || 0;
 
         let matchesProf = (filterVal === 'all' || rowProfId === filterVal);
+        let matchesService = (filterService === 'all' || rowServiceId === filterService);
         let matchesDate = true;
 
         if (startDate && rowDate < startDate) matchesDate = false;
         if (endDate && rowDate > endDate) matchesDate = false;
 
-        if (matchesProf && matchesDate) {
+        if (matchesProf && matchesService && matchesDate) {
             row.style.display = '';
             total += price;
             count++;

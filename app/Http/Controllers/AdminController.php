@@ -35,6 +35,7 @@ class AdminController extends Controller
 
         $professionals = Professional::all(); // Retrieve all professionals
         $servicesCount = Service::count();
+        $allServices = Service::all();
         $notifications = Notification::where('is_read', false)->get();
         
         $latestsAppointments = (clone $query)->with('service', 'professional')
@@ -49,11 +50,12 @@ class AdminController extends Controller
             'completedCount', 
             'cancelledCount', 
             'servicesCount', 
+            'allServices',
             'notifications', 
             'latestsAppointments',
             'totalProduced',
             'completedAppointments',
-            'professionals' // Pass professionals to the view
+            'professionals' 
         ));
     }
 }
