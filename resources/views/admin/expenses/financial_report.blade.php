@@ -261,28 +261,86 @@
                 <th>Cliente</th>
                 <th>Servicio</th>
                 <th>Profesional</th>
+                <th>Método de Pago</th>
                 <th class="text-right">Monto</th>
             </tr>
         </thead>
         <tbody>
             @forelse($completedAppointments as $appt)
+            @php
+                $pm = $appt->payment_method;
+                $cash = $appt->cash_amount ?? 0;
+                $transfer = $appt->transfer_amount ?? 0;
+            @endphp
             <tr>
                 <td>{{ $appt->appointment_date->format('d/m/Y') }}</td>
                 <td><strong>{{ $appt->customer_name }}</strong></td>
                 <td>{{ $appt->service?->name ?? 'Servicio personalizado' }}</td>
                 <td><span class="badge badge-gray">{{ $appt->professional?->name ?? 'Admin' }}</span></td>
+                <td>
+                    @if($pm === 'cash')
+                        <span style="color:#16a34a; font-weight:bold; font-size:9px;">Efectivo</span>
+                    @elseif($pm === 'transfer')
+                        <span style="color:#2563eb; font-weight:bold; font-size:9px;">Consignacion / Cuenta</span>
+                    @elseif($pm === 'hybrid')
+                        <span style="color:#7c3aed; font-weight:bold; font-size:9px;">Hibrido</span><br>
+                        <span style="color:#6b7280; font-size:8px;">Efec: ${{ number_format($cash, 0, ',', '.') }}</span><br>
+                        <span style="color:#6b7280; font-size:8px;">Cta: ${{ number_format($transfer, 0, ',', '.') }}</span>
+                    @else
+                        <span style="color:#9ca3af; font-size:9px; font-style:italic;">No especificado</span>
+                    @endif
+                </td>
                 <td class="text-right amount-green">+${{ number_format($appt->final_price, 0, ',', '.') }}</td>
             </tr>
             @empty
             <tr class="empty-row">
-                <td colspan="5">No hay servicios completados en este periodo.</td>
+                <td colspan="6">No hay servicios completados en este periodo.</td>
             </tr>
             @endforelse
         </tbody>
         @if($completedAppointments->count() > 0)
+        @php
+            $totalCash     = $completedAppointments->sum('cash_amount');
+            $totalTransfer = $completedAppointments->sum('transfer_amount');
+            $totalCashOnly = $completedAppointments->where('payment_method', 'cash')->sum('final_price');
+            $totalTransferOnly = $completedAppointments->where('payment_method', 'transfer')->sum('final_price');
+            $totalHybrid   = $completedAppointments->where('payment_method', 'hybrid')->sum('final_price');
+            $countCash     = $completedAppointments->where('payment_method', 'cash')->count();
+            $countTransfer = $completedAppointments->where('payment_method', 'transfer')->count();
+            $countHybrid   = $completedAppointments->where('payment_method', 'hybrid')->count();
+        @endphp
         <tfoot>
+            {{-- Subtotals per payment method --}}
+            @if($countCash > 0)
+            <tr style="background:#f0fdf4;">
+                <td colspan="4" style="font-size:9px; color:#16a34a; padding:4px 8px; font-weight:bold;">
+                    Subtotal Efectivo ({{ $countCash }} citas)
+                </td>
+                <td style="font-size:9px; color:#16a34a; text-align:center; font-weight:bold;"></td>
+                <td class="text-right amount-green" style="font-size:9px;">+${{ number_format($totalCashOnly, 0, ',', '.') }}</td>
+            </tr>
+            @endif
+            @if($countTransfer > 0)
+            <tr style="background:#eff6ff;">
+                <td colspan="4" style="font-size:9px; color:#2563eb; padding:4px 8px; font-weight:bold;">
+                    Subtotal Consignacion / Cuenta ({{ $countTransfer }} citas)
+                </td>
+                <td style="font-size:9px; color:#2563eb; text-align:center; font-weight:bold;"></td>
+                <td class="text-right" style="font-size:9px; color:#2563eb; font-weight:bold;">+${{ number_format($totalTransferOnly, 0, ',', '.') }}</td>
+            </tr>
+            @endif
+            @if($countHybrid > 0)
+            <tr style="background:#faf5ff;">
+                <td colspan="4" style="font-size:9px; color:#7c3aed; padding:4px 8px; font-weight:bold;">
+                    Subtotal Hibrido ({{ $countHybrid }} citas) — Efec: ${{ number_format($totalCash, 0, ',', '.') }} / Cta: ${{ number_format($totalTransfer, 0, ',', '.') }}
+                </td>
+                <td style="font-size:9px; color:#7c3aed; text-align:center; font-weight:bold;"></td>
+                <td class="text-right" style="font-size:9px; color:#7c3aed; font-weight:bold;">+${{ number_format($totalHybrid, 0, ',', '.') }}</td>
+            </tr>
+            @endif
+            {{-- Grand total --}}
             <tr class="totals-row">
-                <td colspan="4">TOTAL INGRESOS ({{ $completedAppointments->count() }} servicios)</td>
+                <td colspan="5">TOTAL INGRESOS ({{ $completedAppointments->count() }} servicios)</td>
                 <td class="text-right amount-green">+${{ number_format($grossRevenue, 0, ',', '.') }}</td>
             </tr>
         </tfoot>
