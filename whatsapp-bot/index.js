@@ -237,6 +237,8 @@ const server = http.createServer((req, res) => {
                             console.log(`📡 Factura PDF enviada a ${cleanPhone}`);
                         } catch (mediaError) {
                             console.error('❌ Error cargando PDF desde URL:', mediaError.message);
+                            console.error('Stack:', mediaError.stack);
+                            console.error('Code:', mediaError.code);
                             console.error('URL fallida:', pdfUrl);
                             if (message) await client.sendMessage(chatId, message);
                         }
