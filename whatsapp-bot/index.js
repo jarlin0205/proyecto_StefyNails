@@ -1,4 +1,4 @@
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const http = require('http');
 
@@ -212,9 +212,9 @@ const server = http.createServer((req, res) => {
         req.on('end', async () => {
             try {
                 const parsedBody = JSON.parse(body);
-                const { phone, message } = parsedBody;
+                const { phone, message, pdfUrl } = parsedBody;
 
-                if (!phone || !message) {
+                if (!phone || (!message && !pdfUrl)) {
                     res.writeHead(400, { 'Content-Type': 'application/json' });
                     return res.end(JSON.stringify({ error: 'Faltan datos' }));
                 }
@@ -229,14 +229,25 @@ const server = http.createServer((req, res) => {
 
                 const isRegistered = await client.isRegisteredUser(chatId);
                 if (isRegistered) {
-                    await client.sendMessage(chatId, message);
-                    console.log(`📡 Mensaje enviado a ${cleanPhone}`);
+                    if (pdfUrl) {
+                        try {
+                            const media = await MessageMedia.fromUrl(pdfUrl);
+                            await client.sendMessage(chatId, media, { caption: message });
+                            console.log(`📡 Factura PDF enviada a ${cleanPhone}`);
+                        } catch (mediaError) {
+                            console.error('❌ Error cargando PDF desde URL:', mediaError.message);
+                            if (message) await client.sendMessage(chatId, message);
+                        }
+                    } else {
+                        await client.sendMessage(chatId, message);
+                        console.log(`📡 Mensaje enviado a ${cleanPhone}`);
+                    }
+
                     res.writeHead(200, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ success: true }));
                 } else {
-                    console.warn(`⚠️ Intento de envío a número no registrado: ${cleanPhone}`);
                     res.writeHead(404, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ error: 'Número no registrado en WhatsApp' }));
+                    res.end(JSON.stringify({ error: 'Número no registrado' }));
                 }
             } catch (err) {
                 console.error('❌ Error en /send-message:', err.message);

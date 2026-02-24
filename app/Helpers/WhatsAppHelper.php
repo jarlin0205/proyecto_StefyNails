@@ -10,7 +10,7 @@ class WhatsAppHelper
     /**
      * Send a message through the WhatsApp bot.
      */
-    public static function sendMessage($phone, $message)
+    public static function sendMessage($phone, $message, $pdfUrl = null)
     {
         // Limpiar teléfono (solo dígitos y el símbolo +)
         $phone = preg_replace('/[^0-9+]/', '', $phone);
@@ -41,7 +41,8 @@ class WhatsAppHelper
         try {
             Http::post('http://localhost:3000/send-message', [
                 'phone' => $phone,
-                'message' => $message
+                'message' => $message,
+                'pdfUrl' => $pdfUrl
             ]);
             Log::info("Mensaje de WhatsApp enviado a: {$phone}");
         } catch (\Exception $e) {
@@ -85,6 +86,7 @@ class WhatsAppHelper
                    "📋 *Servicio:* {$appointment->service->name}\n" .
                    "💰 *Precio:* \${$price}\n" .
                    "👩‍🎨 *Profesional:* {$professional}\n\n" .
+                   "⏰ *Recordatorio:* Por favor, llega *10 minutos antes* de la hora acordada para asegurar una excelente atención y distribución del tiempo. ✨\n\n" .
                    "Si necesitas realizar algún cambio, puedes escribir *MENU* en cualquier momento.\n\n" .
                    "¡Gracias por elegir Stefy Nails! ✨";
         } elseif ($status === 'cancelled') {
@@ -138,6 +140,7 @@ class WhatsAppHelper
                    "📋 *Servicio:* {$appointment->service->name}\n" .
                    "💰 *Precio:* \${$price}\n" .
                    "👩‍🎨 *Profesional:* {$professional}\n\n" .
+                   "⏰ *Recordatorio:* Por favor, llega *10 minutos antes* de la hora acordada para asegurar una excelente atención y distribución del tiempo. ✨\n\n" .
                    "Por favor responde con la palabra *CONFIRMAR* para asegurar tu espacio, o escribe *MENU* para ver más opciones. ✨";
         }
                
@@ -147,11 +150,9 @@ class WhatsAppHelper
     public static function sendInvoice($appointment, $url)
     {
         $msg = "🧾 *¡Tu Factura de Stefy Nails!* 🧾\n\n" .
-               "Hola {$appointment->customer_name}, gracias por visitarnos. ✨\n\n" .
-               "Aquí puedes descargar el comprobante de tu servicio de *{$appointment->service->name}*:\n\n" .
-               "🔗 {$url}\n\n" .
+               "Hola {$appointment->customer_name}, adjunto encontrarás el comprobante de tu servicio de *{$appointment->service->name}*. ✨\n\n" .
                "¡Esperamos verte pronto de nuevo! 🌸";
 
-        self::sendMessage($appointment->customer_phone, $msg);
+        self::sendMessage($appointment->customer_phone, $msg, $url);
     }
 }
