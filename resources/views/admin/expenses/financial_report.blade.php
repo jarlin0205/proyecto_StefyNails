@@ -237,7 +237,7 @@
                 <div style="font-size:18px; font-weight:900; color:#1f2937;">{{ $totalServices }}</div>
             </td>
             <td style="border:none; padding:10px 16px; text-align:center; border-right:1px solid #e2e8f0;">
-                <div style="font-size:9px; color:#6b7280; text-transform:uppercase; font-weight:bold;">Ticket Promedio</div>
+                <div style="font-size:9px; color:#6b7280; text-transform:uppercase; font-weight:bold;">Promedio de Ventas y servicios</div>
                 <div style="font-size:18px; font-weight:900; color:#1f2937;">${{ number_format($avgTicket, 0, ',', '.') }}</div>
             </td>
             <td style="border:none; padding:10px 16px; text-align:center; border-right:1px solid #e2e8f0;">
