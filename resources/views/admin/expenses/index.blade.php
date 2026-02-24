@@ -140,7 +140,7 @@
 <div class="mb-6">
     <h3 class="text-xl font-bold text-gray-800 flex items-center">
         <span class="w-2 h-8 bg-pink-600 rounded-full mr-3"></span>
-        Listado Detallado de Movimientos
+        Listado Detallado de Movimientos de Gastos
     </h3>
 </div>
 

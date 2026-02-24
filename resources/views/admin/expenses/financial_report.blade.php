@@ -163,7 +163,7 @@
 <body>
     {{-- HEADER --}}
     <div class="header">
-        <div class="logo-text">✦ STEFY NAILS ✦</div>
+        <div class="logo-text"> STEFY NAILS </div>
         <div class="report-subtitle">Reporte de Movimientos Financieros</div>
         <div class="report-period">
             Periodo: {{ $startDate ? \Carbon\Carbon::parse($startDate)->format('d/m/Y') : 'Inicio' }}
