@@ -231,11 +231,13 @@ const server = http.createServer((req, res) => {
                 if (isRegistered) {
                     if (pdfUrl) {
                         try {
+                            console.log(`📡 Intentando descargar PDF desde: ${pdfUrl}`);
                             const media = await MessageMedia.fromUrl(pdfUrl);
                             await client.sendMessage(chatId, media, { caption: message });
                             console.log(`📡 Factura PDF enviada a ${cleanPhone}`);
                         } catch (mediaError) {
                             console.error('❌ Error cargando PDF desde URL:', mediaError.message);
+                            console.error('URL fallida:', pdfUrl);
                             if (message) await client.sendMessage(chatId, message);
                         }
                     } else {
