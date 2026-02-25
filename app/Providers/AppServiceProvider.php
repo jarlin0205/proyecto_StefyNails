@@ -21,7 +21,13 @@ class AppServiceProvider extends ServiceProvider
     {
         \Illuminate\Support\Facades\View::composer('layouts.admin', function ($view) {
             $user = auth()->user();
-            $query = \App\Models\Notification::where('is_read', false);
+
+            // Count only unread notifications where the appointment still needs attention
+            // This MUST match the filter in NotificationController@index to avoid badge/panel mismatch
+            $query = \App\Models\Notification::where('is_read', false)
+                ->whereHas('appointment', function($q) {
+                    $q->whereIn('status', ['pending_admin', 'pending_client']);
+                });
 
             if ($user && $user->role === 'employee' && $user->professional) {
                 $query->whereHas('appointment', function($q) use ($user) {
