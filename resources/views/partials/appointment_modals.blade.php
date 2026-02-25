@@ -731,6 +731,29 @@ let currentGlobalApp = null;
     function handleAction(action) {
         if (!currentGlobalApp) return;
 
+        // PRE-CHECK: Prevent completing future-dated appointments
+        if (action === 'completar') {
+            const appDateStr = currentGlobalApp.appointment_date; // e.g. "2026-02-25 21:30:00"
+            const appDate = new Date(appDateStr);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            appDate.setHours(0, 0, 0, 0);
+
+            if (appDate > today) {
+                const formatted = appDate.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                Swal.fire({
+                    title: '⏳ Cita en el futuro',
+                    html: `Esta cita está agendada para el <strong>${formatted}</strong>, una fecha que aún no ha llegado.<br><br>
+                           Si el cliente fue atendido hoy de forma anticipada, por favor <strong>edita primero la fecha de la cita a hoy</strong> antes de marcarla como completada.`,
+                    icon: 'warning',
+                    confirmButtonColor: '#ec4899',
+                    confirmButtonText: 'Entendido',
+                    showCancelButton: false,
+                });
+                return; // Block the action
+            }
+        }
+
         let title, text, icon, confirmText, color;
 
         if (action === 'confirmar') {

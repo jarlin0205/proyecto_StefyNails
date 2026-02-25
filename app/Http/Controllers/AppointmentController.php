@@ -188,6 +188,16 @@ class AppointmentController extends Controller
             return back()->with('error', '❌ No se puede marcar como completada una cita que aún está pendiente por confirmar. Confírmala primero.');
         }
 
+        // RESTRICTION: Cannot complete an appointment scheduled for a future date
+        if ($validated['status'] === 'completed') {
+            $appDate = \Carbon\Carbon::parse($appointment->appointment_date)->startOfDay();
+            $today   = \Carbon\Carbon::now()->startOfDay();
+            if ($appDate->gt($today)) {
+                $formatted = $appDate->format('d/m/Y');
+                return back()->with('error', "⏳ No se puede completar esta cita porque su fecha programada ($formatted) aún no ha llegado. Si el cliente fue atendido antes, por favor actualiza primero la fecha de la cita a hoy.");
+            }
+        }
+
         // --- CONFLICT CHECK FOR CONFIRMATIONS ---
         $dateToCheck = $request->filled('appointment_date') ? $validated['appointment_date'] : $appointment->appointment_date;
 

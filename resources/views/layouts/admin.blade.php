@@ -119,7 +119,7 @@
                         <div class="flex flex-col items-end leading-tight">
                             <span class="text-gray-800 font-bold text-sm">{{ auth()->user()->name }}</span>
                             <span class="text-pink-600 text-[10px] uppercase font-black tracking-widest">
-                                {{ auth()->user()->role === 'admin' ? 'Administradora' : 'Empleado' }}
+                                {{ auth()->user()->role === 'admin' ? 'Administrador(a)' : 'Empleado(a)' }}
                             </span>
                         </div>
                     </div>
