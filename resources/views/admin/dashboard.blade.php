@@ -375,7 +375,10 @@
                                             data-prof-id="{{ $profId }}" 
                                             data-service-id="{{ $app->service_id ?? '0' }}"
                                             data-price="{{ $price }}"
-                                            data-date="{{ $rawDate }}">
+                                            data-date="{{ $rawDate }}"
+                                            data-pay-method="{{ $app->payment_method ?? '' }}"
+                                            data-cash="{{ $app->cash_amount ?? ($app->payment_method === 'cash' ? $price : 0) }}"
+                                            data-transfer="{{ $app->transfer_amount ?? ($app->payment_method === 'transfer' ? $price : 0) }}">
                                             <td class="px-4 py-3 whitespace-nowrap border-l-4 border-transparent hover:border-pink-500 transition-all">
                                                 <div class="text-sm font-bold text-gray-900">{{ $app->appointment_date->format('d/m/Y') }}</div>
                                                 <div class="text-[10px] font-medium text-gray-400 uppercase">{{ $app->appointment_date->format('h:i A') }}</div>
@@ -429,18 +432,40 @@
                     </div>
 
                     <!-- Resumen del Grid -->
-                    <div class="mt-8 bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-6 text-white flex flex-col md:flex-row justify-between items-center shadow-xl relative overflow-hidden">
+                    <div class="mt-8 bg-gradient-to-r from-gray-900 to-gray-800 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
                         <div class="absolute top-0 right-0 p-8 opacity-10">
                             <i class="fas fa-coins text-6xl rotate-12"></i>
                         </div>
-                        <div class="relative z-10 mb-4 md:mb-0 text-center md:text-left">
-                            <p class="text-pink-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Análisis de Producción</p>
-                            <p id="filterDescription" class="text-white/60 text-xs italic">Mostrando todos los registros completados</p>
+                        <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <!-- Label -->
+                            <div class="text-center md:text-left">
+                                <p class="text-pink-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">Análisis de Producción</p>
+                                <p id="filterDescription" class="text-white/60 text-xs italic">Histórico completo de servicios realizados</p>
+                            </div>
+                            <!-- Breakdown -->
+                            <div class="flex flex-wrap gap-6 items-center justify-center md:justify-end">
+                                <!-- Cash -->
+                                <div class="text-center">
+                                    <p class="text-[9px] font-bold text-emerald-400 uppercase tracking-widest mb-0.5">Efectivo</p>
+                                    <span id="filteredCash" class="text-xl font-black text-emerald-300">$0</span>
+                                </div>
+                                <!-- Divider -->
+                                <div class="h-10 w-px bg-white/10 hidden md:block"></div>
+                                <!-- Transfer -->
+                                <div class="text-center">
+                                    <p class="text-[9px] font-bold text-blue-400 uppercase tracking-widest mb-0.5">Cuenta</p>
+                                    <span id="filteredTransfer" class="text-xl font-black text-blue-300">$0</span>
+                                </div>
+                                <!-- Divider -->
+                                <div class="h-10 w-px bg-white/10 hidden md:block"></div>
+                                <!-- Grand Total -->
+                                <div class="text-center">
+                                    <p class="text-[9px] font-bold text-pink-400 uppercase tracking-widest mb-0.5">Total</p>
+                                    <span id="filteredTotal" class="text-4xl font-black text-white">$0</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="relative z-10 text-center md:text-right">
-                            <span id="filteredTotal" class="text-5xl font-black text-white">$0</span>
-                            <div class="mt-1 h-1 w-full bg-pink-600 rounded-full animate-pulse"></div>
-                        </div>
+                        <div class="mt-3 h-0.5 w-full bg-pink-600 rounded-full animate-pulse"></div>
                     </div>
                 </div>
 
@@ -494,6 +519,8 @@ function filterProduction() {
     
     const rows = document.querySelectorAll('.production-row');
     let total = 0;
+    let totalCash = 0;
+    let totalTransfer = 0;
     let count = 0;
 
     rows.forEach(row => {
@@ -501,6 +528,9 @@ function filterProduction() {
         const rowServiceId = row.getAttribute('data-service-id');
         const rowDate = row.getAttribute('data-date');
         const price = parseFloat(row.getAttribute('data-price')) || 0;
+        const cashAmt = parseFloat(row.getAttribute('data-cash')) || 0;
+        const transferAmt = parseFloat(row.getAttribute('data-transfer')) || 0;
+        const payMethod = row.getAttribute('data-pay-method') || '';
 
         let matchesProf = (filterVal === 'all' || rowProfId === filterVal);
         let matchesService = (filterService === 'all' || rowServiceId === filterService);
@@ -513,17 +543,31 @@ function filterProduction() {
             row.style.display = '';
             total += price;
             count++;
+            // accumulate by method
+            if (payMethod === 'cash') {
+                totalCash += price;
+            } else if (payMethod === 'transfer') {
+                totalTransfer += price;
+            } else if (payMethod === 'hybrid') {
+                totalCash += cashAmt;
+                totalTransfer += transferAmt;
+            }
         } else {
             row.style.display = 'none';
         }
     });
 
-    // Actualizar UI
-    const totalEl = document.getElementById('filteredTotal');
-    const countEl = document.getElementById('filteredCount');
-    const descEl = document.getElementById('filterDescription');
+    // Update UI
+    const fmt = v => '$' + new Intl.NumberFormat('es-CO').format(v);
+    const totalEl    = document.getElementById('filteredTotal');
+    const cashEl     = document.getElementById('filteredCash');
+    const transferEl = document.getElementById('filteredTransfer');
+    const countEl   = document.getElementById('filteredCount');
+    const descEl    = document.getElementById('filterDescription');
     
-    if (totalEl) totalEl.innerText = '$' + new Intl.NumberFormat('es-CO').format(total);
+    if (totalEl) totalEl.innerText = fmt(total);
+    if (cashEl) cashEl.innerText = fmt(totalCash);
+    if (transferEl) transferEl.innerText = fmt(totalTransfer);
     if (countEl) countEl.innerText = count;
     
     if (descEl) {
