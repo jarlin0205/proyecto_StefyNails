@@ -733,13 +733,14 @@ let currentGlobalApp = null;
 
         // PRE-CHECK: Prevent completing future-dated appointments
         if (action === 'completar') {
-            const appDateStr = currentGlobalApp.appointment_date; // e.g. "2026-02-25 21:30:00"
+            // Replace space with T to ensure valid ISO 8601 parsing across all browsers
+            const appDateStr = (currentGlobalApp.appointment_date || '').replace(' ', 'T');
             const appDate = new Date(appDateStr);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             appDate.setHours(0, 0, 0, 0);
 
-            if (appDate > today) {
+            if (!isNaN(appDate.getTime()) && appDate > today) {
                 const formatted = appDate.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' });
                 Swal.fire({
                     title: '⏳ Cita en el futuro',
