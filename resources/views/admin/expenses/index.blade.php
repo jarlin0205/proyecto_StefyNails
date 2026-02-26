@@ -145,28 +145,33 @@
 </div>
 
 <script>
+function toLocalDateStr(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
 function setExpensesPreset(type) {
     const today = new Date();
     const startInput = document.getElementById('start_date');
     const endInput = document.getElementById('end_date');
     
-    let start = new Date();
-    let end = new Date();
+    let start = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    let end = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
     if (type === 'today') {
         // Hoy
     } else if (type === 'week') {
         const day = today.getDay();
         const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-        start = new Date(today.setDate(diff));
-        end = new Date();
+        start = new Date(today.getFullYear(), today.getMonth(), diff);
     } else if (type === 'month') {
         start = new Date(today.getFullYear(), today.getMonth(), 1);
-        end = new Date();
     }
 
-    startInput.value = start.toISOString().split('T')[0];
-    endInput.value = end.toISOString().split('T')[0];
+    startInput.value = toLocalDateStr(start);
+    endInput.value = toLocalDateStr(end);
     
     startInput.closest('form').submit();
 }

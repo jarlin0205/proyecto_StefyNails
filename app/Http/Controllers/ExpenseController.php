@@ -90,7 +90,7 @@ class ExpenseController extends Controller
         $projectedQuery = Appointment::where('status', 'confirmed');
         if ($startDate) { $projectedQuery->whereDate('appointment_date', '>=', $startDate); }
         if ($endDate) { $projectedQuery->whereDate('appointment_date', '<=', $endDate); }
-        $projectedRevenue = $projectedQuery->get()->sum('final_price');
+        $projectedRevenue = (clone $projectedQuery)->get()->sum('final_price');
 
         return view('admin.expenses.index', compact(
             'expenses', 

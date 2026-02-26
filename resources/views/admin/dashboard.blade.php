@@ -367,18 +367,18 @@
                                 <tbody class="bg-white divide-y divide-gray-100" id="productionTableBody">
                                     @foreach($completedAppointments as $app)
                                         <?php 
-                                            $price = $app->offered_price ?? ($app->service ? $app->service->price : 0);
+                                            $totalAmount = $app->grand_total;
                                             $profId = $app->professional_id ?? '0';
                                             $rawDate = $app->appointment_date->format('Y-m-d');
                                         ?>
                                         <tr class="production-row hover:bg-pink-50/30 transition-colors" 
                                             data-prof-id="{{ $profId }}" 
                                             data-service-id="{{ $app->service_id ?? '0' }}"
-                                            data-price="{{ $price }}"
+                                            data-price="{{ $totalAmount }}"
                                             data-date="{{ $rawDate }}"
                                             data-pay-method="{{ $app->payment_method ?? '' }}"
-                                            data-cash="{{ $app->cash_amount ?? ($app->payment_method === 'cash' ? $price : 0) }}"
-                                            data-transfer="{{ $app->transfer_amount ?? ($app->payment_method === 'transfer' ? $price : 0) }}">
+                                            data-cash="{{ $app->cash_amount ?? ($app->payment_method === 'cash' ? $totalAmount : 0) }}"
+                                            data-transfer="{{ $app->transfer_amount ?? ($app->payment_method === 'transfer' ? $totalAmount : 0) }}">
                                             <td class="px-4 py-3 whitespace-nowrap border-l-4 border-transparent hover:border-pink-500 transition-all">
                                                 <div class="text-sm font-bold text-gray-900">{{ $app->appointment_date->format('d/m/Y') }}</div>
                                                 <div class="text-[10px] font-medium text-gray-400 uppercase">{{ $app->appointment_date->format('h:i A') }}</div>
@@ -421,7 +421,7 @@
                                             </td>
                                             <td class="px-4 py-3 whitespace-nowrap text-right">
                                                 <span class="text-sm font-black text-gray-900 bg-gray-50 px-3 py-1 rounded-lg border border-gray-100 shadow-sm">
-                                                    ${{ number_format($price, 0, ',', '.') }}
+                                                    ${{ number_format($totalAmount, 0, ',', '.') }}
                                                 </span>
                                             </td>
                                         </tr>
@@ -486,6 +486,7 @@ function toLocalDateStr(date) {
     const d = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
 }
+
 
 function setPreset(type) {
     const today = new Date();
