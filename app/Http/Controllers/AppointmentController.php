@@ -397,7 +397,7 @@ class AppointmentController extends Controller
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.appointments.invoice_pdf', compact('appointment'));
         
-        return $pdf->download("Factura_StefyNails_{$appointment->id}.pdf");
+        return $pdf->stream("Factura_StefyNails_{$appointment->id}.pdf");
     }
 
     public function sendInvoice(Appointment $appointment)
