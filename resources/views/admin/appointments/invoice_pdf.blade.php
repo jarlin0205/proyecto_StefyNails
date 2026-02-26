@@ -119,31 +119,66 @@
         <thead>
             <tr>
                 <th>Servicio</th>
-                <th>Profesional</th>
-                <th style="text-align: right;">Total</th>
+                <th style="text-align: right;">Precio</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td>{{ $appointment->service->name }}</td>
-                <td>{{ $appointment->professional->name }}</td>
-                <td style="text-align: right;">${{ number_format($appointment->offered_price ?? $appointment->service->price, 0) }}</td>
+                <td>{{ $appointment->service->name }} ({{ $appointment->professional->name }})</td>
+                <td style="text-align: right;">${{ number_format($appointment->final_price, 0) }}</td>
             </tr>
         </tbody>
     </table>
 
+    @if($appointment->products->count() > 0)
+    <div style="margin-top: -20px; font-size: 10px; color: #db2777; font-weight: bold; text-transform: uppercase;">Productos Adicionales</div>
+    <table>
+        <thead>
+            <tr>
+                <th>Cant.</th>
+                <th>Producto</th>
+                <th style="text-align: right;">Unit.</th>
+                <th style="text-align: right;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($appointment->products as $product)
+            <tr>
+                <td style="width: 40px;">{{ $product->pivot->quantity }}</td>
+                <td>{{ $product->name }}</td>
+                <td style="text-align: right;">${{ number_format($product->pivot->unit_price, 0) }}</td>
+                <td style="text-align: right;">${{ number_format($product->pivot->quantity * $product->pivot->unit_price, 0) }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+    @endif
+
     <div class="total-section">
-        <div style="margin-bottom: 10px;">
-            <span class="label" style="display: inline-block; width: 150px; text-align: right;">Método de Pago:</span>
-            <span class="value" style="display: inline-block; margin-bottom: 0;">
-                @php
-                    $methodMap = ['cash' => 'Efectivo', 'transfer' => 'Transferencia / Cuenta', 'hybrid' => 'Híbrido'];
-                    echo $methodMap[$appointment->payment_method] ?? 'No especificado';
-                @endphp
-            </span>
+        <div style="margin-bottom: 20px;">
+            <div style="margin-bottom: 5px;">
+                <span class="label" style="display: inline-block; width: 140px; text-align: right;">Subtotal Servicio:</span>
+                <span style="font-size: 14px; display: inline-block; width: 100px; text-align: right; font-weight: bold;">${{ number_format($appointment->final_price, 0) }}</span>
+            </div>
+            @if($appointment->products->count() > 0)
+            <div style="margin-bottom: 5px;">
+                <span class="label" style="display: inline-block; width: 140px; text-align: right;">Subtotal Productos:</span>
+                <span style="font-size: 14px; display: inline-block; width: 100px; text-align: right; font-weight: bold;">${{ number_format($appointment->products_total, 0) }}</span>
+            </div>
+            @endif
+            <div style="margin-top: 5px; border-top: 1px solid #eee; padding-top: 5px;">
+                <span class="label" style="display: inline-block; width: 140px; text-align: right;">Método de Pago:</span>
+                <span class="value" style="display: inline-block; width: 100px; text-align: right; margin-bottom: 0;">
+                    @php
+                        $methodMap = ['cash' => 'Efectivo', 'transfer' => 'Cuenta', 'hybrid' => 'Híbrido'];
+                        echo $methodMap[$appointment->payment_method] ?? 'No especificado';
+                    @endphp
+                </span>
+            </div>
         </div>
-        <span class="total-label">Total Pago:</span>
-        <span class="total-amount">${{ number_format($appointment->offered_price ?? $appointment->service->price, 0) }}</span>
+        
+        <span class="total-label">Total a Pagar:</span>
+        <span class="total-amount">${{ number_format($appointment->grand_total, 0) }}</span>
     </div>
 
     <div class="footer">

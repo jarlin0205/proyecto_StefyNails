@@ -66,6 +66,23 @@ class Appointment extends Model
         return $this->belongsTo(Professional::class);
     }
 
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'appointment_product')
+                    ->withPivot('quantity', 'unit_price')
+                    ->withTimestamps();
+    }
+
+    public function getProductsTotalAttribute(): float
+    {
+        return $this->products->sum(fn ($p) => $p->pivot->quantity * $p->pivot->unit_price);
+    }
+
+    public function getGrandTotalAttribute(): float
+    {
+        return $this->final_price + $this->products_total;
+    }
+
     /**
      * Mutator para el nombre del cliente
      */

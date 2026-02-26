@@ -318,6 +318,35 @@
                     </button>
                 </div>
 
+                <div class="grid grid-cols-1 gap-3">
+                    <!-- ... payment methods ... -->
+                </div>
+
+                <!-- Venta de Productos -->
+                <div class="pt-4 border-t space-y-3">
+                    <p class="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                        Venta de Productos (Opcional)
+                    </p>
+                    
+                    <div class="relative">
+                        <select id="product-selector" onchange="addProductFromSelector(this.value)" class="w-full text-sm border-gray-200 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Selecciona un producto para agregar...</option>
+                        </select>
+                    </div>
+
+                    <div id="selected-products-list" class="space-y-2 max-h-40 overflow-y-auto pr-1">
+                        <!-- Productos agregados aparecerán aquí -->
+                    </div>
+
+                    <div id="products-total-row" class="hidden flex justify-between items-center bg-gray-50 p-2 rounded-lg border border-dashed text-sm">
+                        <span class="text-gray-600 font-medium">Subtotal Productos:</span>
+                        <span id="products-total-display" class="font-bold text-gray-900">$0</span>
+                    </div>
+                </div>
+
                 <!-- Input section for Hybrid (hidden by default) -->
                 <div id="hybrid-inputs" class="hidden space-y-3 pt-4 border-t">
                     <p class="text-xs font-bold text-gray-500 uppercase tracking-widest">Detalle del Pago Híbrido</p>
@@ -346,6 +375,12 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Total General Mostrar siempre -->
+                <div class="pt-4 border-t flex justify-between items-end">
+                    <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">Total a Pagar</span>
+                    <span id="payment-modal-total-display" class="text-2xl font-black text-pink-600">$0</span>
+                </div>
             </div>
             <div class="bg-gray-50 px-6 py-4 flex gap-3 border-t">
                 <button type="button" onclick="closePaymentModal()" class="flex-1 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-bold hover:bg-gray-100 transition">
@@ -366,6 +401,7 @@
     <input type="hidden" name="payment_method" id="global-payment-method">
     <input type="hidden" name="cash_amount" id="global-cash-amount">
     <input type="hidden" name="transfer_amount" id="global-transfer-amount">
+    <input type="hidden" name="products_json" id="global-products-json">
 </form>
 
 <form id="global-delete-form" method="POST" style="display: none;">
@@ -804,13 +840,125 @@ let currentGlobalApp = null;
     }
 
     let selectedPaymentMethod = null;
+    let allProducts = [];
+    let selectedProducts = [];
+
+    async function initProductSelector() {
+        if (allProducts.length === 0) {
+            try {
+                const response = await fetch('{{ route("products.list") }}');
+                allProducts = await response.json();
+            } catch (e) {
+                console.error("Error loading products:", e);
+                return;
+            }
+        }
+        
+        const selector = document.getElementById('product-selector');
+        selector.innerHTML = '<option value="">Selecciona un producto para agregar...</option>';
+        allProducts.forEach(p => {
+            selector.innerHTML += `<option value="${p.id}">${p.name} - ${p.category} ($${new Intl.NumberFormat().format(p.price)})</option>`;
+        });
+    }
+
+    function addProductFromSelector(id) {
+        if (!id) return;
+        const product = allProducts.find(p => p.id == id);
+        if (!product) return;
+
+        const existing = selectedProducts.find(p => p.id == id);
+        if (existing) {
+            existing.quantity++;
+        } else {
+            selectedProducts.push({ ...product, quantity: 1 });
+        }
+        
+        document.getElementById('product-selector').value = '';
+        renderSelectedProducts();
+        updatePaymentTotals();
+    }
+
+    function renderSelectedProducts() {
+        const list = document.getElementById('selected-products-list');
+        list.innerHTML = '';
+        
+        if (selectedProducts.length === 0) {
+            document.getElementById('products-total-row').classList.add('hidden');
+            return;
+        }
+
+        document.getElementById('products-total-row').classList.remove('hidden');
+        
+        selectedProducts.forEach(p => {
+            const row = document.createElement('div');
+            row.className = 'flex items-center justify-between bg-white border border-gray-100 p-2 rounded-lg shadow-sm text-sm';
+            row.innerHTML = `
+                <div class="flex-1">
+                    <p class="font-bold text-gray-800 leading-tight">${p.name}</p>
+                    <p class="text-[10px] text-gray-500">$${new Intl.NumberFormat().format(p.price)} c/u</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center border rounded-md">
+                        <button onclick="changeProductQty(${p.id}, -1)" class="px-2 py-1 hover:bg-gray-50 text-gray-400">-</button>
+                        <span class="px-2 font-bold text-gray-700 min-w-[20px] text-center">${p.quantity}</span>
+                        <button onclick="changeProductQty(${p.id}, 1)" class="px-2 py-1 hover:bg-gray-50 text-gray-400">+</button>
+                    </div>
+                    <button onclick="removeProduct(${p.id})" class="text-red-400 hover:text-red-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                    </button>
+                </div>
+            `;
+            list.appendChild(row);
+        });
+    }
+
+    function changeProductQty(id, delta) {
+        const p = selectedProducts.find(p => p.id == id);
+        if (!p) return;
+        p.quantity += delta;
+        if (p.quantity < 1) p.quantity = 1;
+        renderSelectedProducts();
+        updatePaymentTotals();
+    }
+
+    function removeProduct(id) {
+        selectedProducts = selectedProducts.filter(p => p.id != id);
+        renderSelectedProducts();
+        updatePaymentTotals();
+    }
+
+    function updatePaymentTotals() {
+        if (!currentGlobalApp) return;
+        
+        const productsTotal = selectedProducts.reduce((sum, p) => sum + (p.price * p.quantity), 0);
+        const serviceTotal = currentGlobalApp.price;
+        const grandTotal = serviceTotal + productsTotal;
+        
+        const pTotalDisplay = document.getElementById('products-total-display');
+        const gTotalDisplay = document.getElementById('payment-modal-total-display');
+
+        if(pTotalDisplay) pTotalDisplay.innerText = '$' + new Intl.NumberFormat().format(productsTotal);
+        if(gTotalDisplay) gTotalDisplay.innerText = '$' + new Intl.NumberFormat().format(grandTotal);
+        
+        // Update hybrid calculations if active
+        if (selectedPaymentMethod === 'hybrid') {
+            updateHybridSum();
+        }
+    }
 
     function openPaymentModal() {
         if (!currentGlobalApp) return;
         document.getElementById('payment-modal-service').innerText = currentGlobalApp.service_name;
         document.getElementById('payment-modal').classList.remove('hidden');
         document.getElementById('appointment-modal').classList.add('hidden'); // Fix overlap
+        
+        selectedProducts = [];
+        renderSelectedProducts();
+        initProductSelector();
         resetPaymentSelections();
+        updatePaymentTotals();
     }
 
     function closePaymentModal() {
@@ -820,7 +968,7 @@ let currentGlobalApp = null;
 
     function resetPaymentSelections() {
         selectedPaymentMethod = null;
-        document.querySelectorAll('#payment-modal .grid button').forEach(btn => {
+        document.querySelectorAll('#payment-modal button[onclick^="selectPaymentMethod"]').forEach(btn => {
             btn.classList.remove('border-green-500', 'bg-green-50', 'border-blue-500', 'bg-blue-50', 'border-purple-500', 'bg-purple-50');
             btn.classList.add('border-gray-100');
         });
@@ -838,14 +986,16 @@ let currentGlobalApp = null;
 
         btn.classList.remove('border-gray-100');
         
+        const productsTotal = selectedProducts.reduce((sum, p) => sum + (p.price * p.quantity), 0);
+        const grandTotal = currentGlobalApp.price + productsTotal;
+
         if (method === 'cash') btn.classList.add('border-green-500', 'bg-green-50');
         if (method === 'transfer') btn.classList.add('border-blue-500', 'bg-blue-50');
         if (method === 'hybrid') {
             btn.classList.add('border-purple-500', 'bg-purple-50');
             document.getElementById('hybrid-inputs').classList.remove('hidden');
             // Suggest split
-            const total = currentGlobalApp.price;
-            document.getElementById('cash_amount_input').value = total; // Start with total
+            document.getElementById('cash_amount_input').value = grandTotal; 
             document.getElementById('transfer_amount_input').value = 0;
             updateHybridSum();
         }
@@ -855,11 +1005,14 @@ let currentGlobalApp = null;
 
     function updateHybridSum() {
         if (!currentGlobalApp) return;
+        
+        const productsTotal = selectedProducts.reduce((sum, p) => sum + (p.price * p.quantity), 0);
+        const grandTotal = currentGlobalApp.price + productsTotal;
+        
         const cash = parseFloat(document.getElementById('cash_amount_input').value) || 0;
         const transfer = parseFloat(document.getElementById('transfer_amount_input').value) || 0;
-        const total = currentGlobalApp.price;
         const sum = cash + transfer;
-        const remaining = total - sum;
+        const remaining = grandTotal - sum;
 
         const sumDisplay = document.getElementById('hybrid-sum-display');
         const remainingDisplay = document.getElementById('hybrid-remaining-display');
@@ -887,19 +1040,22 @@ let currentGlobalApp = null;
     function confirmPaymentCompletion() {
         if (!selectedPaymentMethod) return;
 
+        const productsTotal = selectedProducts.reduce((sum, p) => sum + (p.price * p.quantity), 0);
+        const grandTotal = currentGlobalApp.price + productsTotal;
+
         const form = document.getElementById('global-action-form');
         form.action = currentGlobalApp.status_url;
         
         document.getElementById('global-action-status').value = 'completed';
         document.getElementById('global-payment-method').value = selectedPaymentMethod;
+        document.getElementById('global-products-json').value = JSON.stringify(selectedProducts);
 
         if (selectedPaymentMethod === 'hybrid') {
             const cash = parseFloat(document.getElementById('cash_amount_input').value) || 0;
             const transfer = parseFloat(document.getElementById('transfer_amount_input').value) || 0;
-            const total = currentGlobalApp.price;
 
-            if (Math.abs((cash + transfer) - total) > 1) {
-                Swal.fire('Atención', `La suma ($${new Intl.NumberFormat().format(cash + transfer)}) debe coincidir con el total ($${new Intl.NumberFormat().format(total)})`, 'warning');
+            if (Math.abs((cash + transfer) - grandTotal) > 1) {
+                Swal.fire('Atención', `La suma ($${new Intl.NumberFormat().format(cash + transfer)}) debe coincidir con el total ($${new Intl.NumberFormat().format(grandTotal)})`, 'warning');
                 return;
             }
 

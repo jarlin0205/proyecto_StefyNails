@@ -29,8 +29,8 @@ class ExpenseController extends Controller
         $expenses = $expensesQuery->latest()->get();
 
         // Financial Indicators
-        $completedAppointments = (clone $appointmentsQuery)->with('service', 'professional')->get();
-        $grossRevenue = $completedAppointments->sum('final_price');
+        $completedAppointments = (clone $appointmentsQuery)->with('service', 'professional', 'products')->get();
+        $grossRevenue = $completedAppointments->sum('grand_total');
         $grossRevenueCash = $completedAppointments->sum('cash_amount');
         $grossRevenueTransfer = $completedAppointments->sum('transfer_amount');
         
@@ -79,8 +79,8 @@ class ExpenseController extends Controller
         $expenses = $expensesQuery->latest()->paginate(50)->withQueryString();
 
         // Financial Indicators
-        $completedAppointments = $appointmentsQuery->get();
-        $grossRevenue = $completedAppointments->sum('final_price');
+        $completedAppointments = $appointmentsQuery->with('products')->get();
+        $grossRevenue = $completedAppointments->sum('grand_total');
         $grossRevenueCash = $completedAppointments->sum('cash_amount');
         $grossRevenueTransfer = $completedAppointments->sum('transfer_amount');
         

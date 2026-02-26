@@ -53,10 +53,16 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('availability/get', [AvailabilityController::class, 'show'])->name('availability.show');
         Route::post('availability', [AvailabilityController::class, 'store'])->name('availability.store');
         Route::delete('availability', [AvailabilityController::class, 'destroy'])->name('availability.destroy');
+
+        // Products for appointments (JSON list)
+        Route::get('products/list', [\App\Http\Controllers\ProductController::class, 'list'])->name('products.list');
     });
 
     // Admin Only Routes
     Route::middleware(['role:admin'])->group(function () {
+        Route::resource('product-categories', \App\Http\Controllers\ProductCategoryController::class);
+        Route::resource('products', \App\Http\Controllers\ProductController::class);
+        
         Route::resource('categories', CategoryController::class);
         Route::delete('services/images/{image}', [ServiceController::class, 'destroyImage'])->name('services.destroyImage');
         Route::delete('services/{service}/image', [ServiceController::class, 'destroyMainImage'])->name('services.destroyMainImage');

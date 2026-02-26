@@ -290,7 +290,7 @@
                         <span style="color:#9ca3af; font-size:9px; font-style:italic;">No especificado</span>
                     @endif
                 </td>
-                <td class="text-right amount-green">+${{ number_format($appt->final_price, 0, ',', '.') }}</td>
+                <td class="text-right amount-green">+${{ number_format($appt->grand_total, 0, ',', '.') }}</td>
             </tr>
             @empty
             <tr class="empty-row">
@@ -301,10 +301,10 @@
         @if($completedAppointments->count() > 0)
         @php
             // Efectivo total = pagos puros en efectivo + parte en efectivo de los híbridos
-            $subEfectivo  = $completedAppointments->where('payment_method', 'cash')->sum('final_price')
+            $subEfectivo  = $completedAppointments->where('payment_method', 'cash')->sum('grand_total')
                           + $completedAppointments->where('payment_method', 'hybrid')->sum('cash_amount');
             // Cuenta total = pagos puros en cuenta + parte en cuenta de los híbridos
-            $subCuenta    = $completedAppointments->where('payment_method', 'transfer')->sum('final_price')
+            $subCuenta    = $completedAppointments->where('payment_method', 'transfer')->sum('grand_total')
                           + $completedAppointments->where('payment_method', 'hybrid')->sum('transfer_amount');
         @endphp
         <tfoot>

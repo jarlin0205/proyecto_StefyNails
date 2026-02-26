@@ -269,15 +269,41 @@ class AppointmentController extends Controller
         
         if ($statusToSet === 'completed') {
             $updateData['payment_method'] = $request->payment_method;
+            
+            // Handle Products
+            $productsData = [];
+            $productsPriceSum = 0;
+            if ($request->filled('products_json')) {
+                $products = json_decode($request->products_json, true);
+                if (is_array($products)) {
+                    foreach ($products as $p) {
+                        $productsData[$p['id']] = [
+                            'quantity' => $p['quantity'],
+                            'unit_price' => $p['price']
+                        ];
+                        $productsPriceSum += ($p['quantity'] * $p['price']);
+                        
+                        // Optional: Reduce stock
+                        $productModel = \App\Models\Product::find($p['id']);
+                        if ($productModel && $productModel->stock >= $p['quantity']) {
+                            $productModel->decrement('stock', $p['quantity']);
+                        }
+                    }
+                }
+            }
+            $appointment->products()->sync($productsData);
+
+            $totalWithProducts = $appointment->final_price + $productsPriceSum;
+
             if ($request->payment_method === 'hybrid') {
                 $updateData['cash_amount'] = $request->cash_amount ?? 0;
                 $updateData['transfer_amount'] = $request->transfer_amount ?? 0;
             } elseif ($request->payment_method === 'cash') {
-                $updateData['cash_amount'] = $appointment->final_price;
+                $updateData['cash_amount'] = $totalWithProducts;
                 $updateData['transfer_amount'] = 0;
             } elseif ($request->payment_method === 'transfer') {
                 $updateData['cash_amount'] = 0;
-                $updateData['transfer_amount'] = $appointment->final_price;
+                $updateData['transfer_amount'] = $totalWithProducts;
             }
         }
 
