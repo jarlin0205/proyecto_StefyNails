@@ -846,7 +846,7 @@ let currentGlobalApp = null;
     async function initProductSelector() {
         if (allProducts.length === 0) {
             try {
-                const response = await fetch('{{ route("products.list") }}');
+                const response = await fetch('{{ route("admin.products.list") }}');
                 allProducts = await response.json();
             } catch (e) {
                 console.error("Error loading products:", e);
