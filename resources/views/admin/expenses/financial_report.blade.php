@@ -300,42 +300,28 @@
         </tbody>
         @if($completedAppointments->count() > 0)
         @php
-            $totalCash     = $completedAppointments->sum('cash_amount');
-            $totalTransfer = $completedAppointments->sum('transfer_amount');
-            $totalCashOnly = $completedAppointments->where('payment_method', 'cash')->sum('final_price');
-            $totalTransferOnly = $completedAppointments->where('payment_method', 'transfer')->sum('final_price');
-            $totalHybrid   = $completedAppointments->where('payment_method', 'hybrid')->sum('final_price');
-            $countCash     = $completedAppointments->where('payment_method', 'cash')->count();
-            $countTransfer = $completedAppointments->where('payment_method', 'transfer')->count();
-            $countHybrid   = $completedAppointments->where('payment_method', 'hybrid')->count();
+            // Efectivo total = pagos puros en efectivo + parte en efectivo de los híbridos
+            $subEfectivo  = $completedAppointments->where('payment_method', 'cash')->sum('final_price')
+                          + $completedAppointments->where('payment_method', 'hybrid')->sum('cash_amount');
+            // Cuenta total = pagos puros en cuenta + parte en cuenta de los híbridos
+            $subCuenta    = $completedAppointments->where('payment_method', 'transfer')->sum('final_price')
+                          + $completedAppointments->where('payment_method', 'hybrid')->sum('transfer_amount');
         @endphp
         <tfoot>
-            {{-- Subtotals per payment method --}}
-            @if($countCash > 0)
+            @if($subEfectivo > 0)
             <tr style="background:#f0fdf4;">
-                <td colspan="4" style="font-size:9px; color:#16a34a; padding:4px 8px; font-weight:bold;">
-                    Subtotal Efectivo ({{ $countCash }} citas)
+                <td colspan="5" style="font-size:9px; color:#16a34a; padding:4px 8px; font-weight:bold;">
+                    Subtotal Efectivo (incluye partes en efectivo de pagos híbridos)
                 </td>
-                <td style="font-size:9px; color:#16a34a; text-align:center; font-weight:bold;"></td>
-                <td class="text-right amount-green" style="font-size:9px;">+${{ number_format($totalCashOnly, 0, ',', '.') }}</td>
+                <td class="text-right amount-green" style="font-size:9px;">+${{ number_format($subEfectivo, 0, ',', '.') }}</td>
             </tr>
             @endif
-            @if($countTransfer > 0)
+            @if($subCuenta > 0)
             <tr style="background:#eff6ff;">
-                <td colspan="4" style="font-size:9px; color:#2563eb; padding:4px 8px; font-weight:bold;">
-                    Subtotal Consignacion / Cuenta ({{ $countTransfer }} citas)
+                <td colspan="5" style="font-size:9px; color:#2563eb; padding:4px 8px; font-weight:bold;">
+                    Subtotal Consignación / Cuenta (incluye partes en cuenta de pagos híbridos)
                 </td>
-                <td style="font-size:9px; color:#2563eb; text-align:center; font-weight:bold;"></td>
-                <td class="text-right" style="font-size:9px; color:#2563eb; font-weight:bold;">+${{ number_format($totalTransferOnly, 0, ',', '.') }}</td>
-            </tr>
-            @endif
-            @if($countHybrid > 0)
-            <tr style="background:#faf5ff;">
-                <td colspan="4" style="font-size:9px; color:#7c3aed; padding:4px 8px; font-weight:bold;">
-                    Subtotal Hibrido ({{ $countHybrid }} citas) — Efec: ${{ number_format($totalCash, 0, ',', '.') }} / Cta: ${{ number_format($totalTransfer, 0, ',', '.') }}
-                </td>
-                <td style="font-size:9px; color:#7c3aed; text-align:center; font-weight:bold;"></td>
-                <td class="text-right" style="font-size:9px; color:#7c3aed; font-weight:bold;">+${{ number_format($totalHybrid, 0, ',', '.') }}</td>
+                <td class="text-right" style="font-size:9px; color:#2563eb; font-weight:bold;">+${{ number_format($subCuenta, 0, ',', '.') }}</td>
             </tr>
             @endif
             {{-- Grand total --}}
