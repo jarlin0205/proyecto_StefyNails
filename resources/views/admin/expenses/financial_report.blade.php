@@ -259,7 +259,7 @@
             <tr>
                 <th>Fecha</th>
                 <th>Cliente</th>
-                <th>Servicio</th>
+                <th>Detalle (Servicio / Productos)</th>
                 <th>Profesional</th>
                 <th>Método de Pago</th>
                 <th class="text-right">Monto</th>
@@ -275,7 +275,22 @@
             <tr>
                 <td>{{ $appt->appointment_date->format('d/m/Y') }}</td>
                 <td><strong>{{ $appt->customer_name }}</strong></td>
-                <td>{{ $appt->service?->name ?? 'Servicio personalizado' }}</td>
+                <td>
+                    <div style="margin-bottom: 4px;">
+                        <span style="font-weight: bold; color: #1f2937;">Servicio:</span> {{ $appt->service?->name ?? 'Servicio personalizado' }}
+                        <span style="color: #6b7280;">(${{ number_format($appt->final_price, 0, ',', '.') }})</span>
+                    </div>
+                    @if($appt->products->count() > 0)
+                        <div style="padding-left: 8px; border-left: 2px solid #fce7f3; margin-top: 2px;">
+                            @foreach($appt->products as $product)
+                                <div style="font-size: 8px; color: #4b5563;">
+                                    • {{ $product->pivot->quantity }}x {{ $product->name }} 
+                                    <span style="color: #9ca3af;">(${{ number_format($product->pivot->unit_price, 0, ',', '.') }} c/u)</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </td>
                 <td><span class="badge badge-gray">{{ $appt->professional?->name ?? 'Admin' }}</span></td>
                 <td>
                     @if($pm === 'cash')
