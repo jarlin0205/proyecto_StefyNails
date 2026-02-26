@@ -34,7 +34,6 @@ class AdminController extends Controller
         $professionals = Professional::all(); // Retrieve all professionals
         $servicesCount = Service::count();
         $allServices = Service::all();
-        $notifications = Notification::where('is_read', false)->get();
         
         $latestsAppointments = (clone $query)->with('service', 'professional')
             ->whereIn('status', ['pending_admin', 'pending_client', 'confirmed'])
@@ -49,7 +48,6 @@ class AdminController extends Controller
             'cancelledCount', 
             'servicesCount', 
             'allServices',
-            'notifications', 
             'latestsAppointments',
             'totalProduced',
             'completedAppointments',
