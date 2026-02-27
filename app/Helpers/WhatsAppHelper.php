@@ -94,10 +94,12 @@ class WhatsAppHelper
                    "¡Gracias por elegir Stefy Nails! ✨";
         } elseif ($status === 'cancelled') {
             $msg = "🌸 *Hola {$appointment->customer_name}* 🌸\n\n" .
-                   "Lamentamos informarte que por el momento *no contamos con espacios disponibles* para tu cita del día *{$date}*.\n\n" .
-                   "¡Nos encantaría atenderte! Te invitamos amablemente a solicitar un nuevo horario en nuestra web:\n\n" .
+                   "Lamentamos informarte que tu cita del día *{$date}* ha sido *CANCELADA*.\n\n" .
+                   "¡Nos encantaría atenderte en otra ocasión! Te invitamos amablemente a solicitar un nuevo horario en nuestra web:\n\n" .
                    "🔗 " . config('app.url') . "\n\n" .
                    "¡Gracias por tu comprensión! 💖";
+        } else {
+             // Otros cambios o actualizaciones generales
              $msg = "✨ *¡Tengo una actualización para tu cita!* ✨\n\n" .
                     "Hola {$appointment->customer_name}, he actualizado tu cita para el:\n" .
                     "📅 *Fecha:* {$date}\n\n" .
