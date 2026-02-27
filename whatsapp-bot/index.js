@@ -139,7 +139,7 @@ client.on('message', async (msg) => {
                 const res = await callLaravelApi(`get-link?phone=${sender}`, 'GET');
                 if (res.success) {
                     userState.state = STATES.IDLE;
-                    return msg.reply(`🌟 *Bienvenido al Bot de Stefy Nails* 🌟\n\nHola *${res.customer_name}*, podemos ayudarte a gestionar tu cita con estos comandos:\n\n✅ *ASISTIRE* (Confirmar llegada)\n1️⃣ *CANCELAR*\n2️⃣ *REPROGRAMAR*\n\n_Escribe "MENU" para volver a ver esto._`);
+                    return msg.reply(`🌟 *Bienvenido al Bot de Stefy Nails* 🌟\n\nHola *${res.customer_name}*, podemos ayudarte a gestionar tu cita con estos comandos:\n\n1️⃣ *CANCELAR*\n2️⃣ *REPROGRAMAR*\n\n_Escribe "MENU" para volver a ver esto._`);
                 } else {
                     return msg.reply(`🌸 *¡Hola!* 🌸\n\nNo encontramos una cita activa vinculada a este número. ¡Nos encantaría atenderte! ✨\n\nPuedes agendar tu cita fácilmente aquí:\n🔗 http://3.12.104.67\n\n¡Te esperamos! 💖`);
                 }

@@ -153,9 +153,11 @@ class WhatsAppHelper
 
         $msg = "⏰ *RECORDATORIO DE TU CITA* ⏰\n\n" .
                "Hola {$appointment->customer_name}, tu cita en Stefy Nails empezará en *20 minutos* ({$date}). ✨\n\n" .
-               "Por favor, responde con la palabra *ASISTIRE* para confirmar que vas en camino. ✅\n\n" .
-               "⚠️ *Nota:* Si no confirmas tu asistencia a tiempo, el sistema liberará automáticamente tu espacio faltando 5 minutos para la cita. \n\n" .
-               "Si necesitas cancelar o reprogramar, escribe *MENU*.";
+               "¿Cómo deseas proceder? RESPONDE con una opción:\n\n" .
+               "✅ *ASISTIRE*\n" .
+               "1️⃣ *CANCELAR*\n" .
+               "2️⃣ *REPROGRAMAR*\n\n" .
+               "⚠️ *Nota:* Si no confirmas tu asistencia con la palabra *ASISTIRE* a tiempo, el sistema liberará automáticamente tu espacio faltando 5 minutos para la cita. ✨";
 
         self::sendMessage($appointment->customer_phone, $msg);
     }
