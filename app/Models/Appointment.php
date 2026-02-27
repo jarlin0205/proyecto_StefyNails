@@ -25,6 +25,8 @@ class Appointment extends Model
         'payment_method',
         'cash_amount',
         'transfer_amount',
+        'reminder_sent',
+        'attendance_confirmed',
     ];
 
     protected static function boot()
