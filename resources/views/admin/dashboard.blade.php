@@ -170,6 +170,7 @@
                         </span>
                     </td>
                     <td class="px-5 py-5 border-b border-gray-200 text-sm text-center">
+                        <button type="button" 
                             onclick="openAppointmentModal({{ json_encode([
                                 'id' => $appointment->id,
                                 'customer_name' => $appointment->customer_name,
@@ -187,7 +188,7 @@
                                 'status_url' => route('admin.appointments.updateStatus', $appointment),
                                 'delete_url' => route('admin.appointments.destroy', $appointment)
                             ]) }})"
-                            class="text-pink-600 hover:text-pink-800 font-bold">
+                            class="text-pink-600 hover:text-pink-800 font-bold transition-colors">
                             Ver Detalle
                         </button>
                     </td>
