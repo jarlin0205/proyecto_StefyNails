@@ -66,6 +66,7 @@ class WhatsAppHelper
                "👩‍🎨 *Profesional:* {$professional}\n" .
                "📅 *Fecha:* {$date}\n" .
                "📍 *Lugar:* {$location}\n\n" .
+               "⏰ *Recordatorio:* Por favor, llega *10 minutos antes* para cumplir con el flujo de horarios. ✨\n\n" .
                "✅ *Tu espacio ya está asegurado.* ¡Te esperamos! ✨\n\n" .
                "Si necesitas cambiar algo, puedes escribir *MENU* en cualquier momento.";
                
@@ -128,6 +129,7 @@ class WhatsAppHelper
                    "📋 *Servicio:* {$appointment->service->name}\n" .
                    "💰 *Precio:* \${$price}\n" .
                    "👩‍🎨 *Profesional:* {$professional}\n\n" .
+                   "⏰ *Recordatorio:* Por favor, llega *10 minutos antes* para cumplir con el flujo de horarios. ✨\n\n" .
                    "✨ *Tu nuevo horario ya está asegurado.* ¡Nos vemos pronto!";
         } else {
             // Cuando el admin reprograma, el estado es pending_client
