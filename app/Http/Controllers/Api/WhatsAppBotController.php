@@ -32,16 +32,15 @@ class WhatsAppBotController extends Controller
         if (!empty($validated['id'])) {
             $appointment = Appointment::findOrFail($validated['id']);
         } elseif (!empty($validated['phone'])) {
-            // Normalizar teléfono (remover prefijos si es necesario, aquí asumimos coincidencia o LIKE)
             $phone = preg_replace('/[^0-9]/', '', $validated['phone']);
-            // El bot envía el número internacional. Buscamos citas recientes con ese número.
-            $appointment = Appointment::where(function($q) use ($phone) {
+            $last10 = substr($phone, -10);
+            $appointment = Appointment::where(function($q) use ($phone, $last10) {
                     $q->where('customer_phone', 'LIKE', "%$phone%")
-                      ->orWhere('customer_phone', 'LIKE', '%' . substr($phone, -10) . '%');
+                      ->orWhere('customer_phone', 'LIKE', "%$last10%");
                 })
-                ->where('status', '!=', 'completed')
-                ->where('status', '!=', 'cancelled')
-                ->latest()
+                ->where('appointment_date', '>=', now()->startOfDay())
+                ->whereNotIn('status', ['completed', 'cancelled'])
+                ->orderBy('appointment_date', 'asc')
                 ->first();
         }
 
@@ -98,13 +97,14 @@ class WhatsAppBotController extends Controller
             $appointment = Appointment::findOrFail($validated['id']);
         } elseif (!empty($validated['phone'])) {
             $phone = preg_replace('/[^0-9]/', '', $validated['phone']);
-            $appointment = Appointment::where(function($q) use ($phone) {
+            $last10 = substr($phone, -10);
+            $appointment = Appointment::where(function($q) use ($phone, $last10) {
                     $q->where('customer_phone', 'LIKE', "%$phone%")
-                      ->orWhere('customer_phone', 'LIKE', '%' . substr($phone, -10) . '%');
+                      ->orWhere('customer_phone', 'LIKE', "%$last10%");
                 })
-                ->where('status', '!=', 'completed')
-                ->where('status', '!=', 'cancelled')
-                ->latest()
+                ->where('appointment_date', '>=', now()->startOfDay())
+                ->whereNotIn('status', ['completed', 'cancelled'])
+                ->orderBy('appointment_date', 'asc')
                 ->first();
         }
 
@@ -233,12 +233,14 @@ class WhatsAppBotController extends Controller
             return response()->json(['success' => false, 'message' => 'Teléfono requerido.'], 400);
         }
 
-        $appointment = Appointment::where(function($q) use ($phone) {
+        $last10 = substr($phone, -10);
+        $appointment = Appointment::where(function($q) use ($phone, $last10) {
                 $q->where('customer_phone', 'LIKE', "%$phone%")
-                  ->orWhere('customer_phone', 'LIKE', '%' . substr($phone, -10) . '%');
+                  ->orWhere('customer_phone', 'LIKE', "%$last10%");
             })
+            ->where('appointment_date', '>=', now()->startOfDay())
             ->whereIn('status', ['pending_admin', 'pending_client', 'confirmed'])
-            ->latest()
+            ->orderBy('appointment_date', 'asc')
             ->first();
 
         if (!$appointment) {

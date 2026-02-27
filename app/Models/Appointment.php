@@ -115,4 +115,14 @@ class Appointment extends Model
             set: fn (?string $value) => $value ? ucfirst(strtolower($value)) : null,
         );
     }
+
+    /**
+     * Mutator para normalizar el teléfono del cliente (solo números)
+     */
+    protected function customerPhone(): \Illuminate\Database\Eloquent\Casts\Attribute
+    {
+        return \Illuminate\Database\Eloquent\Casts\Attribute::make(
+            set: fn (string $value) => preg_replace('/[^0-9]/', '', $value),
+        );
+    }
 }
