@@ -237,22 +237,22 @@ class WhatsAppBotController extends Controller
 
         \Log::info("Bot Checkin Attempt: phone=$phone, last10=$last10, now=" . now()->toDateTimeString());
 
-        // Find the next upcoming confirmed appointment for this phone
+        // Find the next upcoming confirmed appointment for this phone within a strict window
         $appointment = Appointment::where(function($q) use ($phone, $last10) {
                 $q->where('customer_phone', 'LIKE', "%$phone%")
                   ->orWhere('customer_phone', 'LIKE', "%$last10%");
             })
             ->where('status', 'confirmed')
-            ->where('appointment_date', '>=', now()->subMinutes(60)) // Allow slightly past (accidents)
-            ->where('appointment_date', '<=', now()->addMinutes(60)) // Allow more window for safety
+            ->where('appointment_date', '>=', now()) // Must not be in the past
+            ->where('appointment_date', '<=', now()->addMinutes(30)) // Max 30 mins in the future
             ->orderBy('appointment_date', 'asc')
             ->first();
 
         if (!$appointment) {
-            \Log::warning("Bot Checkin Failed: No appointment found for $phone in window.");
+            \Log::warning("Bot Checkin Failed: No valid confirmed appointment found for $phone in strict window (now to +30m).");
             return response()->json([
                 'success' => false,
-                'message' => 'No encontramos una cita confirmada próxima a iniciar para este número. 🌸'
+                'message' => 'No encontramos una cita confirmada próxima a iniciar para este número. Recuerda que solo puedes confirmar asistencia hasta 5 minutos antes de tu cita. 🌸'
             ], 404);
         }
 
