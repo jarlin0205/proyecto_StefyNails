@@ -235,18 +235,21 @@ class WhatsAppBotController extends Controller
         $phone = preg_replace('/[^0-9]/', '', $validated['phone']);
         $last10 = substr($phone, -10);
 
+        \Log::info("Bot Checkin Attempt: phone=$phone, last10=$last10, now=" . now()->toDateTimeString());
+
         // Find the next upcoming confirmed appointment for this phone
         $appointment = Appointment::where(function($q) use ($phone, $last10) {
                 $q->where('customer_phone', 'LIKE', "%$phone%")
                   ->orWhere('customer_phone', 'LIKE', "%$last10%");
             })
             ->where('status', 'confirmed')
-            ->where('appointment_date', '>=', now())
-            ->where('appointment_date', '<=', now()->addMinutes(30)) // Must be close to the time
+            ->where('appointment_date', '>=', now()->subMinutes(60)) // Allow slightly past (accidents)
+            ->where('appointment_date', '<=', now()->addMinutes(60)) // Allow more window for safety
             ->orderBy('appointment_date', 'asc')
             ->first();
 
         if (!$appointment) {
+            \Log::warning("Bot Checkin Failed: No appointment found for $phone in window.");
             return response()->json([
                 'success' => false,
                 'message' => 'No encontramos una cita confirmada próxima a iniciar para este número. 🌸'
