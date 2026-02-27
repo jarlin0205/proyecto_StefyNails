@@ -257,7 +257,7 @@ class WhatsAppBotController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "🌸 *¡Excelente, {$appointment->customer_name}!* Tu asistencia ha sido confirmada. Te esperamos en unos minutos. ✨",
+            'message' => "🌸 *¡Excelente, {$appointment->customer_name}!* Tu asistencia ha sido confirmada.\n\n⏰ *Recordatorio:* Por favor, llega *10 minutos antes* para cumplir con el flujo de horarios. Te esperamos en unos minutos. ✨",
             'appointment' => $appointment
         ]);
     }

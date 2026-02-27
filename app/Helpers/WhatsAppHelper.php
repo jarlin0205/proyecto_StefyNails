@@ -100,6 +100,7 @@ class WhatsAppHelper
              $msg = "✨ *¡Tengo una actualización para tu cita!* ✨\n\n" .
                     "Hola {$appointment->customer_name}, he actualizado tu cita para el:\n" .
                     "📅 *Fecha:* {$date}\n\n" .
+                    "⏰ *Recordatorio:* Por favor, llega *10 minutos antes* para cumplir con el flujo de horarios. ✨\n\n" .
                     "✨ *Tu espacio ya está asegurado.* Si necesitas realizar algún cambio, puedes escribir *MENU* en cualquier momento.";
         }
 
@@ -140,7 +141,7 @@ class WhatsAppHelper
                    "📋 *Servicio:* {$appointment->service->name}\n" .
                    "💰 *Precio:* \${$price}\n" .
                    "👩‍🎨 *Profesional:* {$professional}\n\n" .
-                   "⏰ *Recordatorio:* Por favor, llega *10 minutos antes* de la hora acordada para asegurar una excelente atención y distribución del tiempo. ✨\n\n" .
+                   "⏰ *Recordatorio:* Por favor, llega *10 minutos antes* para cumplir con el flujo de horarios. ✨\n\n" .
                    "Si necesitas realizar algún cambio, puedes escribir *MENU* en cualquier momento.";
         }
                
@@ -157,6 +158,7 @@ class WhatsAppHelper
                "✅ *ASISTIRE*\n" .
                "1️⃣ *CANCELAR*\n" .
                "2️⃣ *REPROGRAMAR*\n\n" .
+               "⏰ *Recordatorio:* Por favor, llega *10 minutos antes* para cumplir con el flujo de horarios. ✨\n\n" .
                "⚠️ *Nota:* Si no confirmas tu asistencia con la palabra *ASISTIRE* a tiempo, el sistema liberará automáticamente tu espacio faltando 5 minutos para la cita. ✨";
 
         self::sendMessage($appointment->customer_phone, $msg);
