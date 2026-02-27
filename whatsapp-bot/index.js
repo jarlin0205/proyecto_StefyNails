@@ -164,7 +164,7 @@ client.on('message', async (msg) => {
                 reason: 'Reprogramado vía WhatsApp'
             });
             userState.state = STATES.IDLE;
-            msg.reply(`📅 *Cita Reprogramada*\n${res.message}`);
+            msg.reply(`📅 *Cita Reprogramada Recuerda Estar 10 minutos antes de tu cita*\n${res.message}`);
             return;
         }
 
