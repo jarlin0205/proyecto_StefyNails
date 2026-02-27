@@ -247,7 +247,7 @@
             </td>
             <td style="border:none; padding:10px 16px; text-align:center;">
                 <div style="font-size:9px; color:#6b7280; text-transform:uppercase; font-weight:bold;">Generado</div>
-                <div style="font-size:13px; font-weight:700; color:#1f2937;">{{ now()->format('d/m/Y H:i') }}</div>
+                <div style="font-size:13px; font-weight:700; color:#1f2937;">{{ now()->format('d/m/Y h:i A') }}</div>
             </td>
         </tr>
     </table>
