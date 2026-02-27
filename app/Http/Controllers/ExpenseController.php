@@ -38,6 +38,14 @@ class ExpenseController extends Controller
         $netProfit = $grossRevenue - $totalExpenses;
 
 
+        // Calculate period days
+        $realStart = $startDate ? \Carbon\Carbon::parse($startDate) : Appointment::min('appointment_date');
+        if (!$realStart) $realStart = now();
+        else $realStart = \Carbon\Carbon::parse($realStart);
+        
+        $realEnd = $endDate ? \Carbon\Carbon::parse($endDate) : now();
+        $daysCount = $realStart->diffInDays($realEnd) + 1; // +1 to include both ends
+
         // Usamos el contenedor de servicios para evitar problemas si la fachada no se descubre correctamente
         $pdf = app('dompdf.wrapper');
         $pdf->loadView('admin.expenses.financial_report', compact(
@@ -49,7 +57,8 @@ class ExpenseController extends Controller
             'totalExpenses', 
             'netProfit', 
             'startDate', 
-            'endDate'
+            'endDate',
+            'daysCount'
         ));
 
 

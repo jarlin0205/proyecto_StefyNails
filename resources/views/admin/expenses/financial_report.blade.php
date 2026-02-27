@@ -169,6 +169,7 @@
             Periodo: {{ $startDate ? \Carbon\Carbon::parse($startDate)->format('d/m/Y') : 'Inicio' }}
             —
             {{ $endDate ? \Carbon\Carbon::parse($endDate)->format('d/m/Y') : 'Hoy (' . now()->format('d/m/Y') . ')' }}
+            &nbsp; <span style="color: #6b7280; font-weight: normal;">[{{ $daysCount }} {{ $daysCount == 1 ? 'día' : 'días' }}]</span>
         </div>
     </div>
 
