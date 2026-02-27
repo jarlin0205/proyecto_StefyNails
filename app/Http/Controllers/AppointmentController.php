@@ -160,7 +160,7 @@ class AppointmentController extends Controller
         // Remove reason_msg from validated array if it's there
         unset($validated['reason_msg']);
 
-        $validated['status'] = 'pending_client'; // Admin reschedules via full edit page
+        $validated['status'] = 'confirmed'; // Admin reschedules via full edit page are auto-confirmed
 
         $appointment->update($validated);
         
@@ -184,8 +184,9 @@ class AppointmentController extends Controller
         ]);
 
         // RESTRICTION: Cannot complete a pending appointment
-        if ($validated['status'] === 'completed' && ($appointment->status === 'pending_admin' || $appointment->status === 'pending_client')) {
-            return back()->with('error', '❌ No se puede marcar como completada una cita que aún está pendiente por confirmar. Confírmala primero.');
+        // RESTRICTION: No longer needed as we auto-confirm, but let's keep it for safety if someone tries to complete a truly pending one (if any left)
+        if ($validated['status'] === 'completed' && $appointment->status === 'pending_admin') {
+            return back()->with('error', '❌ No se puede marcar como completada una cita que aún está pendiente por revisar. Revísala primero.');
         }
 
         // RESTRICTION: Cannot complete an appointment scheduled for a future date
@@ -259,10 +260,10 @@ class AppointmentController extends Controller
         $statusToSet = $validated['status'];
         if ($statusToSet === 'rescheduled') $statusToSet = 'pending_client';
         
-        // FORCED LOGIC: If date is changed by admin, it must be pending_client 
+        // FORCED LOGIC: If date is changed by admin, it is auto-confirmed 
         // unless they are explicitly completing or cancelling something.
         if ($request->filled('appointment_date') && !in_array($statusToSet, ['completed', 'cancelled'])) {
-            $statusToSet = 'pending_client';
+            $statusToSet = 'confirmed';
         }
 
         $updateData = ['status' => $statusToSet];

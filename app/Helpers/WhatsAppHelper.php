@@ -97,12 +97,10 @@ class WhatsAppHelper
                    "¡Nos encantaría atenderte! Te invitamos amablemente a solicitar un nuevo horario en nuestra web:\n\n" .
                    "🔗 " . config('app.url') . "\n\n" .
                    "¡Gracias por tu comprensión! 💖";
-        } elseif ($status === 'pending_client') {
-             // El administrador confirmó o reprogramó algo que el cliente debe aceptar
-             $msg = "✨ *¡Tengo una propuesta para tu cita!* ✨\n\n" .
+             $msg = "✨ *¡Tengo una actualización para tu cita!* ✨\n\n" .
                     "Hola {$appointment->customer_name}, he actualizado tu cita para el:\n" .
                     "📅 *Fecha:* {$date}\n\n" .
-                    "Por favor responde con la palabra *CONFIRMAR* si estás de acuerdo, o escribe *MENU* para ver más opciones. ✨";
+                    "✨ *Tu espacio ya está asegurado.* Si necesitas realizar algún cambio, puedes escribir *MENU* en cualquier momento.";
         }
 
         if ($msg) {
@@ -143,7 +141,7 @@ class WhatsAppHelper
                    "💰 *Precio:* \${$price}\n" .
                    "👩‍🎨 *Profesional:* {$professional}\n\n" .
                    "⏰ *Recordatorio:* Por favor, llega *10 minutos antes* de la hora acordada para asegurar una excelente atención y distribución del tiempo. ✨\n\n" .
-                   "Por favor responde con la palabra *CONFIRMAR* para asegurar tu espacio, o escribe *MENU* para ver más opciones. ✨";
+                   "Si necesitas realizar algún cambio, puedes escribir *MENU* en cualquier momento.";
         }
                
         self::sendMessage($appointment->customer_phone, $msg);

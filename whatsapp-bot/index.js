@@ -133,12 +133,13 @@ client.on('message', async (msg) => {
         const userState = userStates[sender];
 
         // Comandos Globales
+        // Comandos Globales
         if (body === 'MENU' || body === 'AYUDA') {
             try {
                 const res = await callLaravelApi(`get-link?phone=${sender}`, 'GET');
                 if (res.success) {
                     userState.state = STATES.IDLE;
-                    return msg.reply(`🌟 *Bienvenido al Bot de Stefy Nails* 🌟\n\nHola *${res.customer_name}*, podemos ayudarte a gestionar tu cita con estos comandos:\n\n1️⃣ *CONFIRMAR*\n2️⃣ *CANCELAR*\n3️⃣ *REPROGRAMAR*\n\n_Escribe "MENU" para volver a ver esto._`);
+                    return msg.reply(`🌟 *Bienvenido al Bot de Stefy Nails* 🌟\n\nHola *${res.customer_name}*, podemos ayudarte a gestionar tu cita con estos comandos:\n\n1️⃣ *CANCELAR*\n2️⃣ *REPROGRAMAR*\n\n_Escribe "MENU" para volver a ver esto._`);
                 } else {
                     return msg.reply(`🌸 *¡Hola!* 🌸\n\nNo encontramos una cita activa vinculada a este número. ¡Nos encantaría atenderte! ✨\n\nPuedes agendar tu cita fácilmente aquí:\n🔗 http://3.12.104.67\n\n¡Te esperamos! 💖`);
                 }
@@ -157,36 +158,25 @@ client.on('message', async (msg) => {
             const isoDate = parseDateTimeToISO(msg.body);
             if (!isoDate) return msg.reply('❌ Formato no válido. Usa: *DD/MM 02:30 PM*');
 
-            try {
-                const res = await callLaravelApi('reschedule', 'POST', {
-                    phone: sender,
-                    date: isoDate,
-                    reason: 'Reprogramado vía WhatsApp'
-                });
-                userState.state = STATES.IDLE;
-                msg.reply(`📅 *Cita Reprogramada*\n${res.message}`);
-            } catch (err) {
-                msg.reply(`❌ Error: ${err.message}`);
-            }
+            const res = await callLaravelApi('reschedule', 'POST', {
+                phone: sender,
+                date: isoDate,
+                reason: 'Reprogramado vía WhatsApp'
+            });
+            userState.state = STATES.IDLE;
+            msg.reply(`📅 *Cita Reprogramada*\n${res.message}`);
             return;
         }
 
         // Comandos en IDLE
-        if (body.startsWith('CONFIRMAR') || body === '1') {
-            try {
-                const res = await callLaravelApi('status', 'POST', { phone: sender, status: 'confirmed' });
-                msg.reply(`✅ *Cita Confirmada*\n${res.message}`);
-            } catch (err) {
-                msg.reply(`❌ Error: ${err.message}`);
-            }
-        } else if (body.startsWith('CANCELAR') || body === '2') {
+        if (body.startsWith('CANCELAR') || body === '1') {
             try {
                 const res = await callLaravelApi('status', 'POST', { phone: sender, status: 'cancelled' });
                 msg.reply('✅ *Cita cancelada con éxito*');
             } catch (err) {
                 msg.reply(`❌ Error: ${err.message}`);
             }
-        } else if (body.startsWith('REPROGRAMAR') || body === '3') {
+        } else if (body.startsWith('REPROGRAMAR') || body === '2') {
             try {
                 const res = await callLaravelApi(`get-link?phone=${sender}`, 'GET');
                 if (res.success) {
