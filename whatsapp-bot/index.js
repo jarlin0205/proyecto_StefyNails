@@ -79,7 +79,8 @@ const client = new Client({
         headless: true,
         args: CONFIG.CHROME_ARGS,
         handleSIGINT: false, // PM2 manejará esto
-        handleSIGTERM: false
+        handleSIGTERM: false,
+        protocolTimeout: 60000
     }
 });
 
