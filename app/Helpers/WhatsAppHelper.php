@@ -59,14 +59,14 @@ class WhatsAppHelper
         $professional = $appointment->professional ? $appointment->professional->name : 'Por asignar';
         $price = number_format($appointment->final_price, 0, ',', '.');
         
-        $msg = "✨ *¡Cita Solicitada con Éxito!* ✨\n\n" .
-               "Hola {$appointment->customer_name}, hemos recibido tu solicitud:\n\n" .
+        $msg = "✨ *¡Cita Confirmada!* ✨\n\n" .
+               "Hola {$appointment->customer_name}, tu cita ha sido reservada con éxito:\n\n" .
                "📋 *Servicio:* {$appointment->service->name}\n" .
                "💰 *Precio:* \${$price}\n" .
                "👩‍🎨 *Profesional:* {$professional}\n" .
                "📅 *Fecha:* {$date}\n" .
                "📍 *Lugar:* {$location}\n\n" .
-               "🔔 *Por favor espera la confirmación oficial* por parte de Stefy Nails por este mismo medio.\n\n" .
+               "✅ *Tu espacio ya está asegurado.* ¡Te esperamos! ✨\n\n" .
                "Si necesitas cambiar algo, puedes escribir *MENU* en cualquier momento.";
                
         self::sendMessage($appointment->customer_phone, $msg);
@@ -123,13 +123,13 @@ class WhatsAppHelper
             $professional = $appointment->professional ? $appointment->professional->name : 'Staff';
             $price = number_format($appointment->final_price, 0, ',', '.');
             
-            $msg = "📅 *Solicitud de Reprogramación Enviada* 📅\n\n" .
-                   "Hola {$appointment->customer_name}, hemos recibido tu solicitud de cambio:\n\n" .
+            $msg = "✅ *¡Reprogramación Confirmada!* ✅\n\n" .
+                   "Hola {$appointment->customer_name}, hemos actualizado tu cita:\n\n" .
                    "🆕 *Nueva Fecha:* {$date}\n" .
                    "📋 *Servicio:* {$appointment->service->name}\n" .
                    "💰 *Precio:* \${$price}\n" .
                    "👩‍🎨 *Profesional:* {$professional}\n\n" .
-                   "🔔 *Por favor espera la confirmación oficial* por parte de Stefy Nails por este mismo medio.";
+                   "✨ *Tu nuevo horario ya está asegurado.* ¡Nos vemos pronto!";
         } else {
             // Cuando el admin reprograma, el estado es pending_client
             $professional = $appointment->professional ? $appointment->professional->name : 'Staff';

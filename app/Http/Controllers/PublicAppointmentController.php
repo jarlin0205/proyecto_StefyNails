@@ -105,7 +105,7 @@ class PublicAppointmentController extends Controller
             'offered_price' => $finalOfferedPrice,
             'appointment_date' => $validated['appointment_date'],
             'notes' => $validated['notes'],
-            'status' => 'pending_admin',
+            'status' => 'confirmed',
             'reference_image_path' => $validated['reference_image_path'],
         ]);
 
@@ -183,7 +183,7 @@ class PublicAppointmentController extends Controller
             'appointment_date' => $requestedStart,
             'reschedule_reason' => $reason,
             'notes' => $appointment->notes ? $appointment->notes . "\n" . $newNote : $newNote,
-            'status' => 'pending_admin', 
+            'status' => 'confirmed', 
             'reschedule_token' => \Illuminate\Support\Str::random(32), // Invalida el link actual
         ]);
 

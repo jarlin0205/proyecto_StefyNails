@@ -144,7 +144,7 @@ class WhatsAppBotController extends Controller
         $oldDate = $appointment->appointment_date->format('d/m/Y H:i');
         $appointment->update([
             'appointment_date' => $requestedStart,
-            'status' => 'pending_admin', // Regresa a pendiente para aprobación del administrador
+            'status' => 'confirmed', // Confirmado automáticamente si hay disponibilidad
             'reschedule_reason' => $validated['reason'] ?? null,
             'notes' => $appointment->notes . "\n[Reprogramado vía WhatsApp el " . now()->format('d/m/Y H:i') . " de original $oldDate]"
         ]);
