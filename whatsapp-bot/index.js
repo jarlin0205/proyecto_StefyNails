@@ -176,6 +176,7 @@ client.on('message', async (msg) => {
 
         // Comandos en IDLE
         if (body.startsWith('ASISTIRE')) {
+            console.log(`✨ Comando detectado: ASISTIRE`);
             try {
                 const res = await callLaravelApi('checkin', 'POST', { phone: sender });
                 msg.reply(`${res.message}`);
@@ -183,6 +184,7 @@ client.on('message', async (msg) => {
                 msg.reply(`❌ Error: ${err.message}`);
             }
         } else if (body.startsWith('CANCELAR') || body === '1') {
+            console.log(`✨ Comando detectado: CANCELAR (1)`);
             try {
                 const res = await callLaravelApi('status', 'POST', { phone: sender, status: 'cancelled' });
                 msg.reply('✅ *Cita cancelada con éxito*');
@@ -190,6 +192,7 @@ client.on('message', async (msg) => {
                 msg.reply(`❌ Error: ${err.message}`);
             }
         } else if (body.startsWith('REPROGRAMAR') || body === '2') {
+            console.log(`✨ Comando detectado: REPROGRAMAR (2)`);
             try {
                 const res = await callLaravelApi(`get-link?phone=${sender}`, 'GET');
                 if (res.success) {
