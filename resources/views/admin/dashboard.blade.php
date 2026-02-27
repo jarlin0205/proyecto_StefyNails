@@ -170,7 +170,6 @@
                         </span>
                     </td>
                     <td class="px-5 py-5 border-b border-gray-200 text-sm text-center">
-                        <button 
                             onclick="openAppointmentModal({{ json_encode([
                                 'id' => $appointment->id,
                                 'customer_name' => $appointment->customer_name,
@@ -179,6 +178,9 @@
                                 'date' => $appointment->appointment_date->format('d/m/Y h:i A'),
                                 'status' => $appointment->status,
                                 'price' => $appointment->offered_price ?? ($appointment->service ? $appointment->service->price : 0),
+                                'products_total' => $appointment->products_total,
+                                'grand_total' => $appointment->grand_total,
+                                'products' => $appointment->products->map(fn($p) => ['name' => $p->name, 'quantity' => $p->pivot->quantity, 'price' => $p->pivot->unit_price]),
                                 'image' => $appointment->reference_image_path,
                                 'notes' => $appointment->notes,
                                 'edit_url' => route('admin.appointments.edit', $appointment),

@@ -38,9 +38,27 @@
                         </div>
                     </div>
                     <div class="border-t pt-4">
-                        <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Servicio & Precio</p>
-                        <p id="modal-service" class="text-lg font-bold text-pink-600"></p>
-                        <p id="modal-price" class="text-lg font-bold text-green-600"></p>
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Servicio</p>
+                                <p id="modal-service" class="text-lg font-bold text-pink-600"></p>
+                                <p id="modal-service-price" class="text-sm font-medium text-gray-400"></p>
+                            </div>
+                            <div id="modal-grand-total-section" class="text-right hidden">
+                                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Total Pagado</p>
+                                <p id="modal-grand-total" class="text-2xl font-black text-green-600"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Products Breakdown (New) -->
+                    <div id="modal-products-section" class="hidden bg-gray-50 rounded-lg p-3 border border-dashed border-gray-200">
+                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 flex items-center">
+                            <i class="fas fa-shopping-bag mr-1"></i> Productos Adquiridos
+                        </p>
+                        <div id="modal-products-list" class="space-y-1">
+                            <!-- Injected by JS -->
+                        </div>
                     </div>
                     <div>
                         <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Fecha y Hora</p>
@@ -660,7 +678,42 @@ let currentGlobalApp = null;
         document.getElementById('modal-phone').innerText = data.customer_phone;
         document.getElementById('modal-service').innerText = data.service_name;
         document.getElementById('modal-date').innerText = data.date;
-        document.getElementById('modal-price').innerText = '$' + new Intl.NumberFormat().format(data.price);
+        
+        const priceFmt = '$' + new Intl.NumberFormat().format(data.price);
+        const servicePriceEl = document.getElementById('modal-service-price');
+        if (servicePriceEl) servicePriceEl.innerText = priceFmt;
+        
+        // Products handling
+        const productsSection = document.getElementById('modal-products-section');
+        const productsList = document.getElementById('modal-products-list');
+        const totalSection = document.getElementById('modal-grand-total-section');
+        const totalDisplay = document.getElementById('modal-grand-total');
+
+        if (data.products && data.products.length > 0) {
+            productsSection.classList.remove('hidden');
+            totalSection.classList.remove('hidden');
+            totalDisplay.innerText = '$' + new Intl.NumberFormat().format(data.grand_total);
+            
+            productsList.innerHTML = '';
+            data.products.forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'flex justify-between text-xs text-gray-600';
+                item.innerHTML = `
+                    <span>${p.quantity}x ${p.name}</span>
+                    <span class="font-medium">$${new Intl.NumberFormat().format(p.price * p.quantity)}</span>
+                `;
+                productsList.appendChild(item);
+            });
+        } else {
+            productsSection.classList.add('hidden');
+            if (data.status === 'completed') {
+                totalSection.classList.remove('hidden');
+                totalDisplay.innerText = priceFmt;
+            } else {
+                totalSection.classList.add('hidden');
+            }
+        }
+        
         document.getElementById('modal-notes').innerText = data.notes || 'Sin notas adicionales';
         
         const statusEl = document.getElementById('modal-status');
