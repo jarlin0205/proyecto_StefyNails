@@ -125,8 +125,14 @@ client.on('disconnected', async (reason) => {
 
 client.on('message', async (msg) => {
     try {
-        const body = msg.body.trim().toUpperCase();
+        // Normalización robusta: trim, upper case y remover acentos
+        const body = msg.body.trim().toUpperCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+
         const sender = msg.from.split('@')[0];
+
+        console.log(`📩 Mensaje de ${sender}: "${msg.body}" -> "${body}"`);
 
         // Inicializar estado
         if (!userStates[sender]) userStates[sender] = { state: STATES.IDLE };
