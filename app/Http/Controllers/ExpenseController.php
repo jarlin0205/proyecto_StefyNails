@@ -38,13 +38,10 @@ class ExpenseController extends Controller
         $netProfit = $grossRevenue - $totalExpenses;
 
 
-        // Calculate period days
-        $realStart = $startDate ? \Carbon\Carbon::parse($startDate) : Appointment::min('appointment_date');
-        if (!$realStart) $realStart = now();
-        else $realStart = \Carbon\Carbon::parse($realStart);
-        
-        $realEnd = $endDate ? \Carbon\Carbon::parse($endDate) : now();
-        $daysCount = $realStart->diffInDays($realEnd) + 1; // +1 to include both ends
+        // Calculate period days (normalized to start of day)
+        $realStart = $startDate ? \Carbon\Carbon::parse($startDate)->startOfDay() : \Carbon\Carbon::parse(Appointment::min('appointment_date') ?? now())->startOfDay();
+        $realEnd = $endDate ? \Carbon\Carbon::parse($endDate)->startOfDay() : now()->startOfDay();
+        $daysCount = (int) $realStart->diffInDays($realEnd) + 1; // +1 to include both ends
 
         // Usamos el contenedor de servicios para evitar problemas si la fachada no se descubre correctamente
         $pdf = app('dompdf.wrapper');
