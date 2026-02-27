@@ -27,6 +27,9 @@ class ExpenseController extends Controller
         }
 
         $expenses = $expensesQuery->latest()->get();
+        $totalExpenses = $expenses->sum('amount');
+        $expenseCash = $expenses->sum('cash_amount');
+        $expenseTransfer = $expenses->sum('transfer_amount');
 
         // Financial Indicators
         $completedAppointments = (clone $appointmentsQuery)->with('service', 'professional', 'products')->get();
@@ -34,8 +37,11 @@ class ExpenseController extends Controller
         $grossRevenueCash = $completedAppointments->sum('cash_amount');
         $grossRevenueTransfer = $completedAppointments->sum('transfer_amount');
         
-        $totalExpenses = (clone $expensesQuery)->sum('amount');
         $netProfit = $grossRevenue - $totalExpenses;
+        
+        // Net Balances by Source
+        $netCash = $grossRevenueCash - $expenseCash;
+        $netTransfer = $grossRevenueTransfer - $expenseTransfer;
 
 
         // Calculate period days (normalized to start of day)
@@ -52,7 +58,11 @@ class ExpenseController extends Controller
             'grossRevenueCash',
             'grossRevenueTransfer',
             'totalExpenses', 
+            'expenseCash',
+            'expenseTransfer',
             'netProfit', 
+            'netCash',
+            'netTransfer',
             'startDate', 
             'endDate',
             'daysCount'
@@ -90,8 +100,16 @@ class ExpenseController extends Controller
         $grossRevenueCash = $completedAppointments->sum('cash_amount');
         $grossRevenueTransfer = $completedAppointments->sum('transfer_amount');
         
-        $totalExpenses = (clone $expensesQuery)->sum('amount');
+        $allExpensesInPeriod = (clone $expensesQuery)->get();
+        $totalExpenses = $allExpensesInPeriod->sum('amount');
+        $expenseCash = $allExpensesInPeriod->sum('cash_amount');
+        $expenseTransfer = $allExpensesInPeriod->sum('transfer_amount');
+
         $netProfit = $grossRevenue - $totalExpenses;
+        
+        // Net Balances by Source
+        $netCash = $grossRevenueCash - $expenseCash;
+        $netTransfer = $grossRevenueTransfer - $expenseTransfer;
         
         $projectedQuery = Appointment::where('status', 'confirmed');
         if ($startDate) { $projectedQuery->whereDate('appointment_date', '>=', $startDate); }
@@ -104,7 +122,11 @@ class ExpenseController extends Controller
             'grossRevenueCash',
             'grossRevenueTransfer',
             'totalExpenses', 
+            'expenseCash',
+            'expenseTransfer',
             'netProfit', 
+            'netCash',
+            'netTransfer',
             'projectedRevenue',
             'startDate',
             'endDate'
@@ -117,9 +139,29 @@ class ExpenseController extends Controller
             'description' => 'required|string|max:255',
             'amount' => 'required|numeric|min:0',
             'date' => 'required|date',
+            'payment_method' => 'required|in:cash,transfer,hybrid',
+            'cash_amount' => 'nullable|numeric|min:0',
+            'transfer_amount' => 'nullable|numeric|min:0',
         ]);
 
-        Expense::create($request->all());
+        $data = $request->all();
+        
+        // Ensure values for simple methods
+        if ($data['payment_method'] === 'cash') {
+            $data['cash_amount'] = $data['amount'];
+            $data['transfer_amount'] = 0;
+        } elseif ($data['payment_method'] === 'transfer') {
+            $data['cash_amount'] = 0;
+            $data['transfer_amount'] = $data['amount'];
+        } else {
+            // Hybrid: amounts must match total
+            $sum = ($data['cash_amount'] ?? 0) + ($data['transfer_amount'] ?? 0);
+            if (abs($sum - $data['amount']) > 1) {
+                return back()->with('error', 'En el pago mixto, la suma de Caja ($' . number_format($data['cash_amount'], 0) . ') y Cuenta ($' . number_format($data['transfer_amount'], 0) . ') debe ser igual al Total ($' . number_format($data['amount'], 0) . ')');
+            }
+        }
+
+        Expense::create($data);
 
         return back()->with('success', 'Gasto registrado correctamente.');
     }

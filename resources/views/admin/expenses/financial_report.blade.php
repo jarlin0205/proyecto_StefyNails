@@ -210,20 +210,22 @@
 
     {{-- COLLECTION BREAKDOWN --}}
     <div style="margin-bottom: 25px;">
-        <div class="section-title">RESUMEN DE COBROS</div>
-        <div class="section-subtitle">Distribución por método de pago</div>
+        <div class="section-title">RESUMEN DE FONDOS REALES (Ingresos - Gastos)</div>
+        <div class="section-subtitle">Balance real disponible garantizado por fuente</div>
         <table style="width: 100%; border-collapse: collapse;">
             <tr>
                 <td style="width: 50%; padding-right: 10px; border: none;">
                     <div style="padding: 15px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
-                        <div style="font-size: 8px; color: #15803d; font-weight: bold; text-transform: uppercase;">Total en Efectivo (Caja)</div>
-                        <div style="font-size: 18px; color: #15803d; font-weight: 900;">${{ number_format($grossRevenueCash ?? 0, 0, ',', '.') }}</div>
+                        <div style="font-size: 8px; color: #15803d; font-weight: bold; text-transform: uppercase;">Real en Efectivo (Caja)</div>
+                        <div style="font-size: 18px; color: #15803d; font-weight: 900;">${{ number_format($netCash ?? 0, 0, ',', '.') }}</div>
+                        <div style="font-size: 7px; color: #16a34a; margin-top: 4px;">Ingresos: ${{ number_format($grossRevenueCash, 0) }} | Gastos: ${{ number_format($expenseCash, 0) }}</div>
                     </div>
                 </td>
                 <td style="width: 50%; border: none;">
                     <div style="padding: 15px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;">
-                        <div style="font-size: 8px; color: #1e40af; font-weight: bold; text-transform: uppercase;">Total en Cuenta (Transferencia)</div>
-                        <div style="font-size: 18px; color: #1e40af; font-weight: 900;">${{ number_format($grossRevenueTransfer ?? 0, 0, ',', '.') }}</div>
+                        <div style="font-size: 8px; color: #1e40af; font-weight: bold; text-transform: uppercase;">Real en Cuenta (Transferencia)</div>
+                        <div style="font-size: 18px; color: #1e40af; font-weight: 900;">${{ number_format($netTransfer ?? 0, 0, ',', '.') }}</div>
+                        <div style="font-size: 7px; color: #1e40af; margin-top: 4px;">Ingresos: ${{ number_format($grossRevenueTransfer, 0) }} | Gastos: ${{ number_format($expenseTransfer, 0) }}</div>
                     </div>
                 </td>
             </tr>
@@ -359,6 +361,7 @@
             <tr>
                 <th>Fecha</th>
                 <th>Descripción del Gasto</th>
+                <th>Propiedad / Fuente</th>
                 <th class="text-right">Monto</th>
             </tr>
         </thead>
@@ -367,18 +370,30 @@
             <tr>
                 <td>{{ $exp->date->format('d/m/Y') }}</td>
                 <td>{{ $exp->description }}</td>
+                <td>
+                    @if($exp->payment_method === 'cash')
+                        <span style="color:#16a34a; font-size:8px;">Caja</span>
+                    @elseif($exp->payment_method === 'transfer')
+                        <span style="color:#2563eb; font-size:8px;">Cuenta</span>
+                    @elseif($exp->payment_method === 'hybrid')
+                        <span style="color:#7c3aed; font-size:8px;">Mixto</span>
+                        <div style="font-size:7px; color:#6b7280;">Ef: ${{ number_format($exp->cash_amount, 0) }} | Ct: ${{ number_format($exp->transfer_amount, 0) }}</div>
+                    @else
+                        <span style="color:#9ca3af; font-size:8px;">Manual</span>
+                    @endif
+                </td>
                 <td class="text-right amount-red">-${{ number_format($exp->amount, 0, ',', '.') }}</td>
             </tr>
             @empty
             <tr class="empty-row">
-                <td colspan="3">No hay gastos registrados en este periodo.</td>
+                <td colspan="4">No hay gastos registrados en este periodo.</td>
             </tr>
             @endforelse
         </tbody>
         @if($expenses->count() > 0)
         <tfoot>
             <tr class="totals-row">
-                <td colspan="2">TOTAL GASTOS ({{ $expenses->count() }} registros)</td>
+                <td colspan="3">TOTAL GASTOS ({{ $expenses->count() }} registros)</td>
                 <td class="text-right amount-red">-${{ number_format($totalExpenses, 0, ',', '.') }}</td>
             </tr>
         </tfoot>

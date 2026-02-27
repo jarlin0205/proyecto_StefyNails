@@ -25,10 +25,11 @@
             <div class="bg-emerald-50 p-2 rounded-lg">
                 <i class="fas fa-money-bill-wave text-emerald-600"></i>
             </div>
-            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded uppercase">Caja</span>
+            <span class="text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded uppercase">Disponible</span>
         </div>
-        <h4 class="text-gray-400 text-xs font-medium uppercase tracking-tighter">En Efectivo</h4>
-        <p class="text-xl font-bold text-gray-700">${{ number_format($grossRevenueCash ?? 0, 0, '', '') }}</p>
+        <h4 class="text-gray-400 text-xs font-medium uppercase tracking-tighter">En Caja (Efectivo)</h4>
+        <p class="text-xl font-bold text-gray-700">${{ number_format($netCash ?? 0, 0, ',', '.') }}</p>
+        <p class="text-[10px] text-gray-400 mt-1">Bruto: ${{ number_format($grossRevenueCash, 0) }} - Gastos: ${{ number_format($expenseCash, 0) }}</p>
     </div>
 
     <!-- Ingresos en Cuenta -->
@@ -37,10 +38,11 @@
             <div class="bg-blue-50 p-2 rounded-lg">
                 <i class="fas fa-university text-blue-600"></i>
             </div>
-            <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded uppercase">Cuenta</span>
+            <span class="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded uppercase">Disponible</span>
         </div>
-        <h4 class="text-gray-400 text-xs font-medium uppercase tracking-tighter">Transferencias</h4>
-        <p class="text-xl font-bold text-gray-700">${{ number_format($grossRevenueTransfer ?? 0, 0, '', '') }}</p>
+        <h4 class="text-gray-400 text-xs font-medium uppercase tracking-tighter">En Cuenta (Transfer)</h4>
+        <p class="text-xl font-bold text-gray-700">${{ number_format($netTransfer ?? 0, 0, ',', '.') }}</p>
+        <p class="text-[10px] text-gray-400 mt-1">Bruto: ${{ number_format($grossRevenueTransfer, 0) }} - Gastos: ${{ number_format($expenseTransfer, 0) }}</p>
     </div>
 
     <!-- Gastos -->
@@ -191,6 +193,7 @@ function setExpensesPreset(type) {
             <tr>
                 <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Fecha</th>
                 <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Descripción</th>
+                <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Método de Pago</th>
                 <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Monto</th>
                 <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-50 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Acciones</th>
             </tr>
@@ -204,8 +207,30 @@ function setExpensesPreset(type) {
                 <td class="px-5 py-4 border-b border-gray-200 text-sm font-medium text-gray-900">
                     {{ $expense->description }}
                 </td>
+                <td class="px-5 py-4 border-b border-gray-200 text-sm">
+                    @if($expense->payment_method === 'cash')
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <i class="fas fa-money-bill-wave mr-1"></i> Caja
+                        </span>
+                    @elseif($expense->payment_method === 'transfer')
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <i class="fas fa-university mr-1"></i> Cuenta
+                        </span>
+                    @elseif($expense->payment_method === 'hybrid')
+                        <div class="flex flex-col gap-1">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 w-max">
+                                <i class="fas fa-layer-group mr-1"></i> Mixto
+                            </span>
+                            <span class="text-[9px] text-gray-500">
+                                Efec: ${{ number_format($expense->cash_amount, 0) }} | Cta: ${{ number_format($expense->transfer_amount, 0) }}
+                            </span>
+                        </div>
+                    @else
+                        <span class="text-gray-400 italic text-xs">No especificado</span>
+                    @endif
+                </td>
                 <td class="px-5 py-4 border-b border-gray-200 text-sm text-right font-bold text-red-600">
-                    ${{ number_format($expense->amount, 0, '', '') }}
+                    -${{ number_format($expense->amount, 0, ',', '.') }}
                 </td>
                 <td class="px-5 py-4 border-b border-gray-200 text-sm text-center">
                     <form action="{{ route('admin.expenses.destroy', $expense) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar este gasto?')">
@@ -221,7 +246,7 @@ function setExpensesPreset(type) {
             </tr>
             @empty
             <tr>
-                <td colspan="4" class="px-5 py-10 border-b border-gray-200 bg-white text-sm text-center text-gray-400">
+                <td colspan="5" class="px-5 py-10 border-b border-gray-200 bg-white text-sm text-center text-gray-400">
                     No hay gastos registrados aún.
                 </td>
             </tr>
