@@ -90,7 +90,7 @@
                 </button>
                 
                 @if(auth()->user()->isAdmin())
-                <button id="btn-reopen" onclick="handleReopen()" class="flex-1 min-w-[120px] bg-orange-500 text-black rounded px-4 py-2 font-bold hover:bg-orange-600 transition shadow-sm ">
+                <button id="btn-reopen" onclick="handleReopen()" class="flex-1 min-w-[120px] bg-goldenrod-100 text-black-700 rounded px-4 py-2 font-bold hover:bg-goldenrod-200 transition hidden">
                     Volver a abrir
                 </button>
                 @endif
