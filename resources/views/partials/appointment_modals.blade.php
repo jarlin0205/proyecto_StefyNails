@@ -985,15 +985,22 @@ let currentGlobalApp = null;
     function updatePaymentTotals() {
         if (!currentGlobalApp) return;
         
-        const productsTotal = selectedProducts.reduce((sum, p) => sum + (p.price * p.quantity), 0);
-        const serviceTotal = currentGlobalApp.price;
+        const productsTotal = selectedProducts.reduce((sum, p) => sum + (parseFloat(p.price) * p.quantity), 0);
+        const serviceTotal = parseFloat(currentGlobalApp.price) || 0;
         const grandTotal = serviceTotal + productsTotal;
         
+        const formatter = new Intl.NumberFormat('es-CO', {
+            style: 'currency',
+            currency: 'COP',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        });
+
         const pTotalDisplay = document.getElementById('products-total-display');
         const gTotalDisplay = document.getElementById('payment-modal-total-display');
 
-        if(pTotalDisplay) pTotalDisplay.innerText = '$' + new Intl.NumberFormat().format(productsTotal);
-        if(gTotalDisplay) gTotalDisplay.innerText = '$' + new Intl.NumberFormat().format(grandTotal);
+        if(pTotalDisplay) pTotalDisplay.innerText = formatter.format(productsTotal).replace('COP', '').trim();
+        if(gTotalDisplay) gTotalDisplay.innerText = formatter.format(grandTotal).replace('COP', '').trim();
         
         // Update hybrid calculations if active
         if (selectedPaymentMethod === 'hybrid') {
@@ -1059,8 +1066,8 @@ let currentGlobalApp = null;
     function updateHybridSum() {
         if (!currentGlobalApp) return;
         
-        const productsTotal = selectedProducts.reduce((sum, p) => sum + (p.price * p.quantity), 0);
-        const grandTotal = currentGlobalApp.price + productsTotal;
+        const productsTotal = selectedProducts.reduce((sum, p) => sum + (parseFloat(p.price) * p.quantity), 0);
+        const grandTotal = (parseFloat(currentGlobalApp.price) || 0) + productsTotal;
         
         const cash = parseFloat(document.getElementById('cash_amount_input').value) || 0;
         const transfer = parseFloat(document.getElementById('transfer_amount_input').value) || 0;
@@ -1072,8 +1079,15 @@ let currentGlobalApp = null;
         const successTag = document.getElementById('hybrid-match-success');
         const btnConfirm = document.getElementById('btn-confirm-payment');
 
-        if(sumDisplay) sumDisplay.innerText = '$' + new Intl.NumberFormat().format(sum);
-        if(remainingDisplay) remainingDisplay.innerText = '$' + new Intl.NumberFormat().format(remaining);
+        const formatter = new Intl.NumberFormat('es-CO', {
+            style: 'currency',
+            currency: 'COP',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        });
+
+        if(sumDisplay) sumDisplay.innerText = formatter.format(sum).replace('COP', '').trim();
+        if(remainingDisplay) remainingDisplay.innerText = formatter.format(remaining).replace('COP', '').trim();
 
         if (Math.abs(remaining) < 1) {
             if(remainingDisplay) remainingDisplay.classList.add('hidden');
@@ -1093,8 +1107,15 @@ let currentGlobalApp = null;
     function confirmPaymentCompletion() {
         if (!selectedPaymentMethod) return;
 
-        const productsTotal = selectedProducts.reduce((sum, p) => sum + (p.price * p.quantity), 0);
-        const grandTotal = currentGlobalApp.price + productsTotal;
+        const productsTotal = selectedProducts.reduce((sum, p) => sum + (parseFloat(p.price) * p.quantity), 0);
+        const grandTotal = (parseFloat(currentGlobalApp.price) || 0) + productsTotal;
+        
+        const formatter = new Intl.NumberFormat('es-CO', {
+            style: 'currency',
+            currency: 'COP',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        });
 
         const form = document.getElementById('global-action-form');
         form.action = currentGlobalApp.status_url;
