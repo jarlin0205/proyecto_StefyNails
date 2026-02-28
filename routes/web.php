@@ -76,6 +76,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         
         // Professionals Management
         Route::resource('professionals', \App\Http\Controllers\ProfessionalController::class);
+
+        // Reopen Appointment (Admin only)
+        Route::post('appointments/{appointment}/reopen', [AppointmentController::class, 'reopen'])->name('appointments.reopen');
     });
 });
 

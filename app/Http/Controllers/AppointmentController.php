@@ -452,4 +452,43 @@ class AppointmentController extends Controller
 
         return response()->json(['success' => true, 'message' => 'Factura enviada por WhatsApp correctamente.']);
     }
+
+    public function reopen(Appointment $appointment)
+    {
+        if (!auth()->user()->isAdmin()) {
+            abort(403, 'No tienes permiso para reabrir citas.');
+        }
+
+        if ($appointment->status !== 'completed') {
+            return back()->with('error', '❌ Solo se pueden reabrir citas que estén completadas.');
+        }
+
+        \DB::beginTransaction();
+        try {
+            // 1. Restaurar stock de productos asociados
+            foreach ($appointment->products as $product) {
+                $qty = $product->pivot->quantity;
+                $product->increment('stock', $qty);
+            }
+
+            // 2. Desvincular productos de la cita (para que se puedan volver a agregar correctamente)
+            $appointment->products()->detach();
+
+            // 3. Limpiar campos financieros y resetear estado
+            $appointment->update([
+                'status' => 'confirmed',
+                'payment_method' => null,
+                'cash_amount' => 0,
+                'transfer_amount' => 0,
+                'products_total' => 0,
+            ]);
+
+            \DB::commit();
+            return back()->with('success', '✅ Cita reabierta con éxito. El stock ha sido restaurado y los datos financieros limpiados.');
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error("Error reabriendo cita {$appointment->id}: " . $e->getMessage());
+            return back()->with('error', '❌ Ocurrió un error al intentar reabrir la cita.');
+        }
+    }
 }

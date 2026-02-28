@@ -89,6 +89,12 @@
                     <i class="fab fa-whatsapp mr-1"></i> Enviar
                 </button>
                 
+                @if(auth()->user()->isAdmin())
+                <button id="btn-reopen" onclick="handleReopen()" class="flex-1 min-w-[120px] bg-orange-500 text-white rounded px-4 py-2 font-bold hover:bg-orange-600 transition shadow-sm hidden">
+                    Volver a abrir
+                </button>
+                @endif
+                
                 <button id="btn-cancel" onclick="handleAction('cancelar')" class="flex-1 min-w-[120px] bg-red-100 text-red-700 rounded px-4 py-2 font-bold hover:bg-red-200 transition">
                     Cancelar
                 </button>
@@ -760,9 +766,14 @@ let currentGlobalApp = null;
             btnDelete.classList.toggle('hidden', data.status !== 'completed' && data.status !== 'cancelled');
         }
 
-        // Mostrar botones de factura solo si está completada
         document.getElementById('btn-view-invoice').classList.toggle('hidden', data.status !== 'completed');
         document.getElementById('btn-whatsapp-invoice').classList.toggle('hidden', data.status !== 'completed');
+        
+        // Botón Volver a abrir (Sólo Admin + Completada)
+        const btnReopen = document.getElementById('btn-reopen');
+        if (btnReopen) {
+            btnReopen.classList.toggle('hidden', data.status !== 'completed');
+        }
 
         document.getElementById('appointment-modal').classList.remove('hidden');
     }
@@ -815,6 +826,40 @@ let currentGlobalApp = null;
 
     function closeRescheduleModal() {
         document.getElementById('reschedule-modal').classList.add('hidden');
+    }
+
+    function handleReopen() {
+        if (!currentGlobalApp) return;
+
+        Swal.fire({
+            title: '¿Reabrir esta cita?',
+            html: `Al volver a abrir la cita:<br><br>
+                   • El estado volverá a <strong>Confirmada</strong>.<br>
+                   • El stock de los productos se <strong>restaurará</strong>.<br>
+                   • Los datos de pago se <strong>borrarán</strong> de los informes.<br><br>
+                   ¿Deseas continuar?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#f97316',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, Reabrir',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `{{ url('admin/appointments') }}/${currentGlobalApp.id}/reopen`;
+                
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = '_token';
+                csrfToken.value = '{{ csrf_token() }}';
+                
+                form.appendChild(csrfToken);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
     }
 
     function handleAction(action) {
