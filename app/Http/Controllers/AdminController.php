@@ -54,4 +54,12 @@ class AdminController extends Controller
             'professionals' 
         ));
     }
+
+    public function toggleTestMode(Request $request)
+    {
+        $current = session('test_mode', false);
+        session(['test_mode' => !$current]);
+        
+        return back()->with('success', 'Modo Prueba ' . (! $current ? 'Activado' : 'Desactivado'));
+    }
 }

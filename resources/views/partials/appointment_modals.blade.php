@@ -829,7 +829,7 @@ let currentGlobalApp = null;
             today.setHours(0, 0, 0, 0);
             appDate.setHours(0, 0, 0, 0);
 
-            if (!isNaN(appDate.getTime()) && appDate > today) {
+            if (!window.isTestMode && !isNaN(appDate.getTime()) && appDate > today) {
                 const formatted = appDate.toLocaleDateString('es-CO', { day: '2-digit', month: '2-digit', year: 'numeric' });
                 Swal.fire({
                     title: '⏳ Cita en el futuro',

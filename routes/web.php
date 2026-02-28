@@ -56,6 +56,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
         // Products for appointments (JSON list)
         Route::get('products/list', [\App\Http\Controllers\ProductController::class, 'list'])->name('products.list');
+
+        // Test Mode Toggle
+        Route::post('toggle-test-mode', [AdminController::class, 'toggleTestMode'])->name('toggleTestMode');
     });
 
     // Admin Only Routes
