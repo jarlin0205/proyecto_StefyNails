@@ -129,20 +129,16 @@
                     <div class="flex items-center space-x-4">
                         <!-- Test Mode Toggle (Admin Only) -->
                         @if(auth()->user()->isAdmin())
-                            <div class="flex items-center bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 shadow-sm mr-2">
-                                <form action="{{ route('admin.toggleTestMode') }}" method="POST" id="test-mode-form" class="flex items-center">
+                            <div class="flex items-center mr-2">
+                                <form action="{{ route('admin.toggleTestMode') }}" method="POST">
                                     @csrf
-                                    <label class="relative inline-flex items-center cursor-pointer">
-                                        <input type="checkbox" name="test_mode" class="sr-only peer" onchange="document.getElementById('test-mode-form').submit()" {{ session('test_mode') ? 'checked' : '' }}>
-                                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-pink-600"></div>
-                                    </label>
-                                    <span class="ml-2 text-[10px] font-black uppercase tracking-tighter {{ session('test_mode') ? 'text-pink-600' : 'text-gray-400' }}">
-                                        @if(session('test_mode'))
-                                            <i class="fas fa-flask mr-1 animate-pulse"></i> MODO PRUEBA ON
-                                        @else
-                                            MODO PRUEBA OFF
-                                        @endif
-                                    </span>
+                                    <button type="submit" 
+                                            class="flex items-center space-x-2 px-3 py-1.5 rounded-lg border transition-all duration-200 {{ session('test_mode') ? 'bg-pink-100 border-pink-500 text-pink-700 shadow-sm' : 'bg-gray-100 border-gray-300 text-gray-500 hover:bg-gray-200' }}">
+                                        <i class="fas {{ session('test_mode') ? 'fa-toggle-on text-pink-600' : 'fa-toggle-off' }} text-lg"></i>
+                                        <span class="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
+                                            MODO PRUEBA {{ session('test_mode') ? 'ON' : 'OFF' }}
+                                        </span>
+                                    </button>
                                 </form>
                             </div>
                         @endif
