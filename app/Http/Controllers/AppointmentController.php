@@ -1,0 +1,494 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Appointment;
+use Illuminate\Http\Request;
+
+class AppointmentController extends Controller
+{
+    public function index(Request $request)
+    {
+        $user = auth()->user();
+        $query = Appointment::with('service', 'professional')->latest();
+
+        if ($user->role === 'employee' && $user->professional) {
+            $query->where('professional_id', $user->professional->id);
+        }
+
+        if ($request->has('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        $appointments = $query->paginate(15)->withQueryString();
+        return view('appointments.index', compact('appointments'));
+    }
+
+    public function create()
+    {
+        $services = \App\Models\Service::where('is_active', true)->get();
+        $professionals = \App\Models\Professional::where('is_active', true)->get();
+        return view('appointments.admin_create', compact('services', 'professionals'));
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'customer_name' => 'required|string|max:255',
+            'customer_phone' => 'required|string|max:20',
+            'customer_phone_full' => 'nullable|string|max:20',
+            'service_id' => 'required|exists:services,id',
+            'appointment_date' => 'required|date|after_or_equal:now',
+            'location' => 'required|in:salon,home',
+            'notes' => 'nullable|string'
+        ]);
+        
+        // Usar el número completo internacional si está disponible
+        if ($request->filled('customer_phone_full')) {
+            $validated['customer_phone'] = $request->input('customer_phone_full');
+        }
+        unset($validated['customer_phone_full']);
+
+        // Asignar profesional
+        if (auth()->user()->isAdmin()) {
+            $validated['professional_id'] = $request->input('professional_id');
+        } else {
+            $validated['professional_id'] = auth()->user()->professional->id ?? null;
+        }
+
+        // --- AVAILABILITY CHECK ---
+        $requestedStart = \Carbon\Carbon::parse($validated['appointment_date']);
+        $service = \App\Models\Service::find($validated['service_id']);
+        $durationMinutes = $service ? $service->duration_in_minutes : 60;
+        $requestedEnd = $requestedStart->copy()->addMinutes($durationMinutes);
+
+        $conflict = Appointment::whereIn('status', ['confirmed', 'completed', 'pending_client'])
+            ->where('professional_id', $validated['professional_id'])
+            ->whereDate('appointment_date', $requestedStart->format('Y-m-d'))
+            ->get()
+            ->filter(function ($existingApp) use ($requestedStart, $requestedEnd) {
+                $existingStart = \Carbon\Carbon::parse($existingApp->appointment_date);
+                $existingDuration = $existingApp->service ? $existingApp->service->duration_in_minutes : 60;
+                $existingEnd = $existingStart->copy()->addMinutes($existingDuration);
+                return $requestedStart->lt($existingEnd) && $requestedEnd->gt($existingStart);
+            })->first();
+
+        if ($conflict) {
+            return back()->withInput()->with('error', '⚠️ Horario no disponible para este profesional. Choca con la cita de ' . $conflict->customer_name);
+        }
+
+        $appointment = Appointment::create($validated + ['status' => 'confirmed']);
+
+        \App\Helpers\WhatsAppHelper::notifyNewAppointment($appointment);
+        \App\Helpers\WhatsAppHelper::notifyStatusChange($appointment); // Confirmada inmediatamente por admin
+
+        return redirect()->route('admin.appointments.index')->with('success', 'Cita agendada correctamente.');
+    }
+
+    public function show(Appointment $appointment)
+    {
+        return view('appointments.show', compact('appointment'));
+    }
+
+    public function edit(Appointment $appointment)
+    {
+        if ($appointment->status === 'completed') {
+            return redirect()->route('admin.appointments.show', $appointment)
+                ->with('error', '❌ No se puede editar una cita que ya ha sido completada.');
+        }
+        return view('appointments.edit', compact('appointment'));
+    }
+
+    public function update(Request $request, Appointment $appointment)
+    {
+        $validated = $request->validate([
+            'appointment_date' => 'required|date',
+            'notes' => 'nullable|string',
+            'reason_msg' => 'nullable|string'
+        ]);
+
+        // RESTRICTION: No rescheduling for completed or cancelled appointments
+        if ($appointment->status === 'completed' || $appointment->status === 'cancelled') {
+            return back()->with('error', '❌ No se puede reprogramar una cita que ya ha sido ' . ($appointment->status === 'completed' ? 'completada' : 'cancelada') . '.');
+        }
+
+        // --- AVAILABILITY CHECK FOR RESCHEDULING ---
+        // Only run check if date is provided (it is required by validation above)
+        $requestedStart = \Carbon\Carbon::parse($validated['appointment_date']);
+        
+        // We need the service duration. The appointment model relationship 'service' should be loaded or accessible.
+        // Assuming $appointment->service is available.
+        $service = $appointment->service; 
+        $durationMinutes = $service ? $service->duration_in_minutes : 60; // Default 60 if somehow missing
+        $requestedEnd = $requestedStart->copy()->addMinutes($durationMinutes);
+
+        // Check against existing appointments (ONLY confirmed, pending_client or completed AND THIS APPOINTMENT) for THIS professional
+        $conflictingAppointment = Appointment::whereIn('status', ['confirmed', 'completed', 'pending_client'])
+            ->where('id', '!=', $appointment->id) // CRITICAL: Exclude itself
+            ->where('professional_id', $appointment->professional_id)
+            ->whereDate('appointment_date', $requestedStart->format('Y-m-d'))
+            ->get()
+            ->filter(function ($existingApp) use ($requestedStart, $requestedEnd) {
+                $existingStart = \Carbon\Carbon::parse($existingApp->appointment_date);
+                $existingDuration = $existingApp->service ? $existingApp->service->duration_in_minutes : 60;
+                $existingEnd = $existingStart->copy()->addMinutes($existingDuration);
+
+                // Overlap logic
+                return $requestedStart->lt($existingEnd) && $requestedEnd->gt($existingStart);
+            })->first();
+
+        if ($conflictingAppointment) {
+            return back()->withInput()->withErrors(['appointment_date' => '⚠️ Horario no disponible. Choca con otra cita existente.']);
+        }
+        // ---------------------------
+
+        // Logic to append reason to notes and save in dedicated field
+        if ($request->filled('reason_msg')) {
+            $reason = $request->input('reason_msg');
+            $date = now()->format('d/m/Y h:i A');
+            $newNote = "[Reprogramado el $date: $reason]";
+            
+            $validated['reschedule_reason'] = $reason;
+
+            if (!empty($validated['notes'])) {
+                $validated['notes'] .= "\n" . $newNote;
+            } else {
+                $validated['notes'] = $newNote;
+            }
+        }
+        
+        // Remove reason_msg from validated array if it's there
+        unset($validated['reason_msg']);
+
+        $validated['status'] = 'confirmed'; // Admin reschedules via full edit page are auto-confirmed
+
+        $appointment->update($validated);
+        
+        \App\Helpers\WhatsAppHelper::notifyReschedule($appointment, 'admin');
+
+        return redirect()->route('admin.appointments.show', $appointment)
+            ->with('success', 'Cita reprogramada y notas actualizadas.');
+    }
+
+    public function updateStatus(Request $request, Appointment $appointment)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:pending_admin,pending_client,confirmed,completed,cancelled,rescheduled',
+            'appointment_date' => 'nullable|date',
+            'notification_id' => 'nullable|exists:notifications,id',
+            'reason' => 'nullable|string',
+            'reason_msg' => 'nullable|string',
+            'payment_method' => 'nullable|required_if:status,completed|in:cash,transfer,hybrid',
+            'cash_amount' => 'nullable|numeric|min:0',
+            'transfer_amount' => 'nullable|numeric|min:0',
+        ]);
+
+        // RESTRICTION: Cannot complete a pending appointment
+        // RESTRICTION: No longer needed as we auto-confirm, but let's keep it for safety if someone tries to complete a truly pending one (if any left)
+        if ($validated['status'] === 'completed' && $appointment->status === 'pending_admin') {
+            return back()->with('error', '❌ No se puede marcar como completada una cita que aún está pendiente por revisar. Revísala primero.');
+        }
+
+        // RESTRICTION: Cannot complete an appointment scheduled for a future date
+        if ($validated['status'] === 'completed' && !(session('test_mode') && auth()->user()->isAdmin())) {
+            $appDate = \Carbon\Carbon::parse($appointment->appointment_date)->startOfDay();
+            $today   = \Carbon\Carbon::now()->startOfDay();
+            if ($appDate->gt($today)) {
+                $formatted = $appDate->format('d/m/Y');
+                return back()->with('error', "⏳ No se puede completar esta cita porque su fecha programada ($formatted) aún no ha llegado. Si el cliente fue atendido antes, por favor actualiza primero la fecha de la cita a hoy.");
+            }
+        }
+
+        // --- CONFLICT CHECK FOR CONFIRMATIONS ---
+        $dateToCheck = $request->filled('appointment_date') ? $validated['appointment_date'] : $appointment->appointment_date;
+
+        if ($validated['status'] === 'confirmed' || $validated['status'] === 'pending_client') {
+            $requestedStart = \Carbon\Carbon::parse($dateToCheck);
+            $service = $appointment->service;
+            $durationMinutes = $service ? $service->duration_in_minutes : 60;
+            $requestedEnd = $requestedStart->copy()->addMinutes($durationMinutes);
+
+            // Check against existing confirmed/completed/pending_client (acting as rescheduled) appointments for THIS professional
+            $conflict = Appointment::whereIn('status', ['confirmed', 'completed', 'pending_client'])
+                ->where('id', '!=', $appointment->id)
+                ->where('professional_id', $appointment->professional_id)
+                ->whereDate('appointment_date', $requestedStart->format('Y-m-d'))
+                ->with('service') // Cargar servicio para el mensaje
+                ->get()
+                ->filter(function ($existingApp) use ($requestedStart, $requestedEnd) {
+                    $existingStart = \Carbon\Carbon::parse($existingApp->appointment_date);
+                    $existingDuration = $existingApp->service ? $existingApp->service->duration_in_minutes : 60;
+                    $existingEnd = $existingStart->copy()->addMinutes($existingDuration);
+                    return $requestedStart->lt($existingEnd) && $requestedEnd->gt($existingStart);
+                })->first();
+
+            if ($conflict) {
+                $conflictTime = $conflict->appointment_date->format('h:i A');
+                $conflictDate = $conflict->appointment_date->format('d/m/Y');
+                $conflictService = $conflict->service ? $conflict->service->name : 'Servicio';
+                
+                $errMsg = "⚠️ *HORARIO OCUPADO* ⚠️\n\n" .
+                          "Este espacio ya está ocupado por:\n" .
+                          "👤 *Cliente:* {$conflict->customer_name}\n" .
+                          "💅 *Servicio:* {$conflictService}\n" .
+                          "📅 *Fecha:* {$conflictDate}\n" .
+                          "⏰ *Hora:* {$conflictTime}\n\n" .
+                          "Por favor, elige otro horario o cancela la solicitud.";
+
+                return back()->with('error', $errMsg)
+                    ->with('conflict_detected', true)
+                    ->with('open_appointment_modal_data', [
+                        'id' => $appointment->id,
+                        'customer_name' => $appointment->customer_name,
+                        'customer_phone' => $appointment->customer_phone,
+                        'service_id' => $appointment->service_id,
+                        'service_name' => $appointment->service->name,
+                        'date' => $appointment->appointment_date->format('d/m/Y h:i A'),
+                        'date_raw' => $appointment->appointment_date->format('Y-m-d H:i'),
+                        'status' => $appointment->status,
+                        'price' => $appointment->offered_price ?? ($appointment->service ? $appointment->service->price : 0),
+                        'image' => $appointment->reference_image_path,
+                        'notes' => $appointment->notes,
+                        'edit_url' => route('admin.appointments.edit', $appointment),
+                        'status_url' => route('admin.appointments.updateStatus', $appointment),
+                        'delete_url' => route('admin.appointments.destroy', $appointment)
+                    ])
+                    ->withInput();
+            }
+        }
+
+        $statusToSet = $validated['status'];
+        if ($statusToSet === 'rescheduled') $statusToSet = 'pending_client';
+        
+        // FORCED LOGIC: If date is changed by admin, it is auto-confirmed 
+        // unless they are explicitly completing or cancelling something.
+        if ($request->filled('appointment_date') && !in_array($statusToSet, ['completed', 'cancelled'])) {
+            $statusToSet = 'confirmed';
+        }
+
+        $updateData = ['status' => $statusToSet];
+        
+        if ($statusToSet === 'completed') {
+            $updateData['payment_method'] = $request->payment_method;
+            
+            // Handle Products
+            $productsData = [];
+            $productsPriceSum = 0;
+            if ($request->filled('products_json')) {
+                $products = json_decode($request->products_json, true);
+                if (is_array($products)) {
+                    foreach ($products as $p) {
+                        $productsData[$p['id']] = [
+                            'quantity' => $p['quantity'],
+                            'unit_price' => $p['price']
+                        ];
+                        $productsPriceSum += ($p['quantity'] * $p['price']);
+                        
+                        // Optional: Reduce stock
+                        $productModel = \App\Models\Product::find($p['id']);
+                        if ($productModel && $productModel->stock >= $p['quantity']) {
+                            $productModel->decrement('stock', $p['quantity']);
+                        }
+                    }
+                }
+            }
+            $appointment->products()->sync($productsData);
+
+            $totalWithProducts = $appointment->final_price + $productsPriceSum;
+
+            if ($request->payment_method === 'hybrid') {
+                $updateData['cash_amount'] = $request->cash_amount ?? 0;
+                $updateData['transfer_amount'] = $request->transfer_amount ?? 0;
+            } elseif ($request->payment_method === 'cash') {
+                $updateData['cash_amount'] = $totalWithProducts;
+                $updateData['transfer_amount'] = 0;
+            } elseif ($request->payment_method === 'transfer') {
+                $updateData['cash_amount'] = 0;
+                $updateData['transfer_amount'] = $totalWithProducts;
+            }
+        }
+
+        if ($request->filled('appointment_date')) {
+            $updateData['appointment_date'] = $validated['appointment_date'];
+        }
+
+        $reason = $request->reason ?? $request->reason_msg;
+        if ($reason) {
+            $updateData['reschedule_reason'] = $reason;
+            $date = now()->format('d/m/Y H:i');
+            $statusLabel = [
+                'confirmed' => 'Confirmada', // Si el admin lo hace, es confirmada
+                'cancelled' => 'Rechazada',
+                'completed' => 'Completada',
+                'pending_admin' => 'Pendiente (Admin)',
+                'pending_client' => 'Pendiente (Cliente)'
+            ][$validated['status']] ?? 'Actualizada';
+
+            $newNote = "[$statusLabel el $date: $reason]";
+            $updateData['notes'] = $appointment->notes ? $appointment->notes . "\n" . $newNote : $newNote;
+        }
+
+        $appointment->update($updateData);
+
+        if ($request->filled('notification_id') || $request->has('notification_id')) {
+            $notifId = $request->notification_id ?? $request->query('notification_id');
+            if ($notifId) {
+                \App\Models\Notification::where('id', $notifId)->delete();
+            }
+        }
+
+        if ($request->filled('appointment_date')) {
+            \App\Helpers\WhatsAppHelper::notifyReschedule($appointment, 'admin');
+        } elseif ($statusToSet === 'completed') {
+            // Enviar factura automáticamente al completar
+            $this->sendInvoice($appointment);
+        } else {
+            \App\Helpers\WhatsAppHelper::notifyStatusChange($appointment);
+        }
+
+        // Status-specific success messages
+        $successMessages = [
+            'confirmed' => '¡Cita confirmada exitosamente! ✅',
+            'cancelled' => 'Cita rechazada. Se envió el mensaje al cliente.',
+            'completed' => 'Cita marcada como completada.',
+            'pending_admin' => 'Cita puesta en espera de administrador.',
+            'pending_client' => 'Propuesta de horario enviada al cliente. ✨'
+        ];
+
+        $successMsg = $successMessages[$validated['status']] ?? 'Cita actualizada correctamente.';
+
+        return back()->with('success', $successMsg);
+    }
+
+    public function checkAvailability(Request $request)
+    {
+        $validated = $request->validate([
+            'date' => 'required|date',
+            'service_id' => 'required|exists:services,id',
+            'professional_id' => 'required|exists:professionals,id',
+            'appointment_id' => 'nullable|exists:appointments,id' 
+        ]);
+
+        $date = \Carbon\Carbon::parse($validated['date'])->format('Y-m-d');
+        $service = \App\Models\Service::find($validated['service_id']);
+        $serviceDuration = $service ? $service->duration_in_minutes : 60;
+
+        // Obtener todas las citas confirmadas o que el cliente debe confirmar para ese día y ESE PROFESIONAL
+        $query = Appointment::whereIn('status', ['confirmed', 'completed', 'pending_client'])
+            ->where('professional_id', $validated['professional_id'])
+            ->whereDate('appointment_date', $date)
+            ->with('service');
+
+        // Excluir la cita actual si estamos reprogramando
+        if ($request->filled('appointment_id')) {
+            $query->where('id', '!=', $validated['appointment_id']);
+        }
+
+        $occupiedSlots = $query->get()->map(function ($appointment) {
+            $start = \Carbon\Carbon::parse($appointment->appointment_date);
+            $duration = $appointment->service ? $appointment->service->duration_in_minutes : 60;
+            $end = $start->copy()->addMinutes($duration);
+
+            return [
+                'start' => $start->format('Y-m-d H:i'),
+                'end' => $end->format('Y-m-d H:i'),
+                'customer' => $appointment->customer_name,
+                'service' => $appointment->service ? $appointment->service->name : 'Servicio'
+            ];
+        });
+
+        return response()->json([
+            'occupied_slots' => $occupiedSlots,
+            'service_duration' => $serviceDuration
+        ]);
+    }
+
+    public function destroy(Appointment $appointment)
+    {
+        if (!auth()->user()->isAdmin()) {
+            abort(403, 'No tienes permiso para eliminar citas.');
+        }
+
+        if (!in_array($appointment->status, ['completed', 'cancelled'])) {
+            return back()->with('error', '❌ Solo se pueden eliminar citas que estén completadas o canceladas.');
+        }
+
+        $appointment->delete();
+        return back()->with('success', 'Cita eliminada.');
+    }
+
+    public function generateInvoice(Appointment $appointment)
+    {
+        // Solo permitir facturas de citas completadas (opcional, pero recomendado)
+        if ($appointment->status !== 'completed' && !request()->has('signature')) {
+             // Si no es por link firmado, validar que esté completada
+             // return back()->with('error', 'Solo se pueden generar facturas de citas completadas.');
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.appointments.invoice_pdf', compact('appointment'));
+        
+        return $pdf->stream("Factura_StefyNails_{$appointment->id}.pdf");
+    }
+
+    public function sendInvoice(Appointment $appointment)
+    {
+        if ($appointment->status !== 'completed') {
+            return response()->json(['success' => false, 'message' => 'La cita debe estar completada para enviar la factura.']);
+        }
+
+        // Generar un link firmado (mantenemos esto como respaldo/compatibilidad)
+        $url = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            'appointments.invoice', 
+            now()->addDays(7), 
+            ['appointment' => $appointment->id]
+        );
+
+        // Generar el PDF y convertirlo a Base64 para envío directo más confiable
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.appointments.invoice_pdf', compact('appointment'));
+        $pdfContent = $pdf->output();
+        $pdfBase64 = base64_encode($pdfContent);
+
+        \App\Helpers\WhatsAppHelper::sendInvoice($appointment, $url, $pdfBase64);
+
+        return response()->json(['success' => true, 'message' => 'Factura enviada por WhatsApp correctamente.']);
+    }
+
+    public function reopen(Appointment $appointment)
+    {
+        if (!auth()->user()->isAdmin()) {
+            abort(403, 'No tienes permiso para reabrir citas.');
+        }
+
+        if ($appointment->status !== 'completed') {
+            return back()->with('error', '❌ Solo se pueden reabrir citas que estén completadas.');
+        }
+
+        \DB::beginTransaction();
+        try {
+            // 1. Restaurar stock de productos asociados
+            foreach ($appointment->products as $product) {
+                $qty = $product->pivot->quantity;
+                $product->increment('stock', $qty);
+            }
+
+            // 2. Desvincular productos de la cita (para que se puedan volver a agregar correctamente)
+            $appointment->products()->detach();
+
+            // 3. Limpiar campos financieros y resetear estado
+            $appointment->update([
+                'status' => 'confirmed',
+                'payment_method' => null,
+                'cash_amount' => 0,
+                'transfer_amount' => 0,
+                'products_total' => 0,
+            ]);
+
+            \DB::commit();
+            return back()->with('success', '✅ Cita reabierta con éxito. El stock ha sido restaurado y los datos financieros limpiados.');
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error("Error reabriendo cita {$appointment->id}: " . $e->getMessage());
+            return back()->with('error', '❌ Ocurrió un error al intentar reabrir la cita.');
+        }
+    }
+}
