@@ -127,23 +127,25 @@
                 <div class="px-6 py-4 flex justify-between items-center">
                     <h1 class="text-xl font-semibold text-gray-800">@yield('header')</h1>
                     <div class="flex items-center space-x-4">
-                        <!-- Test Mode Toggle -->
-                        <div class="flex items-center bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 shadow-sm mr-2">
-                            <form action="{{ route('admin.toggleTestMode') }}" method="POST" id="test-mode-form" class="flex items-center">
-                                @csrf
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" name="test_mode" class="sr-only peer" onchange="document.getElementById('test-mode-form').submit()" {{ session('test_mode') ? 'checked' : '' }}>
-                                    <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-pink-600"></div>
-                                </label>
-                                <span class="ml-2 text-[10px] font-black uppercase tracking-tighter {{ session('test_mode') ? 'text-pink-600' : 'text-gray-400' }}">
-                                    @if(session('test_mode'))
-                                        <i class="fas fa-flask mr-1 animate-pulse"></i> MODO PRUEBA ON
-                                    @else
-                                        MODO PRUEBA OFF
-                                    @endif
-                                </span>
-                            </form>
-                        </div>
+                        <!-- Test Mode Toggle (Admin Only) -->
+                        @if(auth()->user()->isAdmin())
+                            <div class="flex items-center bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 shadow-sm mr-2">
+                                <form action="{{ route('admin.toggleTestMode') }}" method="POST" id="test-mode-form" class="flex items-center">
+                                    @csrf
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" name="test_mode" class="sr-only peer" onchange="document.getElementById('test-mode-form').submit()" {{ session('test_mode') ? 'checked' : '' }}>
+                                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-pink-600"></div>
+                                    </label>
+                                    <span class="ml-2 text-[10px] font-black uppercase tracking-tighter {{ session('test_mode') ? 'text-pink-600' : 'text-gray-400' }}">
+                                        @if(session('test_mode'))
+                                            <i class="fas fa-flask mr-1 animate-pulse"></i> MODO PRUEBA ON
+                                        @else
+                                            MODO PRUEBA OFF
+                                        @endif
+                                    </span>
+                                </form>
+                            </div>
+                        @endif
 
                         <!-- Notification Bell -->
                         <a href="{{ route('admin.notifications.index') }}" class="relative text-gray-600 hover:text-pink-600 transition-colors">
@@ -177,7 +179,7 @@
 
     @stack('scripts')
     <script>
-        window.isTestMode = {{ session('test_mode') ? 'true' : 'false' }};
+        window.isTestMode = {{ (session('test_mode') && auth()->user()->isAdmin()) ? 'true' : 'false' }};
         const Toast = Swal.mixin({
             toast: true,
             position: 'top-end',

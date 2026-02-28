@@ -190,7 +190,7 @@ class AppointmentController extends Controller
         }
 
         // RESTRICTION: Cannot complete an appointment scheduled for a future date
-        if ($validated['status'] === 'completed' && !session('test_mode')) {
+        if ($validated['status'] === 'completed' && !(session('test_mode') && auth()->user()->isAdmin())) {
             $appDate = \Carbon\Carbon::parse($appointment->appointment_date)->startOfDay();
             $today   = \Carbon\Carbon::now()->startOfDay();
             if ($appDate->gt($today)) {

@@ -57,6 +57,9 @@ class AdminController extends Controller
 
     public function toggleTestMode(Request $request)
     {
+        if (!auth()->user()->isAdmin()) {
+            abort(403, 'No tienes permiso para esta acción.');
+        }
         $current = session('test_mode', false);
         session(['test_mode' => !$current]);
         
