@@ -339,6 +339,9 @@ class AppointmentController extends Controller
 
         if ($request->filled('appointment_date')) {
             \App\Helpers\WhatsAppHelper::notifyReschedule($appointment, 'admin');
+        } elseif ($statusToSet === 'completed') {
+            // Enviar factura automáticamente al completar
+            $this->sendInvoice($appointment);
         } else {
             \App\Helpers\WhatsAppHelper::notifyStatusChange($appointment);
         }
