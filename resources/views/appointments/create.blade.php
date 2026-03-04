@@ -306,6 +306,7 @@
                                         <span class="font-bold text-pink-700">Precio Sugerido:</span>
                                         <span id="real-price-display" class="font-black text-pink-800">$0</span>
                                         <div id="offer-warning" class="hidden text-red-500 font-bold ml-auto">• Mínimo Sugerido: <span id="final-adjusted-price"></span></div>
+                                        <div id="offer-ok" class="hidden text-green-600 font-bold ml-auto">✨ ¡Oferta Aceptable!</div>
                                     </div>
                                 </div>
                                 <div class="md:col-span-2">
@@ -867,12 +868,12 @@
 
             const minAllowed = basePrice - 5000;
             if (offerValue < minAllowed) {
-                warningDiv.classList.remove('hidden');
-                okDiv.classList.add('hidden');
-                finalAdjustedDisplay.innerText = '$' + minAllowed.toLocaleString('es-CO');
+                if(warningDiv) warningDiv.classList.remove('hidden');
+                if(okDiv) okDiv.classList.add('hidden');
+                if(finalAdjustedDisplay) finalAdjustedDisplay.innerText = '$' + minAllowed.toLocaleString('es-CO');
             } else {
-                warningDiv.classList.add('hidden');
-                okDiv.classList.remove('hidden');
+                if(warningDiv) warningDiv.classList.add('hidden');
+                if(okDiv) okDiv.classList.remove('hidden');
             }
         }
 

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\Notification;
+use App\Models\Availability;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
