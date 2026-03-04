@@ -148,7 +148,7 @@ class WhatsAppBotController extends Controller
      * Get Link for appointment.
      * Expected JSON: { "phone": "..." }
      */
-    public function getLink(Request $request)
+    public function getRescheduleLink(Request $request)
     {
         $validated = $request->validate([
             'phone' => 'required|string'
