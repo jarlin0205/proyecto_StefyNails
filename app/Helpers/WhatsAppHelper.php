@@ -86,7 +86,7 @@ class WhatsAppHelper
         }
     }
 
-    public static function notifyStatusChange($appointment)
+    public static function notifyStatusChange($appointment, $notifyClient = true)
     {
         $status = $appointment->status;
         $date = \Carbon\Carbon::parse($appointment->appointment_date)->format('d/m/Y h:i A');
@@ -123,7 +123,7 @@ class WhatsAppHelper
                     "✨ *Tu espacio ya está asegurado.* Si necesitas realizar algún cambio, puedes escribir *MENU* en cualquier momento.";
         }
 
-        if ($msg) {
+        if ($msg && $notifyClient) {
             self::sendMessage($appointment->customer_phone, $msg);
         }
 

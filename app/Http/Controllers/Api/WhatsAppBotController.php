@@ -67,9 +67,7 @@ class WhatsAppBotController extends Controller
         
         // No enviar notificación extra si es cancelación desde el bot, 
         // ya que el bot da su propia respuesta simple.
-        if ($validated['status'] !== 'cancelled') {
-            \App\Helpers\WhatsAppHelper::notifyStatusChange($appointment);
-        }
+        \App\Helpers\WhatsAppHelper::notifyStatusChange($appointment, $validated['status'] !== 'cancelled');
 
         return response()->json([
             'success' => true,
