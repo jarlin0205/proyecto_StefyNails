@@ -180,4 +180,87 @@ class WhatsAppBotController extends Controller
             'appointment' => $appointment
         ]);
     }
+
+    /**
+     * Get busy slots and custom availability for a date.
+     * Expected Query: ?date=2026-03-04&professional_id=1
+     */
+    public function getBusySlots(Request $request)
+    {
+        $date = $request->query('date');
+        $professionalId = $request->query('professional_id');
+
+        if (!$date) {
+            return response()->json(['error' => 'Date is required'], 400);
+        }
+
+        $query = Appointment::whereDate('appointment_date', $date)
+            ->whereNotIn('status', ['cancelled', 'completed']);
+
+        if ($professionalId) {
+            $query->where('professional_id', $professionalId);
+        }
+
+        $appointments = $query->get();
+
+        $busy = $appointments->map(function ($app) {
+            $start = $app->appointment_date->format('H:i');
+            $end = $app->appointment_date->copy()->addMinutes(30)->format('H:i');
+            return [
+                'start' => $start,
+                'end' => $end,
+                'title' => 'Ocupado'
+            ];
+        });
+
+        // Buscar disponibilidad personalizada
+        $avail = Availability::where('date', $date);
+        if ($professionalId) {
+            $avail->where('professional_id', $professionalId);
+        }
+        $avail = $avail->first();
+
+        return response()->json([
+            'busy' => $busy,
+            'working_hours' => $avail ? $avail->active_slots : null,
+            'message' => $avail ? $avail->message : null
+        ]);
+    }
+
+    /**
+     * Checkin appointment via bot.
+     * Expected JSON: { "phone": "..." }
+     */
+    public function checkin(Request $request)
+    {
+        $validated = $request->validate([
+            'phone' => 'required|string'
+        ]);
+
+        $phone = preg_replace('/[^0-9]/', '', $validated['phone']);
+        $last10 = substr($phone, -10);
+
+        $appointment = Appointment::where(function($q) use ($phone, $last10) {
+                $q->where('customer_phone', 'LIKE', "%$phone%")
+                  ->orWhere('customer_phone', 'LIKE', "%$last10%");
+            })
+            ->whereDate('appointment_date', Carbon::today())
+            ->whereNotIn('status', ['completed', 'cancelled', 'checked_in'])
+            ->first();
+
+        if (!$appointment) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No encontramos una cita para hoy.'
+            ], 404);
+        }
+
+        $appointment->update(['status' => 'checked_in']);
+
+        return response()->json([
+            'success' => true,
+            'message' => "✅ *¡Bienvenida!* Hemos registrado tu llegada. Por favor toma asiento, en un momento te atenderemos. 🌸",
+            'appointment' => $appointment
+        ]);
+    }
 }

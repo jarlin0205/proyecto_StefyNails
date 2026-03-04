@@ -55,7 +55,7 @@ class ProcessReminders extends Command
         $toCancel = Appointment::where('status', 'confirmed')
             ->where('reminder_sent', true)
             ->where('attendance_confirmed', false)
-            ->whereBetween('appointment_date', [$startTimeCancel, $endTimeCancel])
+            ->where('appointment_date', '<=', $endTimeCancel)
             ->get();
             
         foreach ($toCancel as $appointment) {
