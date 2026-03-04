@@ -177,7 +177,7 @@ class WhatsAppBotController extends Controller
         return response()->json([
             'success' => true,
             'customer_name' => $appointment->customer_name,
-            'link' => route('appointments.reschedule.form', $appointment->reschedule_token),
+            'link' => route('public.appointments.reschedule', $appointment->reschedule_token),
             'appointment' => $appointment
         ]);
     }
