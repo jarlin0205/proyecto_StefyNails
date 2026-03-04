@@ -71,6 +71,19 @@ class WhatsAppHelper
                "Si necesitas cambiar algo, puedes escribir *MENU* en cualquier momento.";
                
         self::sendMessage($appointment->customer_phone, $msg);
+
+        // Notificar al Profesional
+        if ($appointment->professional && $appointment->professional->phone) {
+            $profMsg = "🆕 *¡Nueva Cita Asignada!* 🆕\n\n" .
+                       "Hola {$appointment->professional->name}, se ha agendado una nueva cita:\n\n" .
+                       "👤 *Cliente:* {$appointment->customer_name}\n" .
+                       "📋 *Servicio:* {$appointment->service->name}\n" .
+                       "📅 *Fecha:* {$date}\n" .
+                       "📍 *Lugar:* {$location}\n\n" .
+                       "¡Que tengas un excelente servicio! ✨";
+            
+            self::sendMessage($appointment->professional->phone, $profMsg);
+        }
     }
 
     public static function notifyStatusChange($appointment)
@@ -113,6 +126,14 @@ class WhatsAppHelper
         if ($msg) {
             self::sendMessage($appointment->customer_phone, $msg);
         }
+
+        // Notificar al Profesional sobre Cancelación
+        if ($status === 'cancelled' && $appointment->professional && $appointment->professional->phone) {
+            $profMsg = "❌ *Cita Cancelada* ❌\n\n" .
+                       "Hola {$appointment->professional->name}, te informamos que la cita con *{$appointment->customer_name}* para el día *{$date}* ha sido cancelada.";
+            
+            self::sendMessage($appointment->professional->phone, $profMsg);
+        }
     }
 
     public static function notifyReschedule($appointment, $source = 'admin')
@@ -153,6 +174,17 @@ class WhatsAppHelper
         }
                
         self::sendMessage($appointment->customer_phone, $msg);
+
+        // Notificar al Profesional sobre Reprogramación
+        if ($appointment->professional && $appointment->professional->phone) {
+            $type = ($source === 'client') ? "El cliente ha reprogramado" : "Se ha reprogramado";
+            $profMsg = "🔄 *Cita Reprogramada* 🔄\n\n" .
+                       "Hola {$appointment->professional->name}, {$type} la cita de *{$appointment->customer_name}*:\n\n" .
+                       "🆕 *Nueva Fecha:* {$date}\n" .
+                       ($appointment->reschedule_reason ? "\n📝 *Motivo:* {$appointment->reschedule_reason}" : "");
+            
+            self::sendMessage($appointment->professional->phone, $profMsg);
+        }
     }
 
     public static function sendReminder($appointment)
@@ -169,6 +201,14 @@ class WhatsAppHelper
                "⚠️ *Nota:* Si no confirmas tu asistencia con la palabra *ASISTIRE* a tiempo, el sistema liberará automáticamente tu espacio faltando 5 minutos para la cita. ✨";
 
         self::sendMessage($appointment->customer_phone, $msg);
+
+        // Notificar al Profesional (Recordatorio)
+        if ($appointment->professional && $appointment->professional->phone) {
+            $profMsg = "⏰ *Próxima Cita* ⏰\n\n" .
+                       "Hola {$appointment->professional->name}, tu cita con *{$appointment->customer_name}* inicia en *20 minutos* ({$date}).";
+            
+            self::sendMessage($appointment->professional->phone, $profMsg);
+        }
     }
 
     public static function sendInvoice($appointment, $url, $pdfBase64 = null)
