@@ -69,9 +69,17 @@ class WhatsAppBotController extends Controller
         // ya que el bot da su propia respuesta simple.
         \App\Helpers\WhatsAppHelper::notifyStatusChange($appointment, $validated['status'] !== 'cancelled');
 
+        $message = "✅ *Cita actualizada con éxito.*";
+        
+        if ($validated['status'] === 'confirmed') {
+            $message = "✅ *Cita Confirmada.*\n\nRecuerda estar 10 minutos antes de tu cita. ¡Te esperamos! ✨";
+        } elseif ($validated['status'] === 'cancelled') {
+            $message = "✅ *Cita cancelada con éxito.*\n\n🌸 *Hola*, lamentamos que no puedas asistir. Recuerda que puedes volver a agendar tu cita en cualquier momento desde nuestra plataforma:\n\n🔗 " . config('app.url');
+        }
+
         return response()->json([
             'success' => true,
-            'message' => "✅ *Cita cancelada con éxito.*\n\n🌸 *Hola*, lamentamos que no puedas asistir. Recuerda que puedes volver a agendar tu cita en cualquier momento desde nuestra plataforma:\n\n🔗 " . config('app.url'),
+            'message' => $message,
             'appointment' => $appointment
         ]);
     }
