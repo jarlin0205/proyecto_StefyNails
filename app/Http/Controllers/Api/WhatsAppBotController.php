@@ -22,7 +22,7 @@ class WhatsAppBotController extends Controller
             'status' => 'required|in:confirmed,cancelled,completed,pending_admin,pending_client,cancelado'
         ]);
 
-        // Mapear status en español a inglés si es necesario
+        // Mapear status en espaÃ±ol a inglÃ©s si es necesario
         if ($validated['status'] === 'cancelado') {
             $validated['status'] = 'cancelled';
         }
@@ -47,14 +47,14 @@ class WhatsAppBotController extends Controller
         if (!$appointment) {
             return response()->json([
                 'success' => false,
-                'message' => 'No encontramos una cita activa vinculada a este número. 🌸 Te invitamos a agendar una nueva cita en nuestra web: ' . config('app.url')
+                'message' => 'No encontramos una cita activa vinculada a este nÃºmero. ðŸŒ¸ Te invitamos a agendar una nueva cita en nuestra web: ' . config('app.url')
             ], 404);
         }
 
-        // BLOQUEO: Solo permitir confirmar si está en 'pending_client'
+        // BLOQUEO: Solo permitir confirmar si estÃ¡ en 'pending_client'
         if ($validated['status'] === 'confirmed' && $appointment->status !== 'pending_client') {
             $msg = ($appointment->status === 'pending_admin') 
-                ? 'Tu solicitud de cita aún está pendiente de revisión por el administrador. 🌸 Por favor espera la confirmación oficial antes de realizar cambios.'
+                ? 'Tu solicitud de cita aÃºn estÃ¡ pendiente de revisiÃ³n por el administrador. ðŸŒ¸ Por favor espera la confirmaciÃ³n oficial antes de realizar cambios.'
                 : 'No puedes confirmar esta cita en su estado actual.';
             
             return response()->json([
@@ -65,16 +65,16 @@ class WhatsAppBotController extends Controller
 
         $appointment->update(['status' => $validated['status']]);
         
-        // No enviar notificación extra si es cancelación desde el bot, 
+        // No enviar notificaciÃ³n extra si es cancelaciÃ³n desde el bot, 
         // ya que el bot da su propia respuesta simple.
         \App\Helpers\WhatsAppHelper::notifyStatusChange($appointment, $validated['status'] !== 'cancelled');
 
-        $message = "✅ *Cita actualizada con éxito.*";
+        $message = "âœ… *Cita actualizada con Ã©xito.*";
         
         if ($validated['status'] === 'confirmed') {
-            $message = "✅ *Cita Confirmada.*\n\nRecuerda estar 10 minutos antes de tu cita. ¡Te esperamos! ✨";
+            $message = "âœ… *Cita Confirmada.*\n\nRecuerda estar 10 minutos antes de tu cita. Â¡Te esperamos! âœ¨";
         } elseif ($validated['status'] === 'cancelled') {
-            $message = "✅ *Cita cancelada con éxito.*\n\n🌸 *Hola*, lamentamos que no puedas asistir. Recuerda que puedes volver a agendar tu cita en cualquier momento desde nuestra plataforma:\n\n🔗 " . config('app.url');
+            $message = "âœ… *Cita cancelada con Ã©xito.*\n\nðŸŒ¸ *Hola*, lamentamos que no puedas asistir. Recuerda que puedes volver a agendar tu cita en cualquier momento desde nuestra plataforma:\n\nðŸ”— " . config('app.url');
         }
 
         return response()->json([
@@ -117,7 +117,7 @@ class WhatsAppBotController extends Controller
         if (!$appointment) {
             return response()->json([
                 'success' => false,
-                'message' => 'No encontramos una cita activa para reprogramar. 🌸 Te invitamos a agendar una nueva cita en nuestra web: ' . config('app.url')
+                'message' => 'No encontramos una cita activa para reprogramar. ðŸŒ¸ Te invitamos a agendar una nueva cita en nuestra web: ' . config('app.url')
             ], 404);
         }
 
@@ -150,14 +150,14 @@ class WhatsAppBotController extends Controller
         $oldDate = $appointment->appointment_date->format('d/m/Y H:i');
         $appointment->update([
             'appointment_date' => $requestedStart,
-            'status' => 'confirmed', // Confirmado automáticamente si hay disponibilidad
+            'status' => 'confirmed', // Confirmado automÃ¡ticamente si hay disponibilidad
             'reschedule_reason' => $validated['reason'] ?? null,
-            'notes' => $appointment->notes . "\n[Reprogramado vía WhatsApp el " . now()->format('d/m/Y H:i') . " de original $oldDate]"
+            'notes' => $appointment->notes . "\n[Reprogramado vÃ­a WhatsApp el " . now()->format('d/m/Y H:i') . " de original $oldDate]"
         ]);
 
         \App\Helpers\WhatsAppHelper::notifyReschedule($appointment, 'client');
         
-        // Crear notificación para el administrador
+        // Crear notificaciÃ³n para el administrador
         Notification::create([
             'appointment_id' => $appointment->id,
             'title' => "{$appointment->customer_name} ha reprogramado su cita (WhatsApp)",
@@ -258,7 +258,7 @@ class WhatsAppBotController extends Controller
             \Log::warning("Bot Checkin Failed: No valid confirmed appointment found for $phone in strict window (now to +30m).");
             return response()->json([
                 'success' => false,
-                'message' => 'No encontramos una cita confirmada próxima a iniciar para este número. Recuerda que solo puedes confirmar asistencia hasta 5 minutos antes de tu cita. 🌸'
+                'message' => 'No encontramos una cita confirmada prÃ³xima a iniciar para este nÃºmero. Recuerda que solo puedes confirmar asistencia hasta 5 minutos antes de tu cita. ðŸŒ¸'
             ], 404);
         }
 
@@ -266,7 +266,7 @@ class WhatsAppBotController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "🌸 *¡Excelente, {$appointment->customer_name}!* Tu asistencia ha sido confirmada.\n\n⏰ *Recordatorio:* Por favor, llega *10 minutos antes* para cumplir con el flujo de horarios. Te esperamos en unos minutos. ✨",
+            'message' => "ðŸŒ¸ *Â¡Excelente, {$appointment->customer_name}!* Tu asistencia ha sido confirmada.\n\nâ° *Recordatorio:* Por favor, llega *10 minutos antes* para cumplir con el flujo de horarios. Te esperamos en unos minutos. âœ¨",
             'appointment' => $appointment
         ]);
     }
@@ -279,7 +279,7 @@ class WhatsAppBotController extends Controller
         $phone = preg_replace('/[^0-9]/', '', $request->query('phone'));
         
         if (!$phone) {
-            return response()->json(['success' => false, 'message' => 'Teléfono requerido.'], 400);
+            return response()->json(['success' => false, 'message' => 'TelÃ©fono requerido.'], 400);
         }
 
         $last10 = substr($phone, -10);
@@ -295,7 +295,7 @@ class WhatsAppBotController extends Controller
         if (!$appointment) {
             return response()->json([
                 'success' => false,
-                'message' => 'No encontramos una cita activa para reprogramar. 🌸 Te invitamos a agendar una nueva cita en nuestra web: ' . config('app.url')
+                'message' => 'No encontramos una cita activa para reprogramar. ðŸŒ¸ Te invitamos a agendar una nueva cita en nuestra web: ' . config('app.url')
             ], 404);
         }
 
