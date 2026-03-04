@@ -71,7 +71,7 @@ class WhatsAppBotController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "🌸 Te invitamos a agendar nuevamente tu cita cuando lo desees en nuestra web: " . config('app.url'),
+            'message' => "✅ *Cita cancelada con éxito.*\n\n🌸 *Hola*, lamentamos que no puedas asistir. Recuerda que puedes volver a agendar tu cita en cualquier momento desde nuestra plataforma:\n\n🔗 " . config('app.url'),
             'appointment' => $appointment
         ]);
     }
