@@ -11,6 +11,12 @@ use Carbon\Carbon;
 
 class WhatsAppBotController extends Controller
 {
+    public function __construct()
+    {
+        // Forzar que los enlaces generados usen la APP_URL del .env
+        \Illuminate\Support\Facades\URL::forceRootUrl(config('app.url'));
+    }
+
     /**
      * Update appointment status.
      * Expected JSON: { "id": 1, "status": "confirmed", "phone": "..." }
