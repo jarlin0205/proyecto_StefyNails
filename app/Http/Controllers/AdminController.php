@@ -44,9 +44,6 @@ class AdminController extends Controller
         $allSales = Sale::with('items.product')->latest()->get();
 
         $totalProduced = $appointmentsProduced + $posProduced;
-          $grossRevenue = $appointmentsRevenue + $salesFetch->sum('total');
-          $salesFetch = $salesQuery->with('items.product')->get();
-          $salesQuery = Sale::query();
 
         $professionals = Professional::all(); // Retrieve all professionals
         $servicesCount = Service::count();
