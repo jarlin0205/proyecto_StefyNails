@@ -17,7 +17,7 @@
         </div>
         <div class="ml-3 min-w-0">
             <h2 class="text-[10px] font-semibold text-gray-400 uppercase truncate" title="Producido">Producido</h2>
-            <p class="text-xl font-bold text-gray-800 truncate">${{ number_format($grossRevenue, 2) }}</p>
+            <p class="text-xl font-bold text-gray-800 truncate">${{ number_format($totalProduced, 2) }}</p>
         </div>
     </div>
 
