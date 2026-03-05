@@ -81,7 +81,7 @@ class WhatsAppBotController extends Controller
         if ($validated['status'] === 'confirmed') {
             $message = "✅ *Cita Confirmada.*\n\nRecuerda estar 10 minutos antes de tu cita. ¡Te esperamos! ✨";
         } elseif ($validated['status'] === 'cancelled') {
-            $message = "✅ *Cita cancelada con éxito.*\n\n🌸 *Hola*, lamentamos que no puedas asistir. Recuerda que puedes volver a agendar tu cita en cualquier momento desde nuestra plataforma:\n\n🔗 " . config('app.url');
+            $message = "✅ *Cita cancelada con éxito.*\n\n🌸 *Hola*, lamentamos que no puedas asistir. Recuerda que puedes volver a agendar tu cita en *cualquier momento* y desde *cualquier lugar* en nuestra plataforma:\n\n🔗 " . config('app.url') . "\n\n¡Esperamos verte pronto! ✨";
         }
 
         return response()->json([

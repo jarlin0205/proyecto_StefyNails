@@ -204,7 +204,7 @@ client.on('message', async (msg) => {
             console.log(`✨ Comando detectado: CANCELAR (1)`);
             try {
                 const res = await callLaravelApi('status', 'POST', { phone: sender, status: 'cancelled' });
-                msg.reply('✅ *Cita cancelada con éxito*');
+                msg.reply(`${res.message}`);
             } catch (err) {
                 msg.reply(`❌ Error: ${err.message}`);
             }
