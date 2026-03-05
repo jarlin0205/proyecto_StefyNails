@@ -169,7 +169,7 @@ class WhatsAppBotController extends Controller
                   ->orWhere('customer_phone', 'LIKE', "%$last10%");
             })
             ->where('appointment_date', '>=', now()->startOfDay())
-            ->whereNotIn('status', ['completed', 'cancelled', 'checked_in'])
+            ->whereNotIn('status', ['completed', 'cancelled'])
             ->orderBy('appointment_date', 'asc')
             ->first();
 
@@ -235,8 +235,8 @@ class WhatsAppBotController extends Controller
     }
 
     /**
-     * Checkin appointment via bot.
-     * Expected JSON: { "phone": "..." }
+     * Confirm attendance via bot.
+     * Updates attendance_confirmed=true to prevent auto-cancellation.
      */
     public function checkin(Request $request)
     {
@@ -252,21 +252,22 @@ class WhatsAppBotController extends Controller
                   ->orWhere('customer_phone', 'LIKE', "%$last10%");
             })
             ->whereDate('appointment_date', Carbon::today())
-            ->whereNotIn('status', ['completed', 'cancelled', 'checked_in'])
+            ->where('status', 'confirmed') // Solo citas aún confirmadas
+            ->where('attendance_confirmed', false)
             ->first();
 
         if (!$appointment) {
             return response()->json([
                 'success' => false,
-                'message' => 'No encontramos una cita para hoy.'
+                'message' => 'No encontramos una cita para hoy pendiente de confirmar.'
             ], 404);
         }
 
-        $appointment->update(['status' => 'checked_in']);
+        $appointment->update(['attendance_confirmed' => true]);
 
         return response()->json([
             'success' => true,
-            'message' => "✅ *¡Bienvenida!* Hemos registrado tu llegada. Por favor toma asiento, en un momento te atenderemos. 🌸",
+            'message' => "✅ *¡Asistencia Confirmada!* Hemos registrado tu respuesta. Te esperamos pronto en tu cita. 🌸",
             'appointment' => $appointment
         ]);
     }

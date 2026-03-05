@@ -111,8 +111,8 @@ class WhatsAppHelper
                    "¡Nos encantaría atenderte en otra ocasión! Te invitamos amablemente a solicitar un nuevo horario en nuestra web:\n\n" .
                    "🔗 " . config('app.url') . "\n\n" .
                    "¡Gracias por tu comprensión! 💖";
-        } elseif ($status === 'completed' || $status === 'checked_in') {
-            // No enviar mensaje de actualización general cuando la cita finaliza o el cliente llega
+        } elseif ($status === 'completed') {
+            // No enviar mensaje de actualización general cuando la cita finaliza
             return;
         } else {
              // Otros cambios o actualizaciones generales (ej: pending_client)
