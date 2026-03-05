@@ -33,13 +33,18 @@ class AdminController extends Controller
         $appointmentsProduced = $completedAppointments->sum('grand_total');
 
         // Sumar ventas POS (Ventas realizadas hoy para el total rápido)
-        $posSalesToday = Sale::whereDate('created_at', now()->toDateString())->get();
+        // Usamos rango explícito de Carbon para evitar problemas de zona horaria en SQL
+        $startToday = now()->startOfDay();
+        $endToday = now()->endOfDay();
+        
+        $posSalesToday = Sale::whereBetween('created_at', [$startToday, $endToday])->get();
         $posProduced = $posSalesToday->sum('total');
 
         // Todas las ventas cargadas con sus items para el modal "Detalle de Producción"
         $allSales = Sale::with('items.product')->latest()->get();
 
         $totalProduced = $appointmentsProduced + $posProduced;
+          $grossRevenue = $appointmentsRevenue + $salesFetch->sum('total');
 
         $professionals = Professional::all(); // Retrieve all professionals
         $servicesCount = Service::count();

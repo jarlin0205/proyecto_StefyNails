@@ -19,15 +19,23 @@ class ExpenseController extends Controller
         $appointmentsQuery = Appointment::where('status', 'completed');
         $salesQuery = Sale::query();
 
-        if ($startDate) {
-            $expensesQuery->where('date', '>=', $startDate);
-            $appointmentsQuery->whereDate('appointment_date', '>=', $startDate);
-            $salesQuery->whereDate('created_at', '>=', $startDate);
-        }
-        if ($endDate) {
-            $expensesQuery->where('date', '<=', $endDate);
-            $appointmentsQuery->whereDate('appointment_date', '<=', $endDate);
-            $salesQuery->whereDate('created_at', '<=', $endDate);
+        if ($startDate || $endDate) {
+            $start = $startDate ? \Carbon\Carbon::parse($startDate)->startOfDay() : null;
+            $end = $endDate ? \Carbon\Carbon::parse($endDate)->endOfDay() : null;
+
+            if ($start && $end) {
+                $expensesQuery->whereBetween('date', [$start, $end]);
+                $appointmentsQuery->whereBetween('appointment_date', [$start, $end]);
+                $salesQuery->whereBetween('created_at', [$start, $end]);
+            } elseif ($start) {
+                $expensesQuery->where('date', '>=', $start);
+                $appointmentsQuery->where('appointment_date', '>=', $start);
+                $salesQuery->where('created_at', '>=', $start);
+            } elseif ($end) {
+                $expensesQuery->where('date', '<=', $end);
+                $appointmentsQuery->where('appointment_date', '<=', $end);
+                $salesQuery->where('created_at', '<=', $end);
+            }
         }
 
         $expenses = $expensesQuery->latest()->get();
@@ -91,15 +99,16 @@ class ExpenseController extends Controller
         $appointmentsQuery = Appointment::where('status', 'completed');
         $salesQuery = Sale::query();
 
-        if ($startDate) {
-            $expensesQuery->where('date', '>=', $startDate);
-            $appointmentsQuery->whereDate('appointment_date', '>=', $startDate);
-            $salesQuery->whereDate('created_at', '>=', $startDate);
-        }
-        if ($endDate) {
-            $expensesQuery->where('date', '<=', $endDate);
-            $appointmentsQuery->whereDate('appointment_date', '<=', $endDate);
-            $salesQuery->whereDate('created_at', '<=', $endDate);
+        if ($startDate || $endDate) {
+            $start = $startDate ? \Carbon\Carbon::parse($startDate)->startOfDay() : null;
+            $end = $endDate ? \Carbon\Carbon::parse($endDate)->endOfDay() : null;
+
+            }
+            if ($end) {
+                $expensesQuery->where('date', '<=', $end);
+                $appointmentsQuery->where('appointment_date', '<=', $end);
+                $salesQuery->where('created_at', '<=', $end);
+            }
         }
 
         $expenses = $expensesQuery->latest()->paginate(50)->withQueryString();
