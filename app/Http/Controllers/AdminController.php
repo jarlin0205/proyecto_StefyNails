@@ -8,6 +8,7 @@ use App\Models\Appointment;
 use App\Models\Notification;
 use App\Models\Expense;
 use App\Models\Professional;
+use App\Models\Sale;
 
 class AdminController extends Controller
 {
@@ -26,10 +27,16 @@ class AdminController extends Controller
         $completedCount = (clone $query)->where('status', 'completed')->count();
         $cancelledCount = (clone $query)->where('status', 'cancelled')->count();
         
-        // Calcular lo producido (solo citas completadas)
+        // Calcular lo producido (Citas completadas + Ventas POS)
         $completedAppointmentsQuery = (clone $query)->where('status', 'completed')->with('service', 'professional', 'products');
         $completedAppointments = $completedAppointmentsQuery->get();
-        $totalProduced = $completedAppointments->sum('grand_total');
+        $appointmentsProduced = $completedAppointments->sum('grand_total');
+
+        // Sumar ventas POS realizadas hoy
+        $posSalesToday = Sale::whereDate('created_at', now()->toDateString())->get();
+        $posProduced = $posSalesToday->sum('total');
+
+        $totalProduced = $appointmentsProduced + $posProduced;
 
         $professionals = Professional::all(); // Retrieve all professionals
         $servicesCount = Service::count();
@@ -50,6 +57,7 @@ class AdminController extends Controller
             'allServices',
             'latestsAppointments',
             'totalProduced',
+            'posProduced',
             'completedAppointments',
             'professionals' 
         ));

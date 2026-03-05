@@ -57,12 +57,17 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         // Products for appointments (JSON list)
         Route::get('products/list', [\App\Http\Controllers\ProductController::class, 'list'])->name('products.list');
 
+        // POS & Sales
+        Route::get('pos', [\App\Http\Controllers\SaleController::class, 'pos'])->name('pos');
+        Route::post('sales', [\App\Http\Controllers\SaleController::class, 'store'])->name('sales.store');
+
         // Test Mode Toggle
         Route::post('toggle-test-mode', [AdminController::class, 'toggleTestMode'])->name('toggleTestMode');
     });
 
     // Admin Only Routes
     Route::middleware(['role:admin'])->group(function () {
+        Route::get('sales', [\App\Http\Controllers\SaleController::class, 'index'])->name('sales.index');
         Route::resource('product-categories', \App\Http\Controllers\ProductCategoryController::class);
         Route::resource('products', \App\Http\Controllers\ProductController::class);
         

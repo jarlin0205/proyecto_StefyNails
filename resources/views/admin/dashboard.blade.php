@@ -60,6 +60,24 @@
         </div>
     </a>
 
+    <!-- Card: POS (Venta Productos) -->
+    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-pink-500 hover:shadow-md transition-shadow flex items-center min-w-0">
+        <div class="flex-shrink-0 bg-pink-50 rounded-full p-2">
+            <svg class="h-5 w-5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+            </svg>
+        </div>
+        <div class="ml-3 min-w-0 overflow-hidden">
+            <h2 class="text-[10px] font-semibold text-gray-400 uppercase truncate">Ventas POS</h2>
+            <div class="flex flex-col">
+                <a href="{{ route('admin.pos') }}" class="text-xs font-black text-pink-600 hover:underline">VENDER AHORA</a>
+                @if(auth()->user()->isAdmin())
+                    <a href="{{ route('admin.sales.index') }}" class="text-[9px] text-gray-400 hover:text-gray-600">Ver Historial</a>
+                @endif
+            </div>
+        </div>
+    </div>
+
     @if(auth()->user()->isAdmin())
     <!-- Card: Servicios (Admin solo) -->
     <a href="{{ route('admin.services.index') }}" class="bg-white rounded-lg shadow p-4 border-l-4 border-pink-500 hover:shadow-md transition-shadow flex items-center min-w-0">
