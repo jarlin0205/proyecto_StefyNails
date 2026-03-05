@@ -103,8 +103,15 @@ class ExpenseController extends Controller
             $start = $startDate ? \Carbon\Carbon::parse($startDate)->startOfDay() : null;
             $end = $endDate ? \Carbon\Carbon::parse($endDate)->endOfDay() : null;
 
-            }
-            if ($end) {
+            if ($start && $end) {
+                $expensesQuery->whereBetween('date', [$start, $end]);
+                $appointmentsQuery->whereBetween('appointment_date', [$start, $end]);
+                $salesQuery->whereBetween('created_at', [$start, $end]);
+            } elseif ($start) {
+                $expensesQuery->where('date', '>=', $start);
+                $appointmentsQuery->where('appointment_date', '>=', $start);
+                $salesQuery->where('created_at', '>=', $start);
+            } elseif ($end) {
                 $expensesQuery->where('date', '<=', $end);
                 $appointmentsQuery->where('appointment_date', '<=', $end);
                 $salesQuery->where('created_at', '<=', $end);
