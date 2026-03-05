@@ -32,9 +32,12 @@ class AdminController extends Controller
         $completedAppointments = $completedAppointmentsQuery->get();
         $appointmentsProduced = $completedAppointments->sum('grand_total');
 
-        // Sumar ventas POS realizadas hoy
+        // Sumar ventas POS (Ventas realizadas hoy para el total rápido)
         $posSalesToday = Sale::whereDate('created_at', now()->toDateString())->get();
         $posProduced = $posSalesToday->sum('total');
+
+        // Todas las ventas cargadas con sus items para el modal "Detalle de Producción"
+        $allSales = Sale::with('items.product')->latest()->get();
 
         $totalProduced = $appointmentsProduced + $posProduced;
 
@@ -59,6 +62,7 @@ class AdminController extends Controller
             'totalProduced',
             'posProduced',
             'completedAppointments',
+            'allSales',
             'professionals' 
         ));
     }

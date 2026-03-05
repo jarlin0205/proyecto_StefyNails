@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Expense;
 use App\Models\Appointment;
+use App\Models\Sale;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -16,14 +17,17 @@ class ExpenseController extends Controller
 
         $expensesQuery = Expense::query();
         $appointmentsQuery = Appointment::where('status', 'completed');
+        $salesQuery = Sale::query();
 
         if ($startDate) {
             $expensesQuery->where('date', '>=', $startDate);
             $appointmentsQuery->whereDate('appointment_date', '>=', $startDate);
+            $salesQuery->whereDate('created_at', '>=', $startDate);
         }
         if ($endDate) {
             $expensesQuery->where('date', '<=', $endDate);
             $appointmentsQuery->whereDate('appointment_date', '<=', $endDate);
+            $salesQuery->whereDate('created_at', '<=', $endDate);
         }
 
         $expenses = $expensesQuery->latest()->get();
@@ -31,11 +35,17 @@ class ExpenseController extends Controller
         $expenseCash = $expenses->sum('cash_amount');
         $expenseTransfer = $expenses->sum('transfer_amount');
 
-        // Financial Indicators
-        $completedAppointments = (clone $appointmentsQuery)->with('service', 'professional', 'products')->get();
-        $grossRevenue = $completedAppointments->sum('grand_total');
-        $grossRevenueCash = $completedAppointments->sum('cash_amount');
-        $grossRevenueTransfer = $completedAppointments->sum('transfer_amount');
+        // Financial Indicators (Appointments + Sales)
+        $completedAppointments = $appointmentsQuery->with('service', 'professional', 'products')->get();
+        $appointmentsRevenue = $completedAppointments->sum('grand_total');
+        $appointmentsRevenueCash = $completedAppointments->sum('cash_amount');
+        $appointmentsRevenueTransfer = $completedAppointments->sum('transfer_amount');
+
+        $salesFetch = $salesQuery->with('items.product')->get();
+        
+        $grossRevenue = $appointmentsRevenue + $salesFetch->sum('total');
+        $grossRevenueCash = $appointmentsRevenueCash + $salesFetch->where('payment_method', 'cash')->sum('total') + $salesFetch->where('payment_method', 'hybrid')->sum('cash_amount');
+        $grossRevenueTransfer = $appointmentsRevenueTransfer + $salesFetch->where('payment_method', 'transfer')->sum('total') + $salesFetch->where('payment_method', 'hybrid')->sum('transfer_amount');
         
         $netProfit = $grossRevenue - $totalExpenses;
         
@@ -43,17 +53,16 @@ class ExpenseController extends Controller
         $netCash = $grossRevenueCash - $expenseCash;
         $netTransfer = $grossRevenueTransfer - $expenseTransfer;
 
-
         // Calculate period days (normalized to start of day)
         $realStart = $startDate ? \Carbon\Carbon::parse($startDate)->startOfDay() : \Carbon\Carbon::parse(Appointment::min('appointment_date') ?? now())->startOfDay();
         $realEnd = $endDate ? \Carbon\Carbon::parse($endDate)->startOfDay() : now()->startOfDay();
         $daysCount = (int) $realStart->diffInDays($realEnd) + 1; // +1 to include both ends
 
-        // Usamos el contenedor de servicios para evitar problemas si la fachada no se descubre correctamente
         $pdf = app('dompdf.wrapper');
         $pdf->loadView('admin.expenses.financial_report', compact(
             'expenses', 
             'completedAppointments',
+            'salesFetch',
             'grossRevenue', 
             'grossRevenueCash',
             'grossRevenueTransfer',
@@ -68,8 +77,6 @@ class ExpenseController extends Controller
             'daysCount'
         ));
 
-
-
         $filename = 'reporte_financiero_' . ($startDate ?? 'inicio') . '_' . ($endDate ?? now()->format('Y-m-d')) . '.pdf';
 
         return $pdf->stream($filename);
@@ -82,23 +89,31 @@ class ExpenseController extends Controller
 
         $expensesQuery = Expense::query();
         $appointmentsQuery = Appointment::where('status', 'completed');
+        $salesQuery = Sale::query();
 
         if ($startDate) {
             $expensesQuery->where('date', '>=', $startDate);
             $appointmentsQuery->whereDate('appointment_date', '>=', $startDate);
+            $salesQuery->whereDate('created_at', '>=', $startDate);
         }
         if ($endDate) {
             $expensesQuery->where('date', '<=', $endDate);
             $appointmentsQuery->whereDate('appointment_date', '<=', $endDate);
+            $salesQuery->whereDate('created_at', '<=', $endDate);
         }
 
         $expenses = $expensesQuery->latest()->paginate(50)->withQueryString();
 
-        // Financial Indicators
+        // Financial Indicators (Appointments + Sales)
         $completedAppointments = $appointmentsQuery->with('products')->get();
-        $grossRevenue = $completedAppointments->sum('grand_total');
-        $grossRevenueCash = $completedAppointments->sum('cash_amount');
-        $grossRevenueTransfer = $completedAppointments->sum('transfer_amount');
+        $appointmentsRevenue = $completedAppointments->sum('grand_total');
+        $appointmentsRevenueCash = $completedAppointments->sum('cash_amount');
+        $appointmentsRevenueTransfer = $completedAppointments->sum('transfer_amount');
+
+        $salesFetch = $salesQuery->get();
+        $grossRevenue = $appointmentsRevenue + $salesFetch->sum('total');
+        $grossRevenueCash = $appointmentsRevenueCash + $salesFetch->where('payment_method', 'cash')->sum('total') + $salesFetch->where('payment_method', 'hybrid')->sum('cash_amount');
+        $grossRevenueTransfer = $appointmentsRevenueTransfer + $salesFetch->where('payment_method', 'transfer')->sum('total') + $salesFetch->where('payment_method', 'hybrid')->sum('transfer_amount');
         
         $allExpensesInPeriod = (clone $expensesQuery)->get();
         $totalExpenses = $allExpensesInPeriod->sum('amount');

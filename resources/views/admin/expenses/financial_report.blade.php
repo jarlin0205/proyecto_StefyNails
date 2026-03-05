@@ -318,38 +318,82 @@
         </tbody>
         @if($completedAppointments->count() > 0)
         @php
-            // Efectivo total = pagos puros en efectivo + parte en efectivo de los híbridos
-            $subEfectivo  = $completedAppointments->where('payment_method', 'cash')->sum('grand_total')
-                          + $completedAppointments->where('payment_method', 'hybrid')->sum('cash_amount');
-            // Cuenta total = pagos puros en cuenta + parte en cuenta de los híbridos
-            $subCuenta    = $completedAppointments->where('payment_method', 'transfer')->sum('grand_total')
-                          + $completedAppointments->where('payment_method', 'hybrid')->sum('transfer_amount');
+            // Calcular subtotales solo de citas para esta tabla
+            $subEfectivoApp  = $completedAppointments->where('payment_method', 'cash')->sum('grand_total')
+                             + $completedAppointments->where('payment_method', 'hybrid')->sum('cash_amount');
+            $subCuentaApp    = $completedAppointments->where('payment_method', 'transfer')->sum('grand_total')
+                             + $completedAppointments->where('payment_method', 'hybrid')->sum('transfer_amount');
         @endphp
         <tfoot>
-            @if($subEfectivo > 0)
+            @if($subEfectivoApp > 0)
             <tr style="background:#f0fdf4;">
-                <td colspan="5" style="font-size:9px; color:#16a34a; padding:4px 8px; font-weight:bold;">
-                    Subtotal Efectivo (incluye partes en efectivo de pagos híbridos)
-                </td>
-                <td class="text-right amount-green" style="font-size:9px;">+${{ number_format($subEfectivo, 0, ',', '.') }}</td>
+                <td colspan="5" style="font-size:9px; color:#16a34a; padding:4px 8px; font-weight:bold;">Subtotal Efectivo (Citas)</td>
+                <td class="text-right amount-green" style="font-size:9px;">+${{ number_format($subEfectivoApp, 0, ',', '.') }}</td>
             </tr>
             @endif
-            @if($subCuenta > 0)
+            @if($subCuentaApp > 0)
             <tr style="background:#eff6ff;">
-                <td colspan="5" style="font-size:9px; color:#2563eb; padding:4px 8px; font-weight:bold;">
-                    Subtotal Consignación / Cuenta (incluye partes en cuenta de pagos híbridos)
-                </td>
-                <td class="text-right" style="font-size:9px; color:#2563eb; font-weight:bold;">+${{ number_format($subCuenta, 0, ',', '.') }}</td>
+                <td colspan="5" style="font-size:9px; color:#2563eb; padding:4px 8px; font-weight:bold;">Subtotal Cuenta (Citas)</td>
+                <td class="text-right" style="font-size:9px; color:#2563eb; font-weight:bold;">+${{ number_format($subCuentaApp, 0, ',', '.') }}</td>
             </tr>
             @endif
-            {{-- Grand total --}}
-            <tr class="totals-row">
-                <td colspan="5">TOTAL INGRESOS ({{ $completedAppointments->count() }} servicios)</td>
-                <td class="text-right amount-green">+${{ number_format($grossRevenue, 0, ',', '.') }}</td>
-            </tr>
         </tfoot>
         @endif
     </table>
+
+    {{-- POS SALES TABLE (NUEVA) --}}
+    @if(isset($salesFetch) && $salesFetch->count() > 0)
+    <div class="section-title">INGRESOS — Ventas Directas POS (Sin Citas)</div>
+    <div class="section-subtitle">Ventas de productos realizadas directamente desde el panel administrativo</div>
+    <table class="detail">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Productos Vendidos</th>
+                <th>Método de Pago</th>
+                <th class="text-right">Monto</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($salesFetch as $sale)
+            <tr>
+                <td>{{ $sale->created_at->format('d/m/Y') }}</td>
+                <td><strong>{{ $sale->customer_name ?: 'Venta Mostrador' }}</strong></td>
+                <td>
+                    @foreach($sale->items as $item)
+                        <div style="font-size: 8px; color: #4b5563;">
+                            • {{ $item->quantity }}x {{ $item->product->name }} 
+                            <span style="color: #9ca3af;">(${{ number_format($item->unit_price, 0) }} c/u)</span>
+                        </div>
+                    @endforeach
+                </td>
+                <td>
+                    @if($sale->payment_method === 'cash')
+                        <span style="color:#16a34a; font-weight:bold; font-size:9px;">Efectivo</span>
+                    @elseif($sale->payment_method === 'transfer')
+                        <span style="color:#2563eb; font-weight:bold; font-size:9px;">Cuenta</span>
+                    @elseif($sale->payment_method === 'hybrid')
+                        <span style="color:#7c3aed; font-weight:bold; font-size:9px;">Híbrido</span><br>
+                        <span style="color:#6b7280; font-size:8px;">Ef: ${{ number_format($sale->cash_amount, 0) }} | Ct: ${{ number_format($sale->transfer_amount, 0) }}</span>
+                    @endif
+                </td>
+                <td class="text-right amount-green">+${{ number_format($sale->total, 0, ',', '.') }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+        @php
+            $subEfectivoSales = $salesFetch->where('payment_method', 'cash')->sum('total') + $salesFetch->where('payment_method', 'hybrid')->sum('cash_amount');
+            $subCuentaSales   = $salesFetch->where('payment_method', 'transfer')->sum('total') + $salesFetch->where('payment_method', 'hybrid')->sum('transfer_amount');
+        @endphp
+        <tfoot>
+            <tr style="background:#f9fafb;">
+                <td colspan="4" style="font-size:10px; font-weight:bold; padding:8px;">TOTAL VENTAS POS</td>
+                <td class="text-right amount-green" style="font-size:10px;">+${{ number_format($salesFetch->sum('total'), 0, ',', '.') }}</td>
+            </tr>
+        </tfoot>
+    </table>
+    @endif
 
     <hr class="divider">
 

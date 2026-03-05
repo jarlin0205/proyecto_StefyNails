@@ -379,15 +379,24 @@
                                             $totalAmount = $app->grand_total;
                                             $profId = $app->professional_id ?? '0';
                                             $rawDate = $app->appointment_date->format('Y-m-d');
+                                            $items = [];
+                                            // Agregar servicio principal como item para el detalle
+                                            $items[] = ['name' => $app->service?->name ?? 'Servicio Personalizado', 'qty' => 1, 'price' => $app->final_price];
+                                            // Agregar productos adicionales
+                                            foreach($app->products as $p) {
+                                                $items[] = ['name' => $p->name, 'qty' => $p->pivot->quantity, 'price' => $p->pivot->unit_price];
+                                            }
                                         ?>
                                         <tr class="production-row hover:bg-pink-50/30 transition-colors" 
+                                            data-type="appointment"
                                             data-prof-id="{{ $profId }}" 
                                             data-service-id="{{ $app->service_id ?? '0' }}"
                                             data-price="{{ $totalAmount }}"
                                             data-date="{{ $rawDate }}"
                                             data-pay-method="{{ $app->payment_method ?? '' }}"
                                             data-cash="{{ $app->cash_amount ?? ($app->payment_method === 'cash' ? $totalAmount : 0) }}"
-                                            data-transfer="{{ $app->transfer_amount ?? ($app->payment_method === 'transfer' ? $totalAmount : 0) }}">
+                                            data-transfer="{{ $app->transfer_amount ?? ($app->payment_method === 'transfer' ? $totalAmount : 0) }}"
+                                            data-items="{{ json_encode($items) }}">
                                             <td class="px-4 py-3 whitespace-nowrap border-l-4 border-transparent hover:border-pink-500 transition-all">
                                                 <div class="text-sm font-bold text-gray-900">{{ $app->appointment_date->format('d/m/Y') }}</div>
                                                 <div class="text-[10px] font-medium text-gray-400 uppercase">{{ $app->appointment_date->format('h:i A') }}</div>
@@ -429,9 +438,81 @@
                                                 @endif
                                             </td>
                                             <td class="px-4 py-3 whitespace-nowrap text-right">
-                                                <span class="text-sm font-black text-gray-900 bg-gray-50 px-3 py-1 rounded-lg border border-gray-100 shadow-sm">
-                                                    ${{ number_format($totalAmount, 0, ',', '.') }}
+                                                <div class="flex items-center justify-end space-x-2">
+                                                    <button onclick="showItemsDetail(this)" class="text-[9px] bg-gray-100 hover:bg-gray-200 text-gray-600 px-2 py-1 rounded font-black transition-colors uppercase">Ver más</button>
+                                                    <span class="text-sm font-black text-gray-900 bg-gray-50 px-3 py-1 rounded-lg border border-gray-100 shadow-sm">
+                                                        ${{ number_format($totalAmount, 0, ',', '.') }}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+
+                                    <!-- Ventas POS (Nuevas) -->
+                                    @foreach($allSales as $sale)
+                                        <?php 
+                                            $totalAmount = $sale->total;
+                                            $rawDate = $sale->created_at->format('Y-m-d');
+                                            $items = [];
+                                            foreach($sale->items as $item) {
+                                                $items[] = ['name' => $item->product->name, 'qty' => $item->quantity, 'price' => $item->unit_price];
+                                            }
+                                        ?>
+                                        <tr class="production-row hover:bg-blue-50/30 transition-colors" 
+                                            data-type="sale"
+                                            data-prof-id="0" 
+                                            data-service-id="0"
+                                            data-price="{{ $totalAmount }}"
+                                            data-date="{{ $rawDate }}"
+                                            data-pay-method="{{ $sale->payment_method ?? '' }}"
+                                            data-cash="{{ $sale->cash_amount ?? ($sale->payment_method === 'cash' ? $totalAmount : 0) }}"
+                                            data-transfer="{{ $sale->transfer_amount ?? ($sale->payment_method === 'transfer' ? $totalAmount : 0) }}"
+                                            data-items="{{ json_encode($items) }}">
+                                            <td class="px-4 py-3 whitespace-nowrap border-l-4 border-blue-500">
+                                                <div class="text-sm font-bold text-gray-900">{{ $sale->created_at->format('d/m/Y') }}</div>
+                                                <div class="text-[10px] font-medium text-gray-400 uppercase">{{ $sale->created_at->format('h:i A') }}</div>
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <div class="text-sm font-bold text-blue-600">VENTA POS DE PRODUCTOS</div>
+                                                <div class="flex items-center text-[11px] text-gray-500">
+                                                    <i class="fas fa-shopping-bag mr-1 opacity-50"></i>
+                                                    {{ $sale->customer_name ?: 'Venta Mostrador' }}
+                                                </div>
+                                            </td>
+                                            @if($isAdmin)
+                                            <td class="px-4 py-3">
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-blue-100 text-blue-600 border border-blue-200">
+                                                    SISTEMA POS
                                                 </span>
+                                            </td>
+                                            @endif
+                                            <td class="px-4 py-3">
+                                                @if($sale->payment_method === 'cash')
+                                                    <span class="inline-flex items-center text-[10px] font-bold text-green-600">
+                                                        <i class="fas fa-money-bill-wave mr-1"></i> Efectivo
+                                                    </span>
+                                                @elseif($sale->payment_method === 'transfer')
+                                                    <span class="inline-flex items-center text-[10px] font-bold text-blue-600">
+                                                        <i class="fas fa-university mr-1"></i> Cuenta
+                                                    </span>
+                                                @elseif($sale->payment_method === 'hybrid')
+                                                    <div class="flex flex-col">
+                                                        <span class="inline-flex items-center text-[10px] font-bold text-purple-600">
+                                                            <i class="fas fa-layer-group mr-1"></i> Híbrido
+                                                        </span>
+                                                        <span class="text-[9px] text-gray-400">
+                                                            ${{ number_format($sale->cash_amount, 0) }} E / ${{ number_format($sale->transfer_amount, 0) }} C
+                                                        </span>
+                                                    </div>
+                                                @endif
+                                            </td>
+                                            <td class="px-4 py-3 whitespace-nowrap text-right">
+                                                <div class="flex items-center justify-end space-x-2">
+                                                    <button onclick="showItemsDetail(this)" class="text-[9px] bg-blue-50 hover:bg-blue-100 text-blue-600 px-2 py-1 rounded font-black transition-colors uppercase">Ver más</button>
+                                                    <span class="text-sm font-black text-blue-900 bg-blue-50 px-3 py-1 rounded-lg border border-blue-100 shadow-sm">
+                                                        ${{ number_format($totalAmount, 0, ',', '.') }}
+                                                    </span>
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -483,6 +564,31 @@
                         Cerrar Analizador
                     </button>
                 </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Detalle de Transacción -->
+<div id="modalDetalleTransaccion" class="fixed inset-0 z-[70] overflow-y-auto hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-900 bg-opacity-75 transition-opacity" aria-hidden="true" onclick="document.getElementById('modalDetalleTransaccion').classList.add('hidden')"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div class="relative inline-block align-middle bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:max-w-md w-full border border-gray-100 italic">
+            <div class="bg-pink-600 px-6 py-4 flex items-center justify-between">
+                <h3 class="text-lg font-bold text-white uppercase tracking-tighter">Detalle de Productos</h3>
+                <button type="button" onclick="document.getElementById('modalDetalleTransaccion').classList.add('hidden')" class="text-white hover:text-pink-100 transition-colors">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+            <div class="p-6">
+                <div id="detalleTransaccionContent" class="space-y-4">
+                    <!-- Aquí se inyecta el contenido por JS -->
+                </div>
+            </div>
+            <div class="bg-gray-50 px-6 py-4 flex justify-end">
+                <button type="button" onclick="document.getElementById('modalDetalleTransaccion').classList.add('hidden')" class="px-6 py-2 bg-white border border-gray-300 rounded-lg text-xs font-black text-gray-700 hover:bg-gray-100 transition-all uppercase">Cerrar</button>
             </div>
         </div>
     </div>
@@ -598,6 +704,42 @@ document.addEventListener('DOMContentLoaded', function() {
 function openProductionModal() {
     document.getElementById('modalProducido').classList.remove('hidden');
     filterProduction();
+}
+
+// Función para mostrar detalle de items
+function showItemsDetail(btn) {
+    const row = btn.closest('tr');
+    const items = JSON.parse(row.getAttribute('data-items') || '[]');
+    const content = document.getElementById('detalleTransaccionContent');
+    
+    let html = '';
+    let total = 0;
+    
+    items.forEach(item => {
+        const sub = item.qty * item.price;
+        total += sub;
+        html += `
+            <div class="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+                <div>
+                    <p class="text-sm font-bold text-gray-800">${item.name}</p>
+                    <p class="text-[10px] text-gray-400 uppercase font-bold">${item.qty} x $${new Intl.NumberFormat('es-CO').format(item.price)}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-black text-pink-600">$${new Intl.NumberFormat('es-CO').format(sub)}</p>
+                </div>
+            </div>
+        `;
+    });
+
+    html += `
+        <div class="pt-4 mt-2 border-t-2 border-pink-100 flex justify-between items-center">
+            <p class="text-xs font-black text-gray-400 uppercase tracking-widest">Total Transacción</p>
+            <p class="text-lg font-black text-gray-900">$${new Intl.NumberFormat('es-CO').format(total)}</p>
+        </div>
+    `;
+
+    content.innerHTML = html;
+    document.getElementById('modalDetalleTransaccion').classList.remove('hidden');
 }
 </script>
 
