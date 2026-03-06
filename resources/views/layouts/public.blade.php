@@ -29,12 +29,11 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            z-index: -1;
-            opacity: 0.05;
+            z-index: 0; /* Lower than most content but potentially above basic backgrounds if not explicitly layered */
+            opacity: 0.1; /* Slightly more visible */
             pointer-events: none;
-            width: 80vw;
-            max-width: 600px;
-            filter: grayscale(100%) contrast(120%);
+            width: 70vw;
+            max-width: 500px;
         }
     </style>
     @stack('styles')
