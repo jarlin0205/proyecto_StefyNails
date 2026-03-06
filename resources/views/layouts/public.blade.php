@@ -12,6 +12,19 @@
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}?v=public">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @keyframes gradientSweep {
+            0% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .designer-link:hover {
+            background: linear-gradient(90deg, #db2777, #f472b6, #db2777);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientSweep 1.5s linear infinite;
+        }
+    </style>
     @stack('styles')
 </head>
 <body class="bg-white font-sans antialiased scroll-smooth">
@@ -82,7 +95,7 @@
     <!-- Footer -->
     <footer class="bg-gray-900 text-white py-8 mt-auto">
         <div class="max-w-7xl mx-auto px-4 text-center">
-            <p>&copy; {{ date('Y') }} Stefy Nails. Todos los derechos reservados. | Web Design: <a href="https://wa.me/573004879915" class="inline-block hover:text-pink-400 hover:scale-110 transition-all duration-300 font-bold transform" target="_blank">Ing. Jarlin Jusel Esquivel (3004879915)</a></p>
+            <p>&copy; {{ date('Y') }} Stefy Nails. Todos los derechos reservados. | Web Design: <a href="https://wa.me/573004879915" class="inline-block transition-all duration-300 font-bold designer-link" target="_blank">Ing. Jarlin Jusel Esquivel (3004879915)</a></p>
         </div>
     </footer>
     
