@@ -21,8 +21,14 @@
         <div id="sidebar-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden transition-opacity duration-300"></div>
 
         <!-- Sidebar -->
-        <aside id="sidebar" class="fixed inset-y-0 left-0 lg:relative lg:translate-x-0 -translate-x-full group w-64 lg:w-20 lg:hover:w-64 bg-pink-900 text-white flex flex-col transition-all duration-300 ease-in-out z-50">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 lg:relative lg:translate-x-0 group w-64 lg:w-20 lg:hover:w-64 bg-pink-900 text-white flex flex-col transition-all duration-300 ease-in-out z-50 shadow-2xl lg:shadow-none" style="transform: translateX(-100%);">
             <style>
+                #sidebar { transform: translateX(-100%); transition: transform 0.3s ease-in-out; }
+                @media (min-width: 1024px) {
+                    #sidebar { transform: translateX(0) !important; }
+                }
+                #sidebar.active { transform: translateX(0) !important; }
+                
                 .sidebar-logo { width: 40px; height: 40px; transition: all 0.3s; }
                 @media (min-width: 1024px) {
                     .group:hover .sidebar-logo { width: 80px; height: 80px; }
@@ -31,9 +37,9 @@
                     .sidebar-logo { width: 60px; height: 60px; }
                 }
             </style>
-            <div class="p-4 text-center border-b border-pink-800 overflow-hidden flex justify-center items-center h-[120px]">
+            <div class="p-4 text-center border-b border-pink-800 overflow-hidden flex justify-center items-center h-[120px] relative">
                 <img src="{{ asset('logo.jpg') }}" alt="Stefy Nails Logo" class="sidebar-logo object-cover rounded-full shadow-lg border-2 border-pink-700">
-                <button id="close-sidebar" class="lg:hidden absolute top-4 right-4 text-pink-300 hover:text-white">
+                <button id="close-sidebar" class="lg:hidden absolute top-4 right-4 text-pink-300 hover:text-white p-2">
                     <i class="fas fa-times text-2xl"></i>
                 </button>
             </div>
@@ -243,7 +249,7 @@
             const backdrop = document.getElementById('sidebar-backdrop');
 
             function toggleSidebar() {
-                sidebar.classList.toggle('-translate-x-full');
+                sidebar.classList.toggle('active');
                 backdrop.classList.toggle('hidden');
             }
 
