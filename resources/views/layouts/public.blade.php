@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stefy Nails - @yield('title', 'Inicio')</title>
+    <meta property="og:title" content="Stefy Nails - Spa y Cuidado">
+    <meta property="og:description" content="Agenda tu cita con nosotros y dale a tus uñas el estilo que merecen.">
+    <meta property="og:url" content="https://stefynails.online">
+    <meta property="og:type" content="website">
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}?v=public">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

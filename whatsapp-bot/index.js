@@ -147,10 +147,10 @@ client.on('message', async (msg) => {
                     userState.state = STATES.IDLE;
                     return msg.reply(`🌟 *Bienvenido al Bot de Stefy Nails* 🌟\n\nHola *${res.customer_name}*, podemos ayudarte a gestionar tu cita con estos comandos:\n\n1️⃣ *CANCELAR*\n2️⃣ *REPROGRAMAR*\n\n_Escribe "MENU" para volver a ver esto._`);
                 } else {
-                    return msg.reply(`🌸 *¡Hola!* 🌸\n\nNo encontramos una cita activa vinculada a este número. ¡Nos encantaría atenderte! ✨\n\nPuedes agendar tu cita fácilmente aquí:\n🔗 https://stefynails.online\n\n¡Te esperamos! 💖`);
+                    return msg.reply(`🌸 *¡Hola!* 🌸\n\nNo encontramos una cita activa vinculada a este número. ¡Nos encantaría atenderte! ✨\n\nPuedes agendar tu cita fácilmente aquí:\n🔗 https://stefynails.online/?ref=bot\n\n¡Te esperamos! 💖`);
                 }
             } catch (err) {
-                return msg.reply(`🌸 *¡Hola!* 🌸\n\nParece que no tienes citas activas. ¡Te invitamos a agendar una en nuestra web! ✨\n\n🔗 https://stefynails.online\n\n¡Gracias! 💖`);
+                return msg.reply(`🌸 *¡Hola!* 🌸\n\nParece que no tienes citas activas. ¡Te invitamos a agendar una en nuestra web! ✨\n\n🔗 https://stefynails.online/?ref=bot\n\n¡Gracias! 💖`);
             }
         }
 
