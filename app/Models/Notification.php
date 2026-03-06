@@ -11,6 +11,7 @@ class Notification extends Model
 
     protected $fillable = [
         'appointment_id',
+        'product_id',
         'title',
         'message',
         'is_read',
@@ -21,5 +22,10 @@ class Notification extends Model
     public function appointment()
     {
         return $this->belongsTo(Appointment::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
     }
 }

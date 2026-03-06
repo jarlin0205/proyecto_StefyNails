@@ -11,9 +11,12 @@ class NotificationController extends Controller
     {
         $user = auth()->user();
         
-        // Base query for notifications that require attention (pending)
-        $query = Notification::whereHas('appointment', function($q) {
-            $q->whereIn('status', ['pending_admin', 'pending_client']);
+        // Base query for notifications: Pending appointments OR Generic alerts (stock, etc)
+        $query = Notification::where(function($q) {
+            $q->whereNull('appointment_id')
+              ->orWhereHas('appointment', function($sub) {
+                  $sub->whereIn('status', ['pending_admin', 'pending_client']);
+              });
         });
 
         // Filter by professional if it's an employee
@@ -27,7 +30,7 @@ class NotificationController extends Controller
         (clone $query)->where('is_read', false)->update(['is_read' => true]);
 
         // Paginate the filtered notifications
-        $notifications = $query->with('appointment.service', 'appointment.professional')
+        $notifications = $query->with('appointment.service', 'appointment.professional', 'product')
             ->latest()
             ->paginate(10);
 

@@ -23,13 +23,35 @@
                             <div class="flex justify-between items-start">
                                 <div>
                                     @if($notification->action_url)
-                                        <a href="{{ $notification->action_url }}" class="block hover:bg-gray-50 transition">
-                                            <p class="text-pink-600 font-bold whitespace-no-wrap hover:underline">{{ $notification->title }}</p>
-                                            <p class="text-gray-600">{{ $notification->message }}</p>
+                                        <a href="{{ $notification->action_url }}" class="flex items-start p-2 rounded hover:bg-gray-50 transition border border-transparent hover:border-pink-100">
+                                            @if($notification->type === 'warning' || $notification->product_id)
+                                                <div class="flex-shrink-0 bg-yellow-100 p-2 rounded-full mr-3 text-yellow-600">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                    </svg>
+                                                </div>
+                                            @else
+                                                <div class="flex-shrink-0 bg-pink-100 p-2 rounded-full mr-3 text-pink-600">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                </div>
+                                            @endif
+                                            <div>
+                                                <p class="text-pink-600 font-black text-sm uppercase tracking-tight">{{ $notification->title }}</p>
+                                                <p class="text-gray-600 text-xs">{{ $notification->message }}</p>
+                                            </div>
                                         </a>
                                     @else
-                                        <p class="text-gray-900 whitespace-no-wrap font-semibold">{{ $notification->title }}</p>
-                                        <p class="text-gray-600">{{ $notification->message }}</p>
+                                        <div class="flex items-start">
+                                            <div class="flex-shrink-0 bg-gray-100 p-2 rounded-full mr-3 text-gray-400">
+                                                <i class="fas fa-bell"></i>
+                                            </div>
+                                            <div>
+                                                <p class="text-gray-900 font-semibold">{{ $notification->title }}</p>
+                                                <p class="text-gray-600 text-xs">{{ $notification->message }}</p>
+                                            </div>
+                                        </div>
                                     @endif
                                 </div>
 
