@@ -16,15 +16,26 @@
     @stack('styles')
 </head>
 <body class="bg-gray-100 font-sans antialiased">
-    <div class="flex h-screen overflow-hidden">
+    <div class="flex h-screen overflow-hidden relative">
+        <!-- Mobile Sidebar Backdrop -->
+        <div id="sidebar-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden transition-opacity duration-300"></div>
+
         <!-- Sidebar -->
-        <aside class="group w-20 hover:w-64 bg-pink-900 text-white flex flex-col transition-all duration-300 ease-in-out z-50">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 lg:relative lg:translate-x-0 -translate-x-full group w-64 lg:w-20 lg:hover:w-64 bg-pink-900 text-white flex flex-col transition-all duration-300 ease-in-out z-50">
             <style>
                 .sidebar-logo { width: 40px; height: 40px; transition: all 0.3s; }
-                .group:hover .sidebar-logo { width: 80px; height: 80px; }
+                @media (min-width: 1024px) {
+                    .group:hover .sidebar-logo { width: 80px; height: 80px; }
+                }
+                @media (max-width: 1023px) {
+                    .sidebar-logo { width: 60px; height: 60px; }
+                }
             </style>
             <div class="p-4 text-center border-b border-pink-800 overflow-hidden flex justify-center items-center h-[120px]">
                 <img src="{{ asset('logo.jpg') }}" alt="Stefy Nails Logo" class="sidebar-logo object-cover rounded-full shadow-lg border-2 border-pink-700">
+                <button id="close-sidebar" class="lg:hidden absolute top-4 right-4 text-pink-300 hover:text-white">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
             </div>
             <nav class="flex-1 px-3 py-6 space-y-2 overflow-y-auto scrollbar-hide">
                 <!-- Panel de Control -->
@@ -32,7 +43,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                     </svg>
-                    <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Panel de Control</span>
+                    <span class="ml-4 font-medium lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Panel de Control</span>
                 </a>
 
                 @if(auth()->user()->isAdmin())
@@ -41,7 +52,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Finanzas (Gastos)</span>
+                        <span class="ml-4 font-medium lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Finanzas (Gastos)</span>
                     </a>
                 @endif
 
@@ -50,7 +61,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Citas</span>
+                    <span class="ml-4 font-medium lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Citas</span>
                 </a>
 
                 <!-- Disponibilidad -->
@@ -58,7 +69,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Disponibilidad</span>
+                    <span class="ml-4 font-medium lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Disponibilidad</span>
                 </a>
 
                 @if(auth()->user()->isAdmin())
@@ -67,7 +78,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                         </svg>
-                        <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Categorías</span>
+                        <span class="ml-4 font-medium lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Categorías</span>
                     </a>
 
                     <!-- Servicios -->
@@ -75,7 +86,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                         </svg>
-                        <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Servicios</span>
+                        <span class="ml-4 font-medium lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Servicios</span>
                     </a>
 
                     <!-- Profesionales -->
@@ -83,25 +94,25 @@
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
-                        <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Profesionales</span>
+                        <span class="ml-4 font-medium lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Profesionales</span>
                     </a>
 
                     <!-- Inventario -->
                     <div class="pt-2 pb-2">
-                        <div class="px-4 py-2 text-[10px] font-bold text-pink-400 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-300">Inventario</div>
+                        <div class="px-4 py-2 text-[10px] font-bold text-pink-400 uppercase tracking-widest lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300">Inventario</div>
                         
                         <a href="{{ route('admin.product-categories.index') }}" class="flex items-center px-4 py-3 rounded hover:bg-pink-800 transition-colors group/link {{ request()->routeIs('admin.product-categories.*') ? 'bg-pink-800' : '' }}">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                             </svg>
-                            <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Categorías Prod.</span>
+                            <span class="ml-4 font-medium lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Categorías Prod.</span>
                         </a>
 
                         <a href="{{ route('admin.products.index') }}" class="flex items-center px-4 py-3 rounded hover:bg-pink-800 transition-colors group/link {{ request()->routeIs('admin.products.*') ? 'bg-pink-800' : '' }}">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                             </svg>
-                            <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Productos</span>
+                            <span class="ml-4 font-medium lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Productos</span>
                         </a>
                     </div>
                 @endif
@@ -118,17 +129,23 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
-                    <span class="ml-4 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Cerrar Sesión</span>
+                    <span class="ml-4 font-medium lg:opacity-0 lg:group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Cerrar Sesión</span>
                 </a>
             </div>
         </aside>
 
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden">
+        <div class="flex-1 flex flex-col overflow-hidden w-full">
             <!-- Topbar -->
-            <header class="bg-white shadow">
-                <div class="px-6 py-4 flex justify-between items-center">
-                    <h1 class="text-xl font-semibold text-gray-800">@yield('header')</h1>
+            <header class="bg-white shadow z-30">
+                <div class="px-4 lg:px-6 py-4 flex justify-between items-center gap-4">
+                    <div class="flex items-center gap-3">
+                        <button id="open-sidebar" class="lg:hidden text-gray-600 hover:text-pink-600">
+                            <i class="fas fa-bars text-2xl"></i>
+                        </button>
+                        <h1 class="text-lg lg:text-xl font-semibold text-gray-800 truncate">@yield('header')</h1>
+                    </div>
+                    
                     <div class="flex items-center space-x-4">
                         <!-- Test Mode Toggle (Admin Only) -->
                         @if(auth()->user()->isAdmin())
@@ -157,7 +174,7 @@
                                 </span>
                             @endif
                         </a>
-                        <div class="flex flex-col items-end leading-tight">
+                        <div class="hidden sm:flex flex-col items-end leading-tight">
                             <span class="text-gray-800 font-bold text-sm">{{ auth()->user()->name }}</span>
                             <span class="text-pink-600 text-[10px] uppercase font-black tracking-widest">
                                 {{ auth()->user()->role === 'admin' ? 'Administrador(a)' : 'Empleado(a)' }}
@@ -168,7 +185,7 @@
             </header>
 
             <!-- Page Content -->
-            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-4 lg:p-6">
                 @yield('content')
             </main>
         </div>
@@ -218,6 +235,21 @@
                     @endif
                 });
             @endif
+
+            // Sidebar Toggle Logic
+            const openBtn = document.getElementById('open-sidebar');
+            const closeBtn = document.getElementById('close-sidebar');
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+
+            function toggleSidebar() {
+                sidebar.classList.toggle('-translate-x-full');
+                backdrop.classList.toggle('hidden');
+            }
+
+            if(openBtn) openBtn.addEventListener('click', toggleSidebar);
+            if(closeBtn) closeBtn.addEventListener('click', toggleSidebar);
+            if(backdrop) backdrop.addEventListener('click', toggleSidebar);
         });
     </script>
 </body>
