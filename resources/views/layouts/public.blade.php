@@ -29,11 +29,12 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            z-index: 0; /* Lower than most content but potentially above basic backgrounds if not explicitly layered */
-            opacity: 0.1; /* Slightly more visible */
+            z-index: 50; /* Above section backgrounds, but below navbar (z-100) */
+            opacity: 0.04; /* Very subtle so it doesn't block text */
             pointer-events: none;
-            width: 70vw;
-            max-width: 500px;
+            width: 80vw;
+            max-width: 600px;
+            filter: grayscale(100%);
         }
     </style>
     @stack('styles')
