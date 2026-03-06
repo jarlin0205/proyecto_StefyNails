@@ -76,16 +76,80 @@ class SaleController extends Controller
         });
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $posSales = Sale::with('items.product')->latest()->paginate(15, ['*'], 'pos_page');
-        
-        $appointmentSales = \App\Models\Appointment::where('status', 'completed')
-            ->whereHas('products')
-            ->with(['products', 'service'])
-            ->latest()
-            ->paginate(15, ['*'], 'app_page');
+        $type = $request->get('type', 'all');
+        $allSales = collect();
 
-        return view('admin.sales.index', compact('posSales', 'appointmentSales'));
+        // 1. Get POS Sales
+        if ($type === 'all' || $type === 'pos') {
+            $sales = Sale::with('items.product')->latest()->get();
+            foreach ($sales as $sale) {
+                $allSales->push((object)[
+                    'id' => $sale->id,
+                    'type' => 'pos',
+                    'type_label' => 'Venta POS',
+                    'customer' => $sale->customer_name ?: 'Venta Directa',
+                    'phone' => $sale->customer_phone,
+                    'items' => $sale->items->map(fn($i) => (object)[
+                        'name' => $i->product->name,
+                        'quantity' => $i->quantity,
+                        'subtotal' => $i->subtotal
+                    ]),
+                    'payment_method' => $sale->payment_method,
+                    'total' => $sale->total,
+                    'date' => $sale->created_at,
+                    'original_id' => $sale->id
+                ]);
+            }
+        }
+
+        // 2. Get Appointment Sales
+        if ($type === 'all' || $type === 'appointment') {
+            $appointments = \App\Models\Appointment::where('status', 'completed')
+                ->whereHas('products')
+                ->with(['products', 'service'])
+                ->latest()
+                ->get();
+
+            foreach ($appointments as $app) {
+                $allSales->push((object)[
+                    'id' => $app->id,
+                    'type' => 'appointment',
+                    'type_label' => 'Servicio',
+                    'customer' => $app->customer_name,
+                    'phone' => $app->customer_phone,
+                    'service' => $app->service ? $app->service->name : 'N/A',
+                    'items' => $app->products->map(fn($p) => (object)[
+                        'name' => $p->name,
+                        'quantity' => $p->pivot->quantity,
+                        'subtotal' => $p->pivot->unit_price * $p->pivot->quantity
+                    ]),
+                    'payment_method' => $app->payment_method,
+                    'total' => $app->products_total, // Solo el total de productos vendido en la cita
+                    'date' => $app->appointment_date,
+                    'original_id' => $app->id
+                ]);
+            }
+        }
+
+        // Sort by date descending
+        $sortedSales = $allSales->sortByDesc('date');
+
+        // Manual Pagination
+        $perPage = 15;
+        $page = $request->get('page', 1);
+        $paginatedSales = new \Illuminate\Pagination\LengthAwarePaginator(
+            $sortedSales->forPage($page, $perPage),
+            $sortedSales->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
+
+        return view('admin.sales.index', [
+            'sales' => $paginatedSales,
+            'currentType' => $type
+        ]);
     }
 }
