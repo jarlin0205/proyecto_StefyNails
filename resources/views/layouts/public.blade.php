@@ -22,7 +22,7 @@
                 <!-- Logo -->
                 <div class="flex-shrink-0 flex items-center">
                      <a href="{{ route('home') }}" class="flex items-center gap-2 text-2xl font-bold text-pink-600 hover:text-pink-700 transition">
-                        <img src="{{ asset('logo.jpg') }}" alt="Stefy Nails Logo" class="h-14 w-14 object-cover rounded-full border border-pink-200 shadow-sm">
+                        <img src="{{ asset('logo.jpg') }}" alt="Stefy Nails Logo" style="width: 50px; height: 50px;" class="object-cover rounded-full border border-pink-200 shadow-sm">
                         <span class="hidden sm:inline">Stefy Nails</span>
                      </a>
                 </div>

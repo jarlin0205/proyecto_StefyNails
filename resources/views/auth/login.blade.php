@@ -10,7 +10,7 @@
 <body class="bg-pink-50 h-screen flex items-center justify-center">
     <div class="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
         <div class="text-center mb-6 flex flex-col items-center">
-            <img src="{{ asset('logo.jpg') }}" alt="Stefy Nails Logo" class="h-36 w-36 object-cover rounded-full border-4 border-pink-100 shadow-md mb-3">
+            <img src="{{ asset('logo.jpg') }}" alt="Stefy Nails Logo" style="width: 120px; height: 120px;" class="object-cover rounded-full border-4 border-pink-100 shadow-md mb-3">
             <h1 class="text-3xl font-bold text-pink-600">Stefy Nails</h1>
             <p class="text-gray-600">Acceso Administrativo</p>
         </div>
