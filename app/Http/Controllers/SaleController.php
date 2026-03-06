@@ -78,7 +78,14 @@ class SaleController extends Controller
 
     public function index()
     {
-        $sales = Sale::with('items.product')->latest()->paginate(15);
-        return view('admin.sales.index', compact('sales'));
+        $posSales = Sale::with('items.product')->latest()->paginate(15, ['*'], 'pos_page');
+        
+        $appointmentSales = \App\Models\Appointment::where('status', 'completed')
+            ->whereHas('products')
+            ->with(['products', 'service'])
+            ->latest()
+            ->paginate(15, ['*'], 'app_page');
+
+        return view('admin.sales.index', compact('posSales', 'appointmentSales'));
     }
 }
