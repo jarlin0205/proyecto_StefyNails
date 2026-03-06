@@ -19,9 +19,8 @@
     <div class="flex h-screen overflow-hidden">
         <!-- Sidebar -->
         <aside class="group w-20 hover:w-64 bg-pink-900 text-white flex flex-col transition-all duration-300 ease-in-out z-50">
-            <div class="p-6 text-2xl font-bold text-center border-b border-pink-800 overflow-hidden whitespace-nowrap">
-                <span class="group-hover:hidden">SN</span>
-                <span class="hidden group-hover:inline">Stefy Nails</span>
+            <div class="p-4 text-center border-b border-pink-800 overflow-hidden flex justify-center items-center h-[88px]">
+                <img src="{{ asset('logo.jpg') }}" alt="Stefy Nails Logo" class="h-10 w-10 group-hover:h-14 group-hover:w-14 object-cover rounded-full shadow-lg border-2 border-pink-700 transition-all duration-300">
             </div>
             <nav class="flex-1 px-3 py-6 space-y-2 overflow-y-auto scrollbar-hide">
                 <!-- Panel de Control -->

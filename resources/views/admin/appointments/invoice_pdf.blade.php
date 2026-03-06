@@ -94,6 +94,7 @@
 </head>
 <body>
     <div class="header">
+        <img src="data:image/jpeg;base64,{{ base64_encode(file_get_contents(public_path('logo.jpg'))) }}" alt="Stefy Nails Logo" style="height: 80px; width: 80px; object-fit: cover; border-radius: 50%; margin-bottom: 10px;">
         <div class="logo">Stefy Nails</div>
         <div class="subtitle">Especialistas en Belleza y Cuidado</div>
     </div>

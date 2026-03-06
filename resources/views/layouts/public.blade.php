@@ -8,6 +8,7 @@
     <meta property="og:description" content="Expertos en uñas, cabello, maquillaje, peinados y spa. ¡Agenda tu cita hoy mismo!">
     <meta property="og:url" content="https://stefynails.online">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="{{ asset('logo.jpg') }}">
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}?v=public">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -20,8 +21,9 @@
             <div class="flex justify-between h-16">
                 <!-- Logo -->
                 <div class="flex-shrink-0 flex items-center">
-                     <a href="{{ route('home') }}" class="text-2xl font-bold text-pink-600 hover:text-pink-700 transition">
-                        Stefy Nails
+                     <a href="{{ route('home') }}" class="flex items-center gap-2 text-2xl font-bold text-pink-600 hover:text-pink-700 transition">
+                        <img src="{{ asset('logo.jpg') }}" alt="Stefy Nails Logo" class="h-10 w-10 object-cover rounded-full border border-pink-200 shadow-sm">
+                        <span class="hidden sm:inline">Stefy Nails</span>
                      </a>
                 </div>
                 
