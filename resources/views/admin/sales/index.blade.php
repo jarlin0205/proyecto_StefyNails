@@ -11,7 +11,7 @@
             <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
                     <h1 class="text-2xl font-black text-white uppercase tracking-wider">Historial de Ventas</h1>
-                    <p class="text-pink-100 text-sm mt-1">Monitoreo de ingresos por productos (POS y Servicios)</p>
+                    <p class="text-black text-sm mt-1 font-bold">Monitoreo de ingresos por productos (POS y Servicios)</p>
                 </div>
                 <div class="flex items-center gap-3">
                     <a href="{{ route('admin.pos') }}" class="bg-white text-pink-600 hover:bg-pink-50 font-bold py-2.5 px-6 rounded-lg shadow-sm transition-all flex items-center space-x-2 active:scale-95">

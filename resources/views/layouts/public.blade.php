@@ -30,11 +30,11 @@
             left: 50%;
             transform: translate(-50%, -50%);
             z-index: 50; /* Above section backgrounds, but below navbar (z-100) */
-            opacity: 0.04; /* Very subtle so it doesn't block text */
+            opacity: 0.07; /* Slightly more visible as requested */
             pointer-events: none;
             width: 80vw;
             max-width: 600px;
-            filter: grayscale(100%);
+            filter: grayscale(100%) contrast(1.1);
         }
     </style>
     @stack('styles')
