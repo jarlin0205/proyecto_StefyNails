@@ -23,23 +23,46 @@ class AppServiceProvider extends ServiceProvider
             $user = auth()->user();
             if (!$user) return;
 
-            // Generate low stock notifications for admin
+            // Generate/Update low stock notifications for admin
             if ($user->role === 'admin') {
+                // 1. Find low stock products
                 $lowStockProducts = \App\Models\Product::where('stock', '<', 5)->get();
+                $processedProductIds = [];
+
                 foreach ($lowStockProducts as $product) {
-                    $exists = \App\Models\Notification::where('product_id', $product->id)
-                        ->where('is_read', false)
-                        ->exists();
-                    if (!$exists) {
+                    $processedProductIds[] = $product->id;
+                    
+                    // Find all existing notifications for this product to dedup
+                    $productNotifications = \App\Models\Notification::where('product_id', $product->id)->get();
+                    
+                    $msg = 'El stock de este producto es de ' . $product->stock . ' unidades. Se recomienda hacer pedido.';
+                    
+                    if ($productNotifications->isEmpty()) {
                         \App\Models\Notification::create([
                             'product_id' => $product->id,
                             'title'      => 'Stock Bajo: ' . $product->name,
-                            'message'    => 'El stock de este producto es de ' . $product->stock . ' unidades. Se recomienda hacer pedido.',
+                            'message'    => $msg,
                             'type'       => 'warning',
                             'action_url' => route('admin.products.index')
                         ]);
+                    } else {
+                        // Keep the first one and delete any duplicates
+                        $notification = $productNotifications->shift();
+                        foreach ($productNotifications as $dup) {
+                            $dup->delete();
+                        }
+                        
+                        // Update the message of the remaining one if it changed
+                        if ($notification->message !== $msg) {
+                            $notification->update(['message' => $msg]);
+                        }
                     }
                 }
+
+                // 2. Delete notifications for products that are no longer low stock
+                \App\Models\Notification::whereNotNull('product_id')
+                    ->whereNotIn('product_id', $processedProductIds)
+                    ->delete();
             }
 
             // Count unread notifications
