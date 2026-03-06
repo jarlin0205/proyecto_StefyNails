@@ -24,10 +24,27 @@
             -webkit-text-fill-color: transparent;
             animation: gradientSweep 1.5s linear infinite;
         }
+        .watermark-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+            opacity: 0.05;
+            pointer-events: none;
+            width: 80vw;
+            max-width: 600px;
+            filter: grayscale(100%) contrast(120%);
+        }
     </style>
     @stack('styles')
 </head>
 <body class="bg-white font-sans antialiased scroll-smooth">
+    <!-- Watermark Background -->
+    <div class="watermark-container">
+        <img src="{{ asset('logo.jpg') }}" alt="Watermark" class="w-full h-auto rounded-full">
+    </div>
+
     <!-- Navbar -->
     <nav class="bg-white shadow-md fixed w-full z-[100] top-0 left-0 border-b border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
