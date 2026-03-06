@@ -65,25 +65,24 @@ class AppServiceProvider extends ServiceProvider
                     ->delete();
             }
 
-            // Count unread notifications
-            // We show all unread for admin, or filtered for employees
-            $query = \App\Models\Notification::where('is_read', false);
-
-            // If it has an appointment, only show if it needs attention
-            $query->where(function($q) {
-                $q->whereNull('appointment_id')
-                  ->orWhereHas('appointment', function($sub) {
-                      $sub->whereIn('status', ['pending_admin', 'pending_client']);
-                  });
-            });
-
-            if ($user->role === 'employee' && $user->professional) {
-                $query->whereHas('appointment', function($q) use ($user) {
-                    $q->where('professional_id', $user->professional->id);
+            // Count Notifications for the badge
+            // 1. Unread & Pending Appointments
+            $appointmentsQuery = \App\Models\Notification::where('is_read', false)
+                ->whereHas('appointment', function($q) use ($user) {
+                    $q->whereIn('status', ['pending_admin', 'pending_client']);
+                    if ($user->role === 'employee' && $user->professional) {
+                        $q->where('professional_id', $user->professional->id);
+                    }
                 });
+
+            // 2. Active Stock Alerts (Only for Admin, always count until deleted)
+            $stockAlertsCount = 0;
+            if ($user->role === 'admin') {
+                $stockAlertsCount = \App\Models\Notification::whereNotNull('product_id')->count();
             }
 
-            $unreadNotificationsCount = $query->count();
+            $unreadNotificationsCount = $appointmentsQuery->count() + $stockAlertsCount;
+            
             $services = \App\Models\Service::all();
             $view->with('unreadNotificationsCount', $unreadNotificationsCount)
                  ->with('allServices', $services);
