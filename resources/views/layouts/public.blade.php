@@ -82,7 +82,7 @@
     <!-- Footer -->
     <footer class="bg-gray-900 text-white py-8 mt-auto">
         <div class="max-w-7xl mx-auto px-4 text-center">
-            <p>&copy; {{ date('Y') }} Stefy Nails. Todos los derechos reservados.</p>
+            <p>&copy; {{ date('Y') }} Stefy Nails. Todos los derechos reservados. | Web Design: <a href="https://wa.me/573004879915" class="hover:text-pink-400 transition-colors font-semibold" target="_blank">Ing. Jarlin Jusel Esquivel (3004879915)</a></p>
         </div>
     </footer>
     
