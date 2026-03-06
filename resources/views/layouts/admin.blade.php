@@ -21,13 +21,15 @@
         <div id="sidebar-backdrop" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden transition-opacity duration-300"></div>
 
         <!-- Sidebar -->
-        <aside id="sidebar" class="fixed inset-y-0 left-0 lg:relative lg:translate-x-0 group w-64 lg:w-20 lg:hover:w-64 bg-pink-900 text-white flex flex-col transition-all duration-300 ease-in-out z-50 shadow-2xl lg:shadow-none" style="transform: translateX(-100%);">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 lg:relative lg:translate-x-0 group w-64 lg:w-20 lg:hover:w-64 bg-pink-900 text-white flex flex-col transition-all duration-300 ease-in-out z-50 shadow-2xl lg:shadow-none">
             <style>
-                #sidebar { transform: translateX(-100%); transition: transform 0.3s ease-in-out; }
-                @media (min-width: 1024px) {
-                    #sidebar { transform: translateX(0) !important; }
+                @media (max-width: 1023px) {
+                    #sidebar { transform: translateX(-100%); }
+                    #sidebar.active { transform: translateX(0) !important; }
                 }
-                #sidebar.active { transform: translateX(0) !important; }
+                @media (min-width: 1024px) {
+                    #sidebar { transform: none !important; position: relative !important; }
+                }
                 
                 .sidebar-logo { width: 40px; height: 40px; transition: all 0.3s; }
                 @media (min-width: 1024px) {
