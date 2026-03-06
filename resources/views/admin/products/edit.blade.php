@@ -37,6 +37,17 @@
 
                 <!-- Precios e Imagen -->
                 <div class="space-y-4">
+                    <div class="grid grid-cols-1 gap-4">
+                        <div>
+                            <label for="purchase_price" class="block text-sm font-medium text-gray-700 mb-1">Precio de Compra (Costo)</label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">$</span>
+                                <input type="number" name="purchase_price" id="purchase_price" value="{{ old('purchase_price', $product->purchase_price) }}" class="w-full pl-7 border-gray-300 rounded-lg shadow-sm focus:border-pink-500 focus:ring-pink-500" step="0.01">
+                            </div>
+                            @error('purchase_price') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label for="price" class="block text-sm font-medium text-gray-700 mb-1">Precio de Venta</label>

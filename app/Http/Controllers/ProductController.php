@@ -33,6 +33,7 @@ class ProductController extends Controller
             'name'                => 'required|string|max:255',
             'description'         => 'nullable|string',
             'price'               => 'required|numeric|min:0',
+            'purchase_price'      => 'nullable|numeric|min:0',
             'stock'               => 'nullable|integer|min:0',
             'image'               => 'nullable|image|max:2048',
         ]);
@@ -61,6 +62,7 @@ class ProductController extends Controller
             'name'                => 'required|string|max:255',
             'description'         => 'nullable|string',
             'price'               => 'required|numeric|min:0',
+            'purchase_price'      => 'nullable|numeric|min:0',
             'stock'               => 'nullable|integer|min:0',
             'image'               => 'nullable|image|max:2048',
         ]);
@@ -90,7 +92,7 @@ class ProductController extends Controller
     public function list()
     {
         $products = Product::with('category')
-                           ->select('id', 'name', 'price', 'stock', 'product_category_id')
+                           ->select('id', 'name', 'price', 'purchase_price', 'stock', 'product_category_id')
                            ->orderBy('name')
                            ->get()
                            ->map(fn ($p) => [

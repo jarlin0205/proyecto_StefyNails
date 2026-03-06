@@ -85,13 +85,17 @@
                     @endif
 
                     <div class="flex items-center justify-between pt-3 border-t border-gray-100">
-                        <div class="flex items-center space-x-2">
-                             <div class="flex items-center text-[10px] text-gray-500 font-bold">
+                        <div class="flex-1">
+                            <div class="flex items-center justify-between text-[10px] text-gray-500 mb-1">
+                                <span>Costo: <span class="text-gray-800 font-bold">${{ number_format($product->purchase_price ?? 0, 0, ',', '.') }}</span></span>
+                                <span>Ganancia: <span class="text-green-600 font-bold">${{ number_format(($product->price - ($product->purchase_price ?? 0)), 0, ',', '.') }}</span></span>
+                            </div>
+                            <div class="flex items-center text-[10px] text-gray-500 font-bold">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                                 </svg>
                                 Stock: <span class="ml-1 {{ $product->stock <= 2 ? 'text-red-600' : 'text-gray-800' }}">{{ $product->stock }}</span>
-                             </div>
+                            </div>
                         </div>
                     </div>
                 </div>
