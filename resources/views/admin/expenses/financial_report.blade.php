@@ -163,6 +163,7 @@
 <body>
     {{-- HEADER --}}
     <div class="header">
+        <img src="data:image/jpeg;base64,{{ base64_encode(file_get_contents(public_path('logo.jpg'))) }}" alt="Stefy Nails Logo" style="height: 120px; width: 120px; object-fit: cover; border-radius: 50%; margin-bottom: 15px;">
         <div class="logo-text"> STEFY NAILS </div>
         <div class="report-subtitle">Reporte de Movimientos Financieros</div>
         <div class="report-period">
