@@ -16,8 +16,8 @@
             </svg>
         </div>
         <div class="ml-3 min-w-0">
-            <h2 class="text-[10px] font-semibold text-gray-400 uppercase truncate" title="Producido">Producido</h2>
-            <p class="text-xl font-bold text-gray-800 truncate">${{ number_format($totalProduced, 2) }}</p>
+            <h2 class="text-[10px] font-semibold text-gray-400 uppercase" title="Producido">Producido</h2>
+            <p class="text-xl font-bold text-gray-800">${{ number_format($totalProduced, 2) }}</p>
         </div>
     </div>
 
@@ -29,8 +29,8 @@
             </svg>
         </div>
         <div class="ml-3 min-w-0">
-            <h2 class="text-[10px] font-semibold text-gray-400 uppercase truncate" title="Pendientes">Pendientes</h2>
-            <p class="text-xl font-bold text-gray-800 truncate">{{ $pendingCount ?? 0 }}</p>
+            <h2 class="text-[10px] font-semibold text-gray-400 uppercase" title="Pendientes">Pendientes</h2>
+            <p class="text-xl font-bold text-gray-800">{{ $pendingCount ?? 0 }}</p>
         </div>
     </a>
 
@@ -42,8 +42,8 @@
             </svg>
         </div>
         <div class="ml-3 min-w-0">
-            <h2 class="text-[10px] font-semibold text-gray-400 uppercase truncate" title="Confirmadas">Confirmadas</h2>
-            <p class="text-xl font-bold text-gray-800 truncate">{{ $confirmedCount ?? 0 }}</p>
+            <h2 class="text-[10px] font-semibold text-gray-400 uppercase" title="Confirmadas">Confirmadas</h2>
+            <p class="text-xl font-bold text-gray-800">{{ $confirmedCount ?? 0 }}</p>
         </div>
     </a>
 
@@ -55,8 +55,8 @@
             </svg>
         </div>
         <div class="ml-3 min-w-0">
-            <h2 class="text-[10px] font-semibold text-gray-400 uppercase truncate" title="Completadas">Completadas</h2>
-            <p class="text-xl font-bold text-gray-800 truncate">{{ $completedCount ?? 0 }}</p>
+            <h2 class="text-[10px] font-semibold text-gray-400 uppercase" title="Completadas">Completadas</h2>
+            <p class="text-xl font-bold text-gray-800">{{ $completedCount ?? 0 }}</p>
         </div>
     </a>
 
@@ -68,7 +68,7 @@
             </svg>
         </div>
         <div class="ml-3 min-w-0 overflow-hidden">
-            <h2 class="text-[10px] font-semibold text-gray-400 uppercase truncate">Ventas POS</h2>
+            <h2 class="text-[10px] font-semibold text-gray-400 uppercase">Ventas POS</h2>
             <div class="flex flex-col">
                 <a href="{{ route('admin.pos') }}" class="text-xs font-black text-pink-600 hover:underline">VENDER AHORA</a>
                 @if(auth()->user()->isAdmin())
@@ -87,8 +87,8 @@
             </svg>
         </div>
         <div class="ml-3 min-w-0">
-            <h2 class="text-[10px] font-semibold text-gray-400 uppercase truncate" title="Servicios">Servicios</h2>
-            <p class="text-xl font-bold text-gray-800 truncate">{{ $servicesCount ?? 0 }}</p>
+            <h2 class="text-[10px] font-semibold text-gray-400 uppercase" title="Servicios">Servicios</h2>
+            <p class="text-xl font-bold text-gray-800">{{ $servicesCount ?? 0 }}</p>
         </div>
     </a>
     @endif
