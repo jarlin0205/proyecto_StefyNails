@@ -42,8 +42,7 @@ class WhatsAppBotController extends Controller
             $phone = preg_replace('/[^0-9]/', '', $validated['phone']);
             $last10 = substr($phone, -10);
             $appointment = Appointment::where(function($q) use ($phone, $last10) {
-                    $q->where('customer_phone', 'LIKE', "%$phone%")
-                      ->orWhere('customer_phone', 'LIKE', "%$last10%");
+                    $q->whereRaw("REPLACE(REPLACE(REPLACE(customer_phone, '+', ''), ' ', ''), '-', '') LIKE ?", ["%$last10"]);
                 })
                 ->where('appointment_date', '>=', now()->startOfDay())
                 ->whereNotIn('status', ['completed', 'cancelled'])
@@ -112,8 +111,7 @@ class WhatsAppBotController extends Controller
             $phone = preg_replace('/[^0-9]/', '', $validated['phone']);
             $last10 = substr($phone, -10);
             $appointment = Appointment::where(function($q) use ($phone, $last10) {
-                    $q->where('customer_phone', 'LIKE', "%$phone%")
-                      ->orWhere('customer_phone', 'LIKE', "%$last10%");
+                    $q->whereRaw("REPLACE(REPLACE(REPLACE(customer_phone, '+', ''), ' ', ''), '-', '') LIKE ?", ["%$last10"]);
                 })
                 ->where('appointment_date', '>=', now()->startOfDay())
                 ->whereNotIn('status', ['completed', 'cancelled'])
@@ -164,9 +162,8 @@ class WhatsAppBotController extends Controller
         $phone = preg_replace('/[^0-9]/', '', $validated['phone']);
         $last10 = substr($phone, -10);
 
-        $appointment = Appointment::where(function($q) use ($phone, $last10) {
-                $q->where('customer_phone', 'LIKE', "%$phone%")
-                  ->orWhere('customer_phone', 'LIKE', "%$last10%");
+        $appointment = Appointment::where(function($q) use ($last10) {
+                $q->whereRaw("REPLACE(REPLACE(REPLACE(customer_phone, '+', ''), ' ', ''), '-', '') LIKE ?", ["%$last10"]);
             })
             ->where('appointment_date', '>=', now()->startOfDay())
             ->whereNotIn('status', ['completed', 'cancelled'])
@@ -247,9 +244,8 @@ class WhatsAppBotController extends Controller
         $phone = preg_replace('/[^0-9]/', '', $validated['phone']);
         $last10 = substr($phone, -10);
 
-        $appointment = Appointment::where(function($q) use ($phone, $last10) {
-                $q->where('customer_phone', 'LIKE', "%$phone%")
-                  ->orWhere('customer_phone', 'LIKE', "%$last10%");
+        $appointment = Appointment::where(function($q) use ($last10) {
+                $q->whereRaw("REPLACE(REPLACE(REPLACE(customer_phone, '+', ''), ' ', ''), '-', '') LIKE ?", ["%$last10"]);
             })
             ->whereDate('appointment_date', Carbon::today())
             ->where('status', 'confirmed') // Solo citas aún confirmadas
