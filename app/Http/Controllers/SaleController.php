@@ -115,7 +115,7 @@ class SaleController extends Controller
 
         \App\Helpers\WhatsAppHelper::sendSaleInvoice($sale, $url, $pdfBase64);
 
-        if (request()->ajax()) {
+        if (request()->expectsJson()) {
             return response()->json(['success' => true, 'message' => 'Comprobante enviado por WhatsApp correctamente.']);
         }
 
