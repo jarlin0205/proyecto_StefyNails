@@ -21,6 +21,7 @@ Route::post('/agendar', [PublicAppointmentController::class, 'store'])->name('ap
 Route::get('/reprogramar/{token}', [PublicAppointmentController::class, 'reschedule'])->name('public.appointments.reschedule');
 Route::post('/reprogramar/{token}', [PublicAppointmentController::class, 'updateReschedule'])->name('public.appointments.updateReschedule');
 Route::get('/appointment-invoice/{appointment}', [AppointmentController::class, 'generateInvoice'])->name('appointments.invoice');
+Route::get('/sale-invoice/{sale}', [\App\Http\Controllers\SaleController::class, 'generateInvoice'])->name('sales.invoice');
 
 
 // Auth Routes
@@ -68,6 +69,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Admin Only Routes
     Route::middleware(['role:admin'])->group(function () {
         Route::get('sales', [\App\Http\Controllers\SaleController::class, 'index'])->name('sales.index');
+        Route::post('sales/{sale}/send-invoice', [\App\Http\Controllers\SaleController::class, 'sendInvoice'])->name('sales.sendInvoice');
+        Route::get('sales/{sale}/edit', [\App\Http\Controllers\SaleController::class, 'edit'])->name('sales.edit');
+        Route::put('sales/{sale}', [\App\Http\Controllers\SaleController::class, 'update'])->name('sales.update');
         Route::resource('product-categories', \App\Http\Controllers\ProductCategoryController::class);
         Route::resource('products', \App\Http\Controllers\ProductController::class);
         

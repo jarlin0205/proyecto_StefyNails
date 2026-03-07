@@ -42,12 +42,13 @@
                 <thead>
                     <tr class="bg-gray-50 border-b border-gray-100">
                         <th class="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest text-center">ID</th>
+                        <th class="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest text-center">Fecha</th>
                         <th class="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Tipo</th>
                         <th class="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Cliente / Info</th>
                         <th class="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest">Detalle Productos</th>
                         <th class="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest text-center">Pago</th>
                         <th class="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest text-right">Monto Prod.</th>
-                        <th class="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest text-center">Fecha</th>
+                        <th class="px-6 py-4 text-xs font-black text-gray-400 uppercase tracking-widest text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
@@ -109,6 +110,35 @@
                             <span class="text-[10px] font-bold text-gray-500 block">{{ $sale->date->format('d/m/Y') }}</span>
                             <span class="text-[9px] text-gray-300">{{ $sale->date->format('h:i A') }}</span>
                         </td>
+                        <td class="px-6 py-4 text-center whitespace-nowrap">
+                            <div class="flex items-center justify-center gap-2">
+                                {{-- Ver PDF --}}
+                                @php
+                                    $invoiceUrl = ($sale->type === 'pos') 
+                                        ? route('sales.invoice', $sale->original_id ?: $sale->id) 
+                                        : route('appointments.invoice', $sale->original_id ?: $sale->id);
+                                @endphp
+                                <a href="{{ $invoiceUrl }}" target="_blank" class="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors" title="Ver PDF">
+                                    <i class="fas fa-file-pdf"></i>
+                                </a>
+
+                                @if($sale->type === 'pos')
+                                    {{-- Enviar WhatsApp --}}
+                                    @if($sale->phone)
+                                        <button onclick="sendWhatsApp({{ $sale->original_id }})" class="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors" title="Enviar por WhatsApp">
+                                            <i class="fab fa-whatsapp"></i>
+                                        </button>
+                                    @endif
+
+                                    {{-- Editar (Admin Only) --}}
+                                    @if(auth()->user()->isAdmin())
+                                        <a href="{{ route('admin.sales.edit', $sale->original_id) }}" class="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors" title="Editar Venta">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    @endif
+                                @endif
+                            </div>
+                        </td>
                     </tr>
                     @empty
                     <tr>
@@ -131,4 +161,57 @@
         @endif
     </div>
 </div>
+@push('scripts')
+<script>
+    function sendWhatsApp(saleId) {
+        Swal.fire({
+            title: '¿Enviar comprobante?',
+            text: "Se enviará el PDF de la venta por WhatsApp al cliente.",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#db2777',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, enviar',
+            cancelButtonText: 'Cancelar',
+            showLoaderOnConfirm: true,
+            preConfirm: () => {
+                return fetch(`/admin/sales/${saleId}/send-invoice`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(response.statusText)
+                    }
+                    return response.json()
+                })
+                .catch(error => {
+                    Swal.showValidationMessage(`Error: ${error}`)
+                })
+            },
+            allowOutsideClick: () => !Swal.isLoading()
+        }).then((result) => {
+            if (result.isConfirmed && result.value.success) {
+                Swal.fire({
+                    title: '¡Enviado!',
+                    text: result.value.message,
+                    icon: 'success',
+                    confirmButtonColor: '#db2777'
+                });
+            } else if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Error',
+                    text: result.value.message || 'No se pudo enviar el mensaje.',
+                    icon: 'error',
+                    confirmButtonColor: '#db2777'
+                });
+            }
+        });
+    }
+</script>
+@endpush
 @endsection

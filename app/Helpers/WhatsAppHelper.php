@@ -219,4 +219,14 @@ class WhatsAppHelper
 
         self::sendMessage($appointment->customer_phone, $msg, $url, $pdfBase64, "Factura_StefyNails_{$appointment->id}.pdf");
     }
+
+    public static function sendSaleInvoice($sale, $url, $pdfBase64 = null)
+    {
+        $name = $sale->customer_name ?: 'Cliente';
+        $msg = "🧾 *¡Tu Comprobante de Stefy Nails!* 🧾\n\n" .
+               "Hola {$name}, adjunto encontrarás el comprobante de tu compra de productos. ✨\n\n" .
+               "¡Gracias por elegirnos! 🌸";
+
+        self::sendMessage($sale->customer_phone, $msg, $url, $pdfBase64, "Comprobante_StefyNails_{$sale->id}.pdf");
+    }
 }
