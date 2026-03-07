@@ -221,9 +221,9 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-bold text-gray-700">Servicio</label>
-                                    <select name="service_id" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pink-500">
+                                    <select name="service_id" id="create_modal_service_selector" required class="w-full mt-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-pink-500">
                                         @foreach($allServices ?? [] as $service)
-                                            <option value="{{ $service->id }}">{{ $service->name }} (${{ number_format($service->price, 0) }})</option>
+                                            <option value="{{ $service->id }}" data-duration="{{ $service->duration_in_minutes }}">{{ $service->name }} (${{ number_format($service->price, 0) }})</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -564,13 +564,23 @@ let currentGlobalApp = null;
         const currentM = now.getMinutes();
         const currentTimeVal = currentH * 60 + currentM;
 
+        const durationMinutes = (currentGlobalApp && currentGlobalApp.duration_minutes) ? currentGlobalApp.duration_minutes : 60;
+
         possibleSlots.forEach(time => {
             const [h, m] = time.split(':').map(Number);
             const slotTimeVal = h * 60 + m;
+            const slotEndVal = slotTimeVal + durationMinutes;
 
             if (selectedRescheduleDate === todayStr && slotTimeVal <= currentTimeVal) return;
 
-            const isBusy = busySlots.some(busy => time >= busy.start && time < busy.end);
+            const isBusy = busySlots.some(busy => {
+                const [bh1, bm1] = busy.start.split(':').map(Number);
+                const [bh2, bm2] = busy.end.split(':').map(Number);
+                const busyStart = bh1 * 60 + bm1;
+                const busyEnd = bh2 * 60 + bm2;
+                // Overlap check
+                return slotTimeVal < busyEnd && slotEndVal > busyStart;
+            });
             
             if (!isBusy) {
                 availableCount++;
@@ -611,6 +621,9 @@ let currentGlobalApp = null;
             });
 
             document.getElementById('create_modal_professional_selector').addEventListener('change', () => {
+                if(selectedCreateDate) fetchCreateBusySlots(selectedCreateDate);
+            });
+            document.getElementById('create_modal_service_selector').addEventListener('change', () => {
                 if(selectedCreateDate) fetchCreateBusySlots(selectedCreateDate);
             });
         }
@@ -658,12 +671,25 @@ let currentGlobalApp = null;
         const todayStr = `${year}-${month}-${day}`;
         const currentTimeVal = now.getHours() * 60 + now.getMinutes();
 
+        const serviceSelector = document.getElementById('create_modal_service_selector');
+        const selectedOption = serviceSelector.options[serviceSelector.selectedIndex];
+        const durationMinutes = selectedOption ? (parseInt(selectedOption.getAttribute('data-duration')) || 60) : 60;
+
         possibleSlots.forEach(time => {
             const [h, m] = time.split(':').map(Number);
             const slotTimeVal = h * 60 + m;
+            const slotEndVal = slotTimeVal + durationMinutes;
+
             if (selectedCreateDate === todayStr && slotTimeVal <= currentTimeVal) return;
 
-            const isBusy = busySlots.some(busy => time >= busy.start && time < busy.end);
+            const isBusy = busySlots.some(busy => {
+                const [bh1, bm1] = busy.start.split(':').map(Number);
+                const [bh2, bm2] = busy.end.split(':').map(Number);
+                const busyStart = bh1 * 60 + bm1;
+                const busyEnd = bh2 * 60 + bm2;
+                return slotTimeVal < busyEnd && slotEndVal > busyStart;
+            });
+
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.innerText = formatTo12h(time);

@@ -198,7 +198,8 @@ class WhatsAppBotController extends Controller
             return response()->json(['error' => 'Date is required'], 400);
         }
 
-        $query = Appointment::whereDate('appointment_date', $date)
+        $query = Appointment::with('service')
+            ->whereDate('appointment_date', $date)
             ->whereNotIn('status', ['cancelled', 'completed']);
 
         if ($professionalId) {
@@ -209,11 +210,16 @@ class WhatsAppBotController extends Controller
 
         $busy = $appointments->map(function ($app) {
             $start = $app->appointment_date->format('H:i');
-            $end = $app->appointment_date->copy()->addMinutes(30)->format('H:i');
+            // Use actual service duration, fallback to 60 min if no service linked
+            $durationMins = ($app->service && $app->service->duration_in_minutes > 0)
+                ? $app->service->duration_in_minutes
+                : 60;
+            $end = $app->appointment_date->copy()->addMinutes($durationMins)->format('H:i');
             return [
                 'start' => $start,
-                'end' => $end,
-                'title' => 'Ocupado'
+                'end'   => $end,
+                'title' => 'Ocupado',
+                'duration_minutes' => $durationMins,
             ];
         });
 

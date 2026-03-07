@@ -201,6 +201,7 @@
                                 'grand_total' => $appointment->grand_total,
                                 'products' => $appointment->products->map(fn($p) => ['name' => $p->name, 'quantity' => $p->pivot->quantity, 'price' => $p->pivot->unit_price]),
                                 'image' => $appointment->reference_image_path,
+                                'duration_minutes' => $appointment->service?->duration_in_minutes ?? 60,
                                 'notes' => $appointment->notes,
                                 'edit_url' => route('admin.appointments.edit', $appointment),
                                 'status_url' => route('admin.appointments.updateStatus', $appointment),

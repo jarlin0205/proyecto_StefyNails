@@ -174,7 +174,8 @@
                                                     <optgroup label="✨ {{ $service->category->name }} ✨">
                                                     @php $currentCategory = $service->category->name; @endphp
                                                 @endif
-                                                <option value="{{ $service->id }}" data-price="{{ $service->price }}" 
+                                                <option value="{{ $service->id }}" data-price="{{ $service->price }}"
+                                                        data-duration="{{ $service->duration_in_minutes }}"
                                                         data-image="{{ $service->image_path ? asset($service->image_path) : '' }}"
                                                         data-gallery="{{ $service->images->pluck('image_path')->map(fn($p) => asset($p))->toJson() }}"
                                                         {{ (old('service_id') == $service->id || (isset($selectedServiceId) && $selectedServiceId == $service->id)) ? 'selected' : '' }}>
@@ -524,11 +525,12 @@
             }
         });
 
-        // Re-fetch slots if professional changes
+        // Re-fetch slots if professional or service changes (duration may change)
         document.getElementById('professional_id').addEventListener('change', function() {
-            if (selectedDate) {
-                fetchBusySlots(selectedDate);
-            }
+            if (selectedDate) fetchBusySlots(selectedDate);
+        });
+        document.getElementById('service_id').addEventListener('change', function() {
+            if (selectedDate) fetchBusySlots(selectedDate);
         });
 
         // Lógica de Segmentación
@@ -589,6 +591,12 @@
             });
         }
 
+        function getSelectedServiceDuration() {
+            const sel = document.getElementById('service_id');
+            const opt = sel.options[sel.selectedIndex];
+            return opt ? (parseInt(opt.getAttribute('data-duration')) || 60) : 60;
+        }
+
         async function fetchBusySlots(date) {
             const professionalId = document.getElementById('professional_id').value;
             const container = document.getElementById('slots_container');
@@ -597,7 +605,6 @@
             const badge = document.getElementById('slots-count-badge');
             
             container.innerHTML = '<div class="col-span-full py-8 text-center text-pink-400 font-medium"><i class="fas fa-magic fa-spin mr-2"></i> Buscando turnos disponibles...</div>';
-            // inlineContainer.style.display = 'block'; // Hacemos que sea manual
             msg.classList.add('hidden');
             badge.classList.add('hidden');
             allAvailableSlots = [];
@@ -638,7 +645,7 @@
                     container.parentElement.insertBefore(msgDiv, container);
                 }
 
-                generateSlots(busySlots, workingHours);
+                generateSlots(busySlots, workingHours, getSelectedServiceDuration());
             } catch (e) {
                 container.innerHTML = '<div class="col-span-full py-4 text-center text-red-500 font-bold">Error cargando horarios</div>';
                 console.error(e);
@@ -662,7 +669,7 @@
             return `${hh}:${m}${ampm}`;
         }
 
-        function generateSlots(busySlots, workingHours = null) {
+        function generateSlots(busySlots, workingHours = null, newServiceDuration = 60) {
             const container = document.getElementById('slots_container');
             const msg = document.getElementById('no_slots_msg');
             const badge = document.getElementById('slots-count-badge');
@@ -679,7 +686,6 @@
                 }
             }
 
-            let availableCount = 0;
             const now = new Date();
             const year = now.getFullYear();
             const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -693,25 +699,24 @@
             possibleSlots.forEach(time => {
                 const [h, m] = time.split(':').map(Number);
                 const slotTimeVal = h * 60 + m;
+                const slotEndVal = slotTimeVal + newServiceDuration; // end of NEW appointment if booked here
                 
-                // Check past time
+                // Skip past time slots
                 if (typeof selectedDate !== 'undefined' && selectedDate === todayStr && slotTimeVal <= currentTimeVal) {
                     return;
                 }
 
-                // Check busy
-                // Busy slots are ranges [start, end)
+                // Check if the slot (or any part of the new appointment duration) overlaps with a busy range
                 let isBusy = false;
                 for (let b of busySlots) {
                     const [bh1, bm1] = b.start.split(':').map(Number);
                     const [bh2, bm2] = b.end.split(':').map(Number);
-                    const startVal = bh1 * 60 + bm1;
-                    const endVal = bh2 * 60 + bm2;
+                    const busyStart = bh1 * 60 + bm1;
+                    const busyEnd   = bh2 * 60 + bm2;
                     
-                    // Slot is busy if it STARTs within a busy range
-                    // Or if it overlaps? System seems to be slot-based starts.
-                    // If slot is 10:00, and busy is 10:00-11:00, then 10:00 is busy.
-                    if (slotTimeVal >= startVal && slotTimeVal < endVal) {
+                    // Two intervals [slotTimeVal, slotEndVal) and [busyStart, busyEnd) overlap if:
+                    // slotTimeVal < busyEnd AND slotEndVal > busyStart
+                    if (slotTimeVal < busyEnd && slotEndVal > busyStart) {
                         isBusy = true;
                         break;
                     }

@@ -354,6 +354,8 @@
             });
         }
 
+        const serviceDuration = {{ $appointment->service->duration_in_minutes ?? 60 }};
+
         async function fetchBusySlots(date) {
             const container = document.getElementById('slots_container');
             const msg = document.getElementById('no_slots_msg');
@@ -361,7 +363,6 @@
             const badge = document.getElementById('slots-count-badge');
             
             container.innerHTML = '<div class="col-span-full py-6 text-center text-pink-400 font-medium"><i class="fas fa-spinner fa-spin mr-2"></i> Buscando horarios...</div>';
-            // inlineContainer.style.display = 'block';
             msg.classList.add('hidden');
             badge.classList.add('hidden');
             allAvailableSlots = [];
@@ -386,7 +387,7 @@
                     container.parentElement.insertBefore(msgDiv, container);
                 }
 
-                generateSlots(busySlots, workingHours);
+                generateSlots(busySlots, workingHours, serviceDuration);
             } catch (e) {
                 container.innerHTML = '<div class="col-span-full py-4 text-center text-red-500 font-bold">Error</div>';
             }
@@ -400,7 +401,7 @@
             return `${hh}:${m}${ampm}`;
         }
 
-        function generateSlots(busySlots, workingHours = null) {
+        function generateSlots(busySlots, workingHours = null, durationMinutes = 60) {
             const container = document.getElementById('slots_container');
             const msg = document.getElementById('no_slots_msg');
             const badge = document.getElementById('slots-count-badge');
@@ -414,7 +415,6 @@
                 }
             }
 
-            let availableCount = 0;
             const now = new Date();
             const year = now.getFullYear();
             const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -425,13 +425,18 @@
             possibleSlots.forEach(time => {
                 const [h, m] = time.split(':').map(Number);
                 const slotTimeVal = h * 60 + m;
+                const slotEndVal = slotTimeVal + durationMinutes;
                 
                 if (selectedDate === todayStr && slotTimeVal <= currentTimeVal) return;
 
                 let isBusy = busySlots.some(b => {
                     const [bh1, bm1] = b.start.split(':').map(Number);
                     const [bh2, bm2] = b.end.split(':').map(Number);
-                    return slotTimeVal >= (bh1 * 60 + bm1) && slotTimeVal < (bh2 * 60 + bm2);
+                    const busyStart = bh1 * 60 + bm1;
+                    const busyEnd = bh2 * 60 + bm2;
+                    
+                    // Overlap check: [slotTimeVal, slotEndVal) overlaps with [busyStart, busyEnd)
+                    return slotTimeVal < busyEnd && slotEndVal > busyStart;
                 });
 
                 if (!isBusy) {
