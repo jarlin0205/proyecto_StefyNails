@@ -71,6 +71,17 @@ class WhatsAppBotController extends Controller
 
         $appointment->update(['status' => $validated['status']]);
         
+        // Create notification for admin on cancellation
+        if ($validated['status'] === 'cancelled') {
+            Notification::create([
+                'appointment_id' => $appointment->id,
+                'title' => "{$appointment->customer_name} ha cancelado su cita (Bot)",
+                'message' => "Servicio: {$appointment->service->name} - Fecha: {$appointment->appointment_date->format('d/m/Y H:i')}",
+                'type' => 'danger',
+                'action_url' => route('admin.appointments.show', $appointment->id)
+            ]);
+        }
+
         // No enviar notificación extra si es cancelación desde el bot, 
         // ya que el bot da su propia respuesta simple.
         \App\Helpers\WhatsAppHelper::notifyStatusChange($appointment, $validated['status'] !== 'cancelled');
@@ -138,6 +149,15 @@ class WhatsAppBotController extends Controller
             'appointment_date' => $validated['date'],
             'reschedule_reason' => $validated['reason'] ?? 'Reprogramado vía WhatsApp',
             'status' => 'confirmed' // Al reprogramar desde WhatsApp, vuelve a estar confirmada
+        ]);
+
+        // Create notification for admin on reschedule
+        Notification::create([
+            'appointment_id' => $appointment->id,
+            'title' => "{$appointment->customer_name} ha reprogramado su cita (Bot)",
+            'message' => "Nueva Fecha: " . Carbon::parse($validated['date'])->format('d/m/Y h:i A'),
+            'type' => 'warning',
+            'action_url' => route('admin.appointments.show', $appointment->id)
         ]);
 
         \App\Helpers\WhatsAppHelper::notifyReschedule($appointment, 'client');

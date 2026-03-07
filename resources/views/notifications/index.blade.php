@@ -3,6 +3,20 @@
 @section('header', 'Notificaciones')
 
 @section('content')
+<div class="flex justify-between items-center mb-6">
+    <h2 class="text-2xl font-bold text-gray-800">Bandeja de Entrada</h2>
+    @if($notifications->count() > 0)
+        <form action="{{ route('admin.notifications.deleteAll') }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres borrar todo el historial de notificaciones? Esta acción no se puede deshacer.')">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="flex items-center space-x-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-red-200">
+                <i class="fas fa-trash-alt"></i>
+                <span class="font-bold text-sm">Borrar Todo el Historial</span>
+            </button>
+        </form>
+    @endif
+</div>
+
 <div class="bg-white rounded-lg shadow overflow-hidden">
     <div class="overflow-x-auto">
         <table class="min-w-full leading-normal">

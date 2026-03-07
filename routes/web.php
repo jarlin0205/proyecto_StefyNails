@@ -47,6 +47,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('appointments/{appointment}/send-invoice', [AppointmentController::class, 'sendInvoice'])->name('appointments.sendInvoice');
         Route::resource('appointments', AppointmentController::class);
         
+        Route::delete('notifications/delete-all', [NotificationController::class, 'deleteAll'])->name('notifications.deleteAll');
         Route::resource('notifications', NotificationController::class);
         
         // Availability (Filtered by role in controller)

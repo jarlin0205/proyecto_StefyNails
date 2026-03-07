@@ -66,10 +66,9 @@ class AppServiceProvider extends ServiceProvider
             }
 
             // Count Notifications for the badge
-            // 1. Unread & Pending Appointments
+            // 1. Unread Appointments Notifications
             $appointmentsQuery = \App\Models\Notification::where('is_read', false)
                 ->whereHas('appointment', function($q) use ($user) {
-                    $q->whereIn('status', ['pending_admin', 'pending_client']);
                     if ($user->role === 'employee' && $user->professional) {
                         $q->where('professional_id', $user->professional->id);
                     }

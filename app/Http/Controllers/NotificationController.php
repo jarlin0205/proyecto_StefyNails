@@ -11,13 +11,8 @@ class NotificationController extends Controller
     {
         $user = auth()->user();
         
-        // Base query for notifications: Pending appointments OR Generic alerts (stock, etc)
-        $query = Notification::where(function($q) {
-            $q->whereNull('appointment_id')
-              ->orWhereHas('appointment', function($sub) {
-                  $sub->whereIn('status', ['pending_admin', 'pending_client']);
-              });
-        });
+        // Base query for notifications: Generic alerts (stock, etc) OR any Appointment alert
+        $query = Notification::query();
 
         // Filter by professional if it's an employee
         if ($user->role === 'employee' && $user->professional) {
@@ -32,8 +27,27 @@ class NotificationController extends Controller
         // Paginate the filtered notifications
         $notifications = $query->with('appointment.service', 'appointment.professional', 'product')
             ->latest()
-            ->paginate(10);
+            ->paginate(20);
 
         return view('notifications.index', compact('notifications'));
+    }
+
+    /**
+     * Delete all notifications for the current user.
+     */
+    public function deleteAll()
+    {
+        $user = auth()->user();
+        $query = Notification::query();
+
+        if ($user->role === 'employee' && $user->professional) {
+            $query->whereHas('appointment', function($q) use ($user) {
+                $q->where('professional_id', $user->professional->id);
+            });
+        }
+
+        $query->delete();
+
+        return back()->with('success', 'Historial de notificaciones vaciado correctamente.');
     }
 }
