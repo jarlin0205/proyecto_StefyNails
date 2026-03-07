@@ -68,28 +68,6 @@
                                         </div>
                                     @endif
                                 </div>
-
-                                @if($notification->appointment_id && $notification->appointment && in_array($notification->appointment->status, ['pending_admin', 'pending_client', 'confirmed']))
-                                    <div class="flex space-x-2 ml-4">
-                                        <form action="{{ route('admin.appointments.updateStatus', $notification->appointment_id) }}" method="POST" class="inline">
-                                            @csrf
-                                            <input type="hidden" name="status" value="confirmed">
-                                            <input type="hidden" name="notification_id" value="{{ $notification->id }}">
-                                            <button type="submit" class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold hover:bg-green-200 transition border border-green-200 shadow-sm">
-                                                Confirmar
-                                            </button>
-                                        </form>
-                                        
-                                        <form action="{{ route('admin.appointments.updateStatus', $notification->appointment_id) }}" method="POST" class="inline" onsubmit="return confirm('¿Seguro que quieres rechazar esta cita? Se enviará el mensaje amable automáticamente.')">
-                                            @csrf
-                                            <input type="hidden" name="status" value="cancelled">
-                                            <input type="hidden" name="notification_id" value="{{ $notification->id }}">
-                                            <button type="submit" class="bg-red-50 text-red-600 px-3 py-1 rounded-full text-xs font-bold hover:bg-red-100 transition border border-red-100 shadow-sm">
-                                                Rechazar
-                                            </button>
-                                        </form>
-                                    </div>
-                                @endif
                             </div>
                         </td>
                          <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
