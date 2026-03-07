@@ -6,7 +6,7 @@ const http = require('http');
  * CONFIGURACIÓN
  */
 const CONFIG = {
-    API_BASE_URL: 'http://localhost/api/bot',
+    API_BASE_URL: 'https://stefynails.online/api/bot',
     BOT_PORT: 3000,
     CHROME_ARGS: ['--no-sandbox', '--disable-setuid-sandbox']
 };
