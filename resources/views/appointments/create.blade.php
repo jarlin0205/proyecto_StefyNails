@@ -149,6 +149,7 @@
                                     <label class="block text-sm font-semibold text-gray-600 mb-2 uppercase tracking-wide" for="customer_phone">Teléfono / WhatsApp</label>
                                     <input class="shadow-sm border border-gray-200 rounded-lg w-full py-3 px-4 text-gray-700 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all" 
                                            id="customer_phone" type="tel" name="customer_phone" required value="{{ old('customer_phone') }}">
+                                    <p class="mt-1 text-[10px] text-pink-500 font-bold italic">* Debe ser tu WhatsApp activo para recibir confirmaciones.</p>
                                     <input type="hidden" id="customer_phone_full" name="customer_phone_full">
                                 </div>
                             </div>

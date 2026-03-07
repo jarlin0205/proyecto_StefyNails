@@ -99,8 +99,8 @@
                                 <input type="text" name="customer_name" id="customer_name" value="{{ $sale->customer_name }}" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 outline-none">
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 tracking-widest">Teléfono</label>
-                                <input type="text" name="customer_phone" id="customer_phone" value="{{ $sale->customer_phone }}" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 outline-none">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1 tracking-widest">Teléfono / WhatsApp</label>
+                                <input type="text" name="customer_phone" id="customer_phone" value="{{ $sale->customer_phone }}" placeholder="WhatsApp activo" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 outline-none">
                             </div>
                         </div>
 

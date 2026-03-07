@@ -70,6 +70,7 @@
                         <label class="block text-sm font-bold text-gray-700 mb-2">WhatsApp de Contacto (Obligatorio para el Bot) *</label>
                         <input type="tel" id="phone" name="phone" value="{{ old('phone', $professional->phone) }}" required 
                                class="w-full border-gray-200 rounded-lg focus:ring-pink-500 focus:border-transparent transition-all">
+                        <p class="mt-1 text-[10px] text-pink-500 font-bold italic">* Debe ser el WhatsApp activo donde recibirá notificaciones de citas.</p>
                         <input type="hidden" name="phone_full" id="phone_full" value="{{ old('phone_full', $professional->phone) }}">
                     </div>
                     <div>

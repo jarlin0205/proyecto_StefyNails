@@ -27,8 +27,9 @@
                     <input type="text" name="customer_name" required class="w-full rounded-md border-gray-300 shadow-sm focus:ring-pink-500 focus:border-pink-500">
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">Teléfono</label>
+                    <label class="block text-sm font-medium text-gray-700">Teléfono / WhatsApp</label>
                     <input type="tel" id="customer_phone" name="customer_phone" required class="w-full rounded-md border-gray-300 shadow-sm focus:ring-pink-500 focus:border-pink-500">
+                    <p class="mt-1 text-[10px] text-pink-500 font-bold italic">* Debe ser WhatsApp activo para facturas y recordatorios.</p>
                     <input type="hidden" id="customer_phone_full" name="customer_phone_full">
                 </div>
                 <div>

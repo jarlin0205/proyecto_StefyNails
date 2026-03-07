@@ -98,8 +98,8 @@
                                 <input type="text" id="customer_name" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 outline-none">
                             </div>
                             <div>
-                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Teléfono</label>
-                                <input type="text" id="customer_phone" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 outline-none">
+                                <label class="block text-[10px] font-bold text-gray-500 uppercase mb-1">Teléfono / WhatsApp</label>
+                                <input type="text" id="customer_phone" placeholder="WhatsApp activo" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-pink-500 outline-none">
                             </div>
                         </div>
 
