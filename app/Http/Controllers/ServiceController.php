@@ -37,6 +37,7 @@ class ServiceController extends Controller
             'price_display' => 'required|string',
             'price' => 'nullable|numeric',
             'duration' => 'nullable|string',
+            'duration_in_minutes' => 'required|integer|min:5',
             'description' => 'nullable|string',
             'image' => 'nullable|image|max:20480', // Main image
             'gallery.*' => 'image|max:20480', // Gallery images
@@ -82,6 +83,7 @@ class ServiceController extends Controller
             'price_display' => 'required|string',
             'price' => 'nullable|numeric',
             'duration' => 'nullable|string',
+            'duration_in_minutes' => 'required|integer|min:5',
             'description' => 'nullable|string',
             'image' => 'nullable|image|max:20480',
             'gallery.*' => 'image|max:20480',

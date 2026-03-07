@@ -16,6 +16,7 @@ class Service extends Model
         'price',
         'price_display',
         'duration',
+        'duration_in_minutes',
         'image_path',
         'is_active',
     ];
@@ -47,11 +48,15 @@ class Service extends Model
     }
 
     /**
-     * Get duration in minutes from string.
-     * Examples: "1 hora", "30 min", "1h", "2 horas"
+     * Get duration in minutes.
+     * Prioritizes the numeric column, falls back to parsing string if needed.
      */
-    public function getDurationInMinutesAttribute()
+    public function getDurationInMinutesAttribute($value)
     {
+        if ($value) {
+            return (int)$value;
+        }
+
         $duration = strtolower($this->duration);
         $minutes = 0;
 
@@ -59,13 +64,11 @@ class Service extends Model
             return 60;
         }
 
-        // Check for 'hora' or 'h ' (handle decimals like 1.5)
+        // Fallback parsing (mostly for objects created only in memory or edge cases)
         if (preg_match('/(\d+(\.\d+)?)\s*(hora|h)/', $duration, $matches)) {
             $minutes += (float)$matches[1] * 60;
         }
         
-        // Check for 'min' or 'm ' (avoid double counting digits from hours)
-        // If it sees "1 hora 30 min", we want to add 30.
         if (preg_match('/(\d+)\s*(min|m)/', $duration, $matches)) {
              $minutes += (int)$matches[1];
         }
@@ -74,7 +77,6 @@ class Service extends Model
              if (is_numeric($duration)) {
                  $minutes = (int)$duration;
              } else {
-                 // Try one more preg_match for just raw numbers if nothing else matched
                  preg_match('/(\d+)/', $duration, $matches);
                  $minutes = isset($matches[1]) ? (int)$matches[1] : 60;
              }

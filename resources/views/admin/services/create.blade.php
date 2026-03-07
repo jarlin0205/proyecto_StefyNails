@@ -55,11 +55,22 @@
             </div>
         </div>
 
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="duration">
-                Duración (Opcional)
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="duration" type="text" name="duration" placeholder="Ej: 1 hora">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="duration_in_minutes">
+                    Duración en Minutos (Cálculos)
+                </label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="duration_in_minutes" type="number" name="duration_in_minutes" required placeholder="Ej: 60, 90, 120" min="5">
+                <p class="text-xs text-gray-500 mt-1">Este valor se usa para bloquear el calendario.</p>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="duration">
+                    Duración Mostrada (Cliente)
+                </label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="duration" type="text" name="duration" placeholder="Ej: 1 hora">
+                <p class="text-xs text-gray-500 mt-1">Cómo lo verá el cliente (ej: "1 hora").</p>
+            </div>
         </div>
 
         <div class="mb-4">
