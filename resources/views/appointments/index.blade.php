@@ -41,6 +41,11 @@
                     <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                         Servicio
                     </th>
+                    @if(auth()->user()->isAdmin())
+                    <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                        Profesional
+                    </th>
+                    @endif
                     <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                         Estado
                     </th>
@@ -86,6 +91,13 @@
                         <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                             <p class="text-gray-900 whitespace-no-wrap">{{ $appointment->service->name }}</p>
                         </td>
+                        @if(auth()->user()->isAdmin())
+                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
+                            <span class="text-xs font-medium px-2 py-1 rounded bg-gray-100 text-gray-600">
+                                {{ $appointment->professional ? $appointment->professional->name : 'Sin asignar' }}
+                            </span>
+                        </td>
+                        @endif
                         <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                             @php
                                 $statusColors = [
@@ -134,7 +146,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-center">
+                        <td colspan="{{ auth()->user()->isAdmin() ? 6 : 5 }}" class="px-5 py-5 border-b border-gray-200 bg-white text-sm text-center">
                             No hay citas registradas.
                         </td>
                     </tr>
