@@ -65,8 +65,10 @@
                         <p id="modal-date" class="text-lg font-medium text-gray-800"></p>
                     </div>
                     <div id="modal-image-container" class="hidden">
-                        <p class="text-xs text-gray-500 uppercase font-bold tracking-wider mb-2">Diseño de Referencia</p>
-                        <img id="modal-image" src="" alt="Referencia" class="w-full h-48 object-cover rounded-lg border">
+                        <p class="text-xs text-gray-500 uppercase font-bold tracking-wider mb-2">Diseño de Referencia (clic para ampliar)</p>
+                        <img id="modal-image" src="" alt="Referencia" 
+                             onclick="openFullscreenImage(this.src)"
+                             class="w-full h-48 object-cover rounded-lg border cursor-pointer hover:opacity-90 transition-opacity ring-pink-100 hover:ring-4">
                     </div>
                     <div>
                         <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Notas</p>
@@ -416,6 +418,14 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- Fullscreen Image Modal -->
+<div id="fullscreen-image-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center bg-black bg-opacity-90 p-4 transition-all duration-300 backdrop-blur-sm" onclick="closeFullscreenImage()">
+    <button class="absolute top-6 right-6 text-white text-4xl hover:text-pink-400 transition-colors z-[110]" onclick="closeFullscreenImage()">
+        <i class="fas fa-times"></i>
+    </button>
+    <img id="fullscreen-img-target" src="" class="max-w-full max-h-full object-contain rounded shadow-2xl transition-transform duration-300 scale-95" onclick="event.stopPropagation()">
 </div>
 
 <form id="global-action-form" method="POST" style="display: none;">
@@ -1271,4 +1281,29 @@ let currentGlobalApp = null;
              openAppointmentModal(data);
         @endif
     });
+    // Fullscreen Image Logic
+    function openFullscreenImage(src) {
+        if (!src) return;
+        const modal = document.getElementById('fullscreen-image-modal');
+        const img = document.getElementById('fullscreen-img-target');
+        img.src = src;
+        modal.classList.remove('hidden');
+        // Small delay for scale animation
+        setTimeout(() => {
+            img.classList.remove('scale-95');
+            img.classList.add('scale-100');
+        }, 10);
+        document.body.style.overflow = 'hidden'; // Prevent scrolling
+    }
+
+    function closeFullscreenImage() {
+        const modal = document.getElementById('fullscreen-image-modal');
+        const img = document.getElementById('fullscreen-img-target');
+        img.classList.remove('scale-100');
+        img.classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }, 200);
+    }
 </script>
