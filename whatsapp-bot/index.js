@@ -125,6 +125,11 @@ client.on('disconnected', async (reason) => {
 
 client.on('message', async (msg) => {
     try {
+        // Ignorar mensajes de grupos o estados de WhatsApp
+        if (msg.from.endsWith('@g.us') || msg.from.endsWith('@status')) {
+            return;
+        }
+
         // Normalización robusta: trim, upper case y remover acentos
         const body = msg.body.trim().toUpperCase()
             .normalize("NFD")
