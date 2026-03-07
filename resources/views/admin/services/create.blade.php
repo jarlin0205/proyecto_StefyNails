@@ -58,10 +58,10 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="mb-4">
                 <label class="block text-gray-700 text-sm font-bold mb-2" for="duration_in_minutes">
-                    Duración en Minutos (Cálculos)
+                    Duración en Minutos (Multiplos de 30)
                 </label>
-                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="duration_in_minutes" type="number" name="duration_in_minutes" required placeholder="Ej: 60, 90, 120" min="5">
-                <p class="text-xs text-gray-500 mt-1">Este valor se usa para bloquear el calendario.</p>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="duration_in_minutes" type="number" name="duration_in_minutes" required placeholder="Ej: 30, 60, 90, 120" min="30" step="30">
+                <p class="text-[10px] text-pink-600 font-bold mt-1 uppercase italic">Importante: Debe ser múltiplo de 30 (30, 60, 90, 120...) para coincidir con el calendario.</p>
             </div>
 
             <div class="mb-4">
