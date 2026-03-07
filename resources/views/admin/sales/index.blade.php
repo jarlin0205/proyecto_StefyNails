@@ -125,14 +125,14 @@
                                 @if($sale->type === 'pos')
                                     {{-- Enviar WhatsApp --}}
                                     @if($sale->phone)
-                                        <button onclick="sendWhatsApp({{ $sale->original_id }})" class="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors" title="Enviar por WhatsApp">
+                                        <button onclick="sendWhatsApp({{ $sale->id }})" class="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors" title="Enviar por WhatsApp">
                                             <i class="fab fa-whatsapp"></i>
                                         </button>
                                     @endif
 
                                     {{-- Editar (Admin Only) --}}
                                     @if(auth()->user()->isAdmin())
-                                        <a href="{{ route('admin.sales.edit', $sale->original_id) }}" class="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors" title="Editar Venta">
+                                        <a href="{{ route('admin.sales.edit', $sale->id) }}" class="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors" title="Editar Venta">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                     @endif
