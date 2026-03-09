@@ -204,10 +204,16 @@ setInterval(async () => {
     }
 }, 60000); // Revisar cada minuto
 
-client.on('message', async (msg) => {
+client.on('message_create', async (msg) => {
     try {
         // FILTRO ROBUSTO: Ignorar grupos (@g.us), estados (status@broadcast) y listas de difusión (@broadcast)
         if (msg.from.endsWith('@g.us') || msg.from === 'status@broadcast' || msg.from.endsWith('@broadcast')) {
+            return;
+        }
+
+        // Si el mensaje es "de mí" (del propio bot), solo procesar si es el comando TEST-ALERTA
+        // Esto permite que el usuario pruebe el bot consigo mismo sin entrar en bucles infinitos.
+        if (msg.fromMe && msg.body.trim().toUpperCase() !== 'TEST-ALERTA') {
             return;
         }
 
