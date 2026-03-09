@@ -243,6 +243,14 @@ client.on('message', async (msg) => {
             }
         }
 
+        // COMANDO DE PRUEBA (Solo para el Admin)
+        if (body === 'TEST-ALERTA' && sender === CONFIG.ADMIN_PHONE) {
+            msg.reply('🛠️ Iniciando prueba de alerta de emergencia...');
+            consecutiveErrors = 5; // Simular umbral alcanzado
+            await triggerEmergencyAlert('PRUEBA_MANUAL_DEL_ADMINISTRADOR');
+            return msg.reply('✅ Alerta de prueba enviada. Revisa tu WhatsApp (mensaje anterior) y tu correo electrónico.');
+        }
+
         // Estado: Esperando Reprogramación
         if (userState.state === STATES.AWAITING_RESCHEDULE) {
             if (body === 'CANCELAR' || body === 'SALIR') {
