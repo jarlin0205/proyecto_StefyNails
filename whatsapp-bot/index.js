@@ -58,7 +58,8 @@ async function callLaravelApi(endpoint, method = 'POST', data = null) {
         if (!contentType || !contentType.includes('application/json')) {
             const text = await response.text();
             console.error(`❌ Error API [${endpoint}]: Respuesta no es JSON (Posible error de servidor PHP).`);
-            throw new Error('El servidor respondió con un error inesperado (no JSON).');
+            console.error(`📄 Fragmento de respuesta: ${text.substring(0, 100)}...`);
+            throw new Error(`El servidor respondió con un error inesperado (no JSON). Estado: ${response.status}`);
         }
 
         const result = await response.json();
@@ -123,19 +124,44 @@ client.on('disconnected', async (reason) => {
     }, 5000);
 });
 
+/**
+ * WATCHDOG: Reinicio automático si el cliente se queda colgado
+ */
+let lastHeartbeat = Date.now();
+setInterval(async () => {
+    if (client && client.info) {
+        try {
+            // Intentamos una operación ligera para ver si responde
+            await client.getState();
+            lastHeartbeat = Date.now();
+        } catch (err) {
+            console.error('⚠️ Watchdog: Error al obtener estado, posible cuelgue:', err.message);
+        }
+    }
+
+    // Si no hay respuesta en 5 minutos, forzar reinicio
+    if (Date.now() - lastHeartbeat > 300000) {
+        console.error('🚨 Watchdog: El bot no responde (5 min). Forzando reinicio...');
+        gracefulShutdown('WATCHDOG_TIMEOUT');
+    }
+}, 60000); // Revisar cada minuto
+
 client.on('message', async (msg) => {
     try {
-        // Ignorar mensajes de grupos o estados de WhatsApp
-        if (msg.from.endsWith('@g.us') || msg.from.endsWith('@status')) {
+        // FILTRO ROBUSTO: Ignorar grupos (@g.us), estados (status@broadcast) y listas de difusión (@broadcast)
+        if (msg.from.endsWith('@g.us') || msg.from === 'status@broadcast' || msg.from.endsWith('@broadcast')) {
             return;
         }
 
-        // Normalización robusta: trim, upper case y remover acentos
+        // Normalización inteligente: trim, upper case y remover acentos
         const body = msg.body.trim().toUpperCase()
             .normalize("NFD")
             .replace(/[\u0300-\u036f]/g, "");
 
         const sender = msg.from.split('@')[0];
+
+        // Evitar logs basura de status o grupos que se filtren
+        if (sender === 'status') return;
 
         console.log(`📩 Mensaje de ${sender}: "${msg.body}" -> "${body}"`);
 
