@@ -21,4 +21,6 @@ Route::prefix('bot')->group(function () {
     Route::post('/reschedule', [WhatsAppBotController::class, 'reschedule']);
     Route::get('/get-link', [WhatsAppBotController::class, 'getRescheduleLink']);
     Route::post('/checkin', [WhatsAppBotController::class, 'checkin']);
+    Route::post('/emergency-report', [WhatsAppBotController::class, 'reportEmergency']);
+    Route::get('/config', [WhatsAppBotController::class, 'getBotConfig']);
 });

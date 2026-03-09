@@ -8,6 +8,8 @@ use App\Models\Notification;
 use App\Models\Availability;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class WhatsAppBotController extends Controller
 {
@@ -291,6 +293,49 @@ class WhatsAppBotController extends Controller
             'success' => true,
             'message' => "✅ *¡Asistencia Confirmada!* Hemos registrado tu respuesta. Te esperamos pronto en tu cita. 🌸",
             'appointment' => $appointment
+        ]);
+    }
+
+    /**
+     * Report emergency from bot.
+     */
+    public function reportEmergency(Request $request)
+    {
+        $validated = $request->validate([
+            'error' => 'required|string',
+            'consecutive_errors' => 'required|integer',
+            'timestamp' => 'required|string'
+        ]);
+
+        $msg = "🚨 EMERGENCIA BOT WHATSAPP: {$validated['consecutive_errors']} errores consecutivos detectados.\n";
+        $msg .= "Fecha: {$validated['timestamp']}\n";
+        $msg .= "Último Error: {$validated['error']}";
+
+        Log::critical($msg);
+
+        // Intentar enviar email si hay destinatario configurado
+        $adminEmail = config('services.bot.alert_email'); 
+        if ($adminEmail) {
+            try {
+                Mail::raw($msg, function ($m) use ($adminEmail) {
+                    $m->to($adminEmail)->subject('⚠️ ALERTA CRÍTICA: Bot de WhatsApp');
+                });
+            } catch (\Exception $e) {
+                Log::error("No se pudo enviar email de emergencia: " . $e->getMessage());
+            }
+        }
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Get dynamic config for the bot.
+     */
+    public function getBotConfig()
+    {
+        return response()->json([
+            'success' => true,
+            'admin_phone' => config('services.bot.admin_phone'),
         ]);
     }
 }

@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'bot' => [
+        'admin_phone' => env('BOT_ADMIN_PHONE', '573014982961'),
+        'alert_email' => env('BOT_ALERT_EMAIL', 'hello@example.com'),
+    ],
+
 ];

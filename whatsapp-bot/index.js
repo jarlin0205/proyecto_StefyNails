@@ -8,8 +8,12 @@ const http = require('http');
 const CONFIG = {
     API_BASE_URL: 'https://stefynails.online/api/bot',
     BOT_PORT: 3000,
-    CHROME_ARGS: ['--no-sandbox', '--disable-setuid-sandbox']
+    CHROME_ARGS: ['--no-sandbox', '--disable-setuid-sandbox'],
+    ADMIN_PHONE: '573014982961' // Número para alertas de emergencia
 };
+
+let consecutiveErrors = 0;
+const ERROR_THRESHOLD = 5;
 
 // GESTIÓN DE ESTADO (En memoria)
 const userStates = {};
@@ -64,10 +68,53 @@ async function callLaravelApi(endpoint, method = 'POST', data = null) {
 
         const result = await response.json();
         if (!response.ok) throw new Error(result.message || 'Error en la API');
+
+        consecutiveErrors = 0; // Resetear al tener éxito
         return result;
     } catch (error) {
-        console.error(`❌ Error API [${endpoint}]:`, error.message);
+        consecutiveErrors++;
+        console.error(`❌ Error API [${endpoint}] (${consecutiveErrors}/${ERROR_THRESHOLD}):`, error.message);
+
+        if (consecutiveErrors >= ERROR_THRESHOLD) {
+            triggerEmergencyAlert(error.message);
+        }
+
         throw error;
+    }
+}
+
+/**
+ * ALERTAS DE EMERGENCIA
+ */
+async function triggerEmergencyAlert(errorMsg) {
+    console.error('🚨 DISPARANDO ALERTA DE EMERGENCIA...');
+
+    // 1. Intentar enviar por WhatsApp al admin
+    if (client && client.info) {
+        try {
+            const chatId = `${CONFIG.ADMIN_PHONE}@c.us`;
+            await client.sendMessage(chatId, `🚨 *ALERTA CRÍTICA BOT*\nHe detectado ${consecutiveErrors} fallos consecutivos.\n\nÚltimo Error: ${errorMsg}\n\nPor favor revisa el servidor.`);
+            console.log('📡 Alerta enviada por WhatsApp al Administrador.');
+        } catch (waErr) {
+            console.error('❌ No se pudo enviar alerta por WhatsApp:', waErr.message);
+        }
+    }
+
+    // 2. Reportar al endpoint de emergencia de Laravel (para email)
+    // Usamos fetch directamente para evitar recursión con callLaravelApi si esta falla
+    try {
+        await fetch(`${CONFIG.API_BASE_URL}/emergency-report`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                error: errorMsg,
+                consecutive_errors: consecutiveErrors,
+                timestamp: new Date().toISOString()
+            })
+        });
+        console.log('📡 Alerta reportada al endpoint de emergencia de Laravel.');
+    } catch (apiErr) {
+        console.error('❌ No se pudo reportar al endpoint de emergencia:', apiErr.message);
     }
 }
 
@@ -103,8 +150,19 @@ client.on('qr', (qr) => {
     qrcode.generate(qr, { small: true });
 });
 
-client.on('ready', () => {
+client.on('ready', async () => {
     console.log('✅ Bot de Stefy Nails conectado y listo.');
+
+    // Cargar configuración dinámica desde Laravel
+    try {
+        const config = await callLaravelApi('config', 'GET');
+        if (config.success && config.admin_phone) {
+            CONFIG.ADMIN_PHONE = config.admin_phone;
+            console.log(`⚙️ Configuración cargada. Admin Phone: ${CONFIG.ADMIN_PHONE}`);
+        }
+    } catch (err) {
+        console.error('⚠️ No se pudo cargar la configuración dinámica, usando valores por defecto.');
+    }
 });
 
 /**
