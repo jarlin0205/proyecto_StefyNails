@@ -128,7 +128,7 @@ const client = new Client({
         args: CONFIG.CHROME_ARGS,
         handleSIGINT: false, // PM2 manejará esto
         handleSIGTERM: false,
-        protocolTimeout: 60000
+        protocolTimeout: 180000 // Aumentado a 3 minutos para mayor estabilidad
     }
 });
 
@@ -200,6 +200,7 @@ setInterval(async () => {
     // Si no hay respuesta en 5 minutos, forzar reinicio
     if (Date.now() - lastHeartbeat > 300000) {
         console.error('🚨 Watchdog: El bot no responde (5 min). Forzando reinicio...');
+        await triggerEmergencyAlert('BLOQUEO_DE_NAVEGADOR (Watchdog Timeout)');
         gracefulShutdown('WATCHDOG_TIMEOUT');
     }
 }, 60000); // Revisar cada minuto
@@ -376,6 +377,13 @@ const server = http.createServer((req, res) => {
                 }
             } catch (err) {
                 console.error('❌ Error procesando solicitud:', err.message);
+
+                // Incrementar contador de errores para fallos en envíos
+                consecutiveErrors++;
+                if (consecutiveErrors >= ERROR_THRESHOLD) {
+                    await triggerEmergencyAlert(`FALLO_EN_ENVIO: ${err.message}`);
+                }
+
                 res.writeHead(400, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ error: err.message }));
             }
