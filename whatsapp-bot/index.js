@@ -187,21 +187,27 @@ client.on('disconnected', async (reason) => {
  */
 let lastHeartbeat = Date.now();
 setInterval(async () => {
-    if (client && client.info) {
+    if (client && client.pupPage) {
         try {
-            // Intentamos una operación ligera para ver si responde
-            await client.getState();
+            // Intentamos una operación activa: ejecutar código dentro del navegador
+            // Esto es mucho más fiable que client.getState()
+            await client.pupPage.evaluate(() => true);
             lastHeartbeat = Date.now();
         } catch (err) {
-            console.error('⚠️ Watchdog: Error al obtener estado, posible cuelgue:', err.message);
+            console.error('⚠️ Watchdog: Error detectado en el navegador (no responde):', err.message);
+            // No actualizamos lastHeartbeat, lo que llevará al reinicio si persiste
         }
     }
 
-    // Si no hay respuesta en 5 minutos, forzar reinicio
-    if (Date.now() - lastHeartbeat > 300000) {
-        console.error('🚨 Watchdog: El bot no responde (5 min). Forzando reinicio...');
+    // Si no hay respuesta exitosa en 6 minutos (le damos 1 min extra de margen), forzar reinicio
+    if (Date.now() - lastHeartbeat > 360000) {
+        console.error('🚨 Watchdog: El bot no responde a comandos internos (6 min). Forzando reinicio...');
         await triggerEmergencyAlert('BLOQUEO_DE_NAVEGADOR (Watchdog Timeout)');
-        gracefulShutdown('WATCHDOG_TIMEOUT');
+        
+        // Pequeña espera para asegurar que la alerta se intente enviar
+        setTimeout(() => {
+            gracefulShutdown('WATCHDOG_TIMEOUT');
+        }, 2000);
     }
 }, 60000); // Revisar cada minuto
 
