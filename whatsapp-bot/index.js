@@ -187,24 +187,36 @@ client.on('disconnected', async (reason) => {
  */
 let lastHeartbeat = Date.now();
 setInterval(async () => {
-    if (client && client.pupPage) {
+    if (client) {
+        let isHealthy = false;
         try {
-            // Intentamos una operación activa: ejecutar código dentro del navegador
-            // Esto es mucho más fiable que client.getState()
-            await client.pupPage.evaluate(() => true);
-            lastHeartbeat = Date.now();
+            // Promesa con timeout para evitar que el chequeo mismo se cuelgue
+            const healthCheck = Promise.all([
+                client.pupPage ? client.pupPage.evaluate(() => true) : Promise.resolve(true),
+                client.getState().catch(() => 'ERROR')
+            ]);
+            
+            const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 15000));
+            
+            const [browserOk, state] = await Promise.race([healthCheck, timeout]);
+            
+            // Si el estado es 'CONNECTED' o similar, y el navegador responde, estamos sanos
+            if (browserOk && state !== 'ERROR' && state !== 'TIMEOUT') {
+                lastHeartbeat = Date.now();
+                isHealthy = true;
+            } else {
+                console.warn(`⚠️ Watchdog: Estado sospechoso detected (Browser: ${browserOk}, State: ${state})`);
+            }
         } catch (err) {
-            console.error('⚠️ Watchdog: Error detectado en el navegador (no responde):', err.message);
-            // No actualizamos lastHeartbeat, lo que llevará al reinicio si persiste
+            console.error('⚠️ Watchdog: Fallo en chequeo de salud:', err.message);
         }
     }
 
-    // Si no hay respuesta exitosa en 6 minutos (le damos 1 min extra de margen), forzar reinicio
+    // Si pasan más de 6 minutos sin un chequeo exitoso, forzar reinicio
     if (Date.now() - lastHeartbeat > 360000) {
-        console.error('🚨 Watchdog: El bot no responde a comandos internos (6 min). Forzando reinicio...');
-        await triggerEmergencyAlert('BLOQUEO_DE_NAVEGADOR (Watchdog Timeout)');
+        console.error('🚨 Watchdog: El bot está en estado "zombie" o bloqueado (6 min). Forzando reinicio...');
+        await triggerEmergencyAlert('ESTADO_ZOMBIE_DETECTADO (Watchdog Timeout)');
         
-        // Pequeña espera para asegurar que la alerta se intente enviar
         setTimeout(() => {
             gracefulShutdown('WATCHDOG_TIMEOUT');
         }, 2000);
