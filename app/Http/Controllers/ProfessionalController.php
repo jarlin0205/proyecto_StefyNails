@@ -183,6 +183,7 @@ class ProfessionalController extends Controller
                 if ($isShared && $user->email !== $validated['email']) {
                     // Si es compartido y estamos cambiando el correo, NO actualizamos el User común.
                     // Creamos uno nuevo para este profesional específico para "romper el vínculo".
+                    $rawPassword = !empty($validated['password']) ? $validated['password'] : 'Mantiene la anterior';
                     $newUser = User::create([
                         'name' => $validated['name'],
                         'email' => $validated['email'],
@@ -191,12 +192,32 @@ class ProfessionalController extends Controller
                     ]);
                     $professional->user_id = $newUser->id;
                     $professional->save(); // Guardar el cambio de user_id de inmediato
+
+                    // Notificar al profesional de su nueva cuenta independiente
+                    try {
+                        Mail::to($newUser->email)->send(new WelcomeProfessional($newUser, $rawPassword));
+                    } catch (\Exception $e) {
+                        \Log::error('Error enviando correo tras split: ' . $e->getMessage());
+                    }
                 } else {
                     // Actualizar usuario existente (si es único o si el email es el mismo)
                     $userUpdate = ['name' => $validated['name'], 'email' => $validated['email']];
                     if (isset($validated['role'])) $userUpdate['role'] = $validated['role'];
-                    if (!empty($validated['password'])) $userUpdate['password'] = Hash::make($validated['password']);
+                    
+                    if (!empty($validated['password'])) {
+                        $userUpdate['password'] = Hash::make($validated['password']);
+                    }
+                    
                     $user->update($userUpdate);
+
+                    // Si se cambió la contraseña, enviar notificación
+                    if (!empty($validated['password'])) {
+                        try {
+                            Mail::to($user->email)->send(new WelcomeProfessional($user, $validated['password']));
+                        } catch (\Exception $e) {
+                            \Log::error('Error enviando correo tras update password: ' . $e->getMessage());
+                        }
+                    }
                 }
             }
         }
