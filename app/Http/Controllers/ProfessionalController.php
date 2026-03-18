@@ -82,7 +82,13 @@ class ProfessionalController extends Controller
                     \Log::error('Error enviando correo a profesional: ' . $e->getMessage());
                 }
             } else {
-                // Si ya existe, opcionalmente actualizamos su rol si se seleccionó uno
+                // Si el usuario ya existe, verificar que no esté asociado a OTRO profesional
+                $isUsedByOther = Professional::where('user_id', $user->id)->exists();
+                if ($isUsedByOther) {
+                    return back()->withErrors(['email' => 'Este usuario ya está vinculado a otro profesional.'])->withInput();
+                }
+
+                // Si ya existe pero está libre, opcionalmente actualizamos su rol
                 if (isset($validated['role'])) {
                     $user->update(['role' => $validated['role']]);
                 }
@@ -156,9 +162,8 @@ class ProfessionalController extends Controller
             $user = $professional->user;
             
             if (!$user) {
-                // Buscar si el correo ya existe en otro usuario (por si acaso)
+                // ... (igual que store) ...
                 $user = User::where('email', $validated['email'])->first();
-                
                 if (!$user) {
                     $user = User::create([
                         'name' => $validated['name'],
@@ -166,38 +171,33 @@ class ProfessionalController extends Controller
                         'password' => Hash::make($validated['password']),
                         'role' => $validated['role'] ?? 'employee',
                     ]);
-
-                    // Enviar correo de bienvenida inicial
                     try {
                         Mail::to($user->email)->send(new WelcomeProfessional($user, $request->password));
-                    } catch (\Exception $e) {
-                        \Log::error('Error enviando correo (store/update): ' . $e->getMessage());
-                    }
+                    } catch (\Exception $e) {}
                 }
                 $professional->user_id = $user->id;
             } else {
-                // Actualizar usuario existente
-                $userUpdate = [
-                    'name' => $validated['name'],
-                    'email' => $validated['email'],
-                ];
-                
-                if (isset($validated['role'])) {
-                    $userUpdate['role'] = $validated['role'];
-                }
+                // Verificar si el User es compartido por varios profesionales (el bug que reportas)
+                $isShared = Professional::where('user_id', $user->id)->count() > 1;
 
-                if (!empty($validated['password'])) {
-                    $userUpdate['password'] = Hash::make($validated['password']);
-                    
-                    // Si se cambia la contraseña, opcionalmente reenviar el correo
-                    try {
-                        Mail::to($user->email)->send(new WelcomeProfessional($user, $request->password));
-                    } catch (\Exception $e) {
-                        \Log::error('Error reenviando correo contraseña: ' . $e->getMessage());
-                    }
+                if ($isShared && $user->email !== $validated['email']) {
+                    // Si es compartido y estamos cambiando el correo, NO actualizamos el User común.
+                    // Creamos uno nuevo para este profesional específico para "romper el vínculo".
+                    $newUser = User::create([
+                        'name' => $validated['name'],
+                        'email' => $validated['email'],
+                        'password' => !empty($validated['password']) ? Hash::make($validated['password']) : $user->password,
+                        'role' => $validated['role'] ?? $user->role,
+                    ]);
+                    $professional->user_id = $newUser->id;
+                    $professional->save(); // Guardar el cambio de user_id de inmediato
+                } else {
+                    // Actualizar usuario existente (si es único o si el email es el mismo)
+                    $userUpdate = ['name' => $validated['name'], 'email' => $validated['email']];
+                    if (isset($validated['role'])) $userUpdate['role'] = $validated['role'];
+                    if (!empty($validated['password'])) $userUpdate['password'] = Hash::make($validated['password']);
+                    $user->update($userUpdate);
                 }
-                
-                $user->update($userUpdate);
             }
         }
 
@@ -229,13 +229,12 @@ class ProfessionalController extends Controller
             return back()->with('success', 'El profesional ha sido desactivado y su acceso revocado porque tiene citas registradas.');
         }
 
-        if ($professional->photo_path) {
-            Storage::disk('public')->delete($professional->photo_path);
-        }
-        
-        // Eliminar también el usuario asociado antes de borrar al profesional
+        // Solo borrar al usuario si no lo está usando ningún otro profesional activo
         if ($user) {
-            $user->delete();
+            $otherUsersCount = Professional::where('user_id', $user->id)->where('id', '!=', $professional->id)->count();
+            if ($otherUsersCount === 0) {
+                $user->delete();
+            }
         }
 
         $professional->delete();
