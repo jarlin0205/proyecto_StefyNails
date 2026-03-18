@@ -36,7 +36,22 @@ class ProfessionalController extends Controller
             'categories' => 'nullable|array',
             'categories.*' => 'exists:categories,id',
             'create_user' => 'boolean',
-            'email' => 'required_if:create_user,1|nullable|email', // Eliminamos unique para manejarlo nosotros
+            'email' => [
+                'required_if:create_user,1',
+                'nullable',
+                'email',
+                function ($attribute, $value, $fail) {
+                    if ($value) {
+                        // Verificar si ya existe un profesional con este email
+                        $exists = Professional::whereHas('user', function($q) use ($value) {
+                            $q->where('email', $value);
+                        })->exists();
+                        if ($exists) {
+                            $fail('Este correo ya está asignado a otro profesional.');
+                        }
+                    }
+                },
+            ],
             'password' => 'required_if:create_user,1|nullable|min:8|confirmed',
             'role' => 'required_if:create_user,1|nullable|in:admin,employee',
         ]);
@@ -108,7 +123,23 @@ class ProfessionalController extends Controller
             'categories.*' => 'exists:categories,id',
             'is_active' => 'boolean',
             'create_user' => 'boolean',
-            'email' => 'required_if:create_user,1|nullable|email',
+            'email' => [
+                'required_if:create_user,1',
+                'nullable',
+                'email',
+                function ($attribute, $value, $fail) use ($professional) {
+                    if ($value) {
+                        // Verificar si ya existe otro profesional con este email
+                        $exists = Professional::where('id', '!=', $professional->id)
+                            ->whereHas('user', function($q) use ($value) {
+                                $q->where('email', $value);
+                            })->exists();
+                        if ($exists) {
+                            $fail('Este correo ya está asignado a otro profesional.');
+                        }
+                    }
+                },
+            ],
             'password' => 'required_if:create_user,1|nullable|min:8|confirmed',
             'role' => 'required_if:create_user,1|nullable|in:admin,employee',
         ]);
@@ -184,17 +215,30 @@ class ProfessionalController extends Controller
 
     public function destroy(Professional $professional)
     {
-        // No eliminamos físicamente para mantener integridad de citas, solo desactivamos o lanzamos error si tiene citas
+        $user = $professional->user;
+
+        // Si el profesional tiene citas, no lo eliminamos físicamente para mantener integridad, 
+        // pero sí le quitamos el acceso al sistema eliminando su User.
         if ($professional->appointments()->count() > 0) {
-            $professional->update(['is_active' => false]);
-            return back()->with('success', 'El profesional ha sido desactivado porque tiene citas registradas.');
+            $professional->update(['is_active' => false, 'user_id' => null]);
+            
+            if ($user) {
+                $user->delete();
+            }
+
+            return back()->with('success', 'El profesional ha sido desactivado y su acceso revocado porque tiene citas registradas.');
         }
 
         if ($professional->photo_path) {
             Storage::disk('public')->delete($professional->photo_path);
         }
         
+        // Eliminar también el usuario asociado antes de borrar al profesional
+        if ($user) {
+            $user->delete();
+        }
+
         $professional->delete();
-        return redirect()->route('admin.professionals.index')->with('success', 'Profesional eliminado.');
+        return redirect()->route('admin.professionals.index')->with('success', 'Profesional y su cuenta de acceso eliminados correctamente.');
     }
 }

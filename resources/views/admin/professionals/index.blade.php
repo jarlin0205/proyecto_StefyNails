@@ -95,6 +95,13 @@
                                         <i class="fas fa-edit text-lg"></i>
                                         <span class="font-bold">Gestionar</span>
                                     </a>
+                                    <form action="{{ route('admin.professionals.destroy', $p->id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este profesional? Se revocará su acceso al sistema de inmediato.');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="bg-red-50 text-red-600 hover:bg-red-100 p-2.5 rounded-lg transition-all shadow-sm border border-red-100 flex items-center gap-2" title="Eliminar Profesional">
+                                            <i class="fas fa-trash-alt text-lg"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>
