@@ -190,25 +190,28 @@ setInterval(async () => {
     if (client) {
         let isHealthy = false;
         try {
-            // Promesa con timeout para evitar que el chequeo mismo se cuelgue
-            const healthCheck = Promise.all([
-                client.pupPage ? client.pupPage.evaluate(() => true) : Promise.resolve(true),
-                client.getState().catch(() => 'ERROR')
-            ]);
-            
-            const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 15000));
-            
-            const [browserOk, state] = await Promise.race([healthCheck, timeout]);
-            
-            // Si el estado es 'CONNECTED' o similar, y el navegador responde, estamos sanos
-            if (browserOk && state !== 'ERROR' && state !== 'TIMEOUT') {
-                lastHeartbeat = Date.now();
-                isHealthy = true;
+            // Verificamos si la página existe antes de evaluar (evita Errores de "browser disconnected")
+            if (client.pupPage && !client.pupPage.isClosed()) {
+                const healthCheck = client.pupPage.evaluate(() => true);
+                const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 15000));
+                
+                await Promise.race([healthCheck, timeout]);
+                
+                // Si llegamos aquí, el navegador responde
+                const state = await client.getState().catch(() => 'ERROR');
+                
+                if (state !== 'ERROR') {
+                    lastHeartbeat = Date.now();
+                    isHealthy = true;
+                } else {
+                    console.warn(`⚠️ Watchdog: Estado de sesión sospechoso (State: ${state})`);
+                }
             } else {
-                console.warn(`⚠️ Watchdog: Estado sospechoso detected (Browser: ${browserOk}, State: ${state})`);
+                 console.warn('⚠️ Watchdog: Página de Puppeteer no disponible o cerrada.');
             }
         } catch (err) {
-            console.error('⚠️ Watchdog: Fallo en chequeo de salud:', err.message);
+            console.error('⚠️ Watchdog Exception:', err.message);
+            // Si el error es de desconexión, no reiniciamos lastHeartbeat, permitiendo el timeout de 6 min
         }
     }
 
@@ -399,7 +402,7 @@ const server = http.createServer((req, res) => {
                 // Incrementar contador de errores para fallos en envíos
                 consecutiveErrors++;
                 if (consecutiveErrors >= ERROR_THRESHOLD) {
-                    await triggerEmergencyAlert(`FALLO_EN_ENVIO: ${err.message}`);
+                    await triggerEmergencyAlert(`FALLO_ENVIO: [${err.message.substring(0, 50)}] (Contador: ${consecutiveErrors})`);
                 }
 
                 res.writeHead(400, { 'Content-Type': 'application/json' });
