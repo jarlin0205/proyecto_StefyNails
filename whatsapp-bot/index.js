@@ -26,6 +26,34 @@ const STATES = {
  * UTILERÍAS
  */
 
+// Obtener timestamp formateado para logs
+function getTimestamp() {
+    return new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' });
+}
+
+// Envoltorio de fetch con timeout
+async function fetchWithTimeout(resource, options = {}) {
+    const { timeout = 15000 } = options;
+    
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    
+    try {
+        const response = await fetch(resource, {
+            ...options,
+            signal: controller.signal
+        });
+        clearTimeout(id);
+        return response;
+    } catch (error) {
+        clearTimeout(id);
+        if (error.name === 'AbortError') {
+            throw new Error(`Timeout de red superado (${timeout}ms)`);
+        }
+        throw error;
+    }
+}
+
 // Parsea fechas a ISO
 function parseDateTimeToISO(input) {
     const text = input.trim().toUpperCase();
@@ -55,13 +83,13 @@ async function callLaravelApi(endpoint, method = 'POST', data = null) {
     if (data) options.body = JSON.stringify(data);
 
     try {
-        const response = await fetch(url, options);
+        const response = await fetchWithTimeout(url, options);
 
         // Verificar si la respuesta es JSON antes de parsear
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
             const text = await response.text();
-            console.error(`❌ Error API [${endpoint}]: Respuesta no es JSON (Posible error de servidor PHP).`);
+            console.error(`[${getTimestamp()}] ❌ Error API [${endpoint}]: Respuesta no es JSON (Posible error de servidor PHP).`);
             console.error(`📄 Fragmento de respuesta: ${text.substring(0, 100)}...`);
             throw new Error(`El servidor respondió con un error inesperado (no JSON). Estado: ${response.status}`);
         }
@@ -73,7 +101,7 @@ async function callLaravelApi(endpoint, method = 'POST', data = null) {
         return result;
     } catch (error) {
         consecutiveErrors++;
-        console.error(`❌ Error API [${endpoint}] (${consecutiveErrors}/${ERROR_THRESHOLD}):`, error.message);
+        console.error(`[${getTimestamp()}] ❌ Error API [${endpoint}] (${consecutiveErrors}/${ERROR_THRESHOLD}):`, error.message);
 
         if (consecutiveErrors >= ERROR_THRESHOLD) {
             triggerEmergencyAlert(error.message);
@@ -87,23 +115,23 @@ async function callLaravelApi(endpoint, method = 'POST', data = null) {
  * ALERTAS DE EMERGENCIA
  */
 async function triggerEmergencyAlert(errorMsg) {
-    console.error('🚨 DISPARANDO ALERTA DE EMERGENCIA...');
+    console.error(`[${getTimestamp()}] 🚨 DISPARANDO ALERTA DE EMERGENCIA...`);
 
     // 1. Intentar enviar por WhatsApp al admin
     if (client && client.info) {
         try {
             const chatId = `${CONFIG.ADMIN_PHONE}@c.us`;
             await client.sendMessage(chatId, `🚨 *ALERTA CRÍTICA BOT*\nHe detectado ${consecutiveErrors} fallos consecutivos.\n\nÚltimo Error: ${errorMsg}\n\nPor favor revisa el servidor.`);
-            console.log('📡 Alerta enviada por WhatsApp al Administrador.');
+            console.log(`[${getTimestamp()}] 📡 Alerta enviada por WhatsApp al Administrador.`);
         } catch (waErr) {
-            console.error('❌ No se pudo enviar alerta por WhatsApp:', waErr.message);
+            console.error(`[${getTimestamp()}] ❌ No se pudo enviar alerta por WhatsApp:`, waErr.message);
         }
     }
 
     // 2. Reportar al endpoint de emergencia de Laravel (para email)
     // Usamos fetch directamente para evitar recursión con callLaravelApi si esta falla
     try {
-        await fetch(`${CONFIG.API_BASE_URL}/emergency-report`, {
+        await fetchWithTimeout(`${CONFIG.API_BASE_URL}/emergency-report`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -112,9 +140,9 @@ async function triggerEmergencyAlert(errorMsg) {
                 timestamp: new Date().toISOString()
             })
         });
-        console.log('📡 Alerta reportada al endpoint de emergencia de Laravel.');
+        console.log(`[${getTimestamp()}] 📡 Alerta reportada al endpoint de emergencia de Laravel.`);
     } catch (apiErr) {
-        console.error('❌ No se pudo reportar al endpoint de emergencia:', apiErr.message);
+        console.error(`[${getTimestamp()}] ❌ No se pudo reportar al endpoint de emergencia:`, apiErr.message);
     }
 }
 
@@ -137,31 +165,31 @@ const client = new Client({
  * Evita que el proceso muera por errores no capturados
  */
 process.on('uncaughtException', (err) => {
-    console.error('💥 Error Crítico No Capturado (Uncaught):', err.message);
+    console.error(`[${getTimestamp()}] 💥 Error Crítico No Capturado (Uncaught):`, err.message);
     console.error(err.stack);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('💥 Promesa No Manejada (Unhandled Rejection):', reason);
+    console.error(`[${getTimestamp()}] 💥 Promesa No Manejada (Unhandled Rejection):`, reason);
 });
 
 client.on('qr', (qr) => {
-    console.log('--- POR FAVOR ESCANEA EL QR ---');
+    console.log(`[${getTimestamp()}] --- POR FAVOR ESCANEA EL QR ---`);
     qrcode.generate(qr, { small: true });
 });
 
 client.on('ready', async () => {
-    console.log('✅ Bot de Stefy Nails conectado y listo.');
+    console.log(`[${getTimestamp()}] ✅ Bot de Stefy Nails conectado y listo.`);
 
     // Cargar configuración dinámica desde Laravel
     try {
         const config = await callLaravelApi('config', 'GET');
         if (config.success && config.admin_phone) {
             CONFIG.ADMIN_PHONE = config.admin_phone;
-            console.log(`⚙️ Configuración cargada. Admin Phone: ${CONFIG.ADMIN_PHONE}`);
+            console.log(`[${getTimestamp()}] ⚙️ Configuración cargada. Admin Phone: ${CONFIG.ADMIN_PHONE}`);
         }
     } catch (err) {
-        console.error('⚠️ No se pudo cargar la configuración dinámica, usando valores por defecto.');
+        console.error(`[${getTimestamp()}] ⚠️ No se pudo cargar la configuración dinámica, usando valores por defecto.`);
     }
 });
 
@@ -169,15 +197,15 @@ client.on('ready', async () => {
  * RECONEXIÓN AUTOMÁTICA
  */
 client.on('disconnected', async (reason) => {
-    console.log('⚠️ Cliente de WhatsApp DESCONECTADO:', reason);
-    console.log('🔄 Intentando reiniciar cliente en 5 segundos...');
+    console.log(`[${getTimestamp()}] ⚠️ Cliente de WhatsApp DESCONECTADO:`, reason);
+    console.log(`[${getTimestamp()}] 🔄 Intentando reiniciar cliente en 5 segundos...`);
 
     setTimeout(async () => {
         try {
             await client.initialize();
-            console.log('✅ Re-inicialización enviada.');
+            console.log(`[${getTimestamp()}] ✅ Re-inicialización enviada.`);
         } catch (err) {
-            console.error('❌ Error al re-inicializar:', err.message);
+            console.error(`[${getTimestamp()}] ❌ Error al re-inicializar:`, err.message);
         }
     }, 5000);
 });
@@ -207,17 +235,17 @@ setInterval(async () => {
                     console.warn(`⚠️ Watchdog: Estado de sesión sospechoso (State: ${state})`);
                 }
             } else {
-                 console.warn('⚠️ Watchdog: Página de Puppeteer no disponible o cerrada.');
+                 console.warn(`[${getTimestamp()}] ⚠️ Watchdog: Página de Puppeteer no disponible o cerrada.`);
             }
         } catch (err) {
-            console.error('⚠️ Watchdog Exception:', err.message);
+            console.error(`[${getTimestamp()}] ⚠️ Watchdog Exception:`, err.message);
             // Si el error es de desconexión, no reiniciamos lastHeartbeat, permitiendo el timeout de 6 min
         }
     }
 
     // Si pasan más de 6 minutos sin un chequeo exitoso, forzar reinicio
     if (Date.now() - lastHeartbeat > 360000) {
-        console.error('🚨 Watchdog: El bot está en estado "zombie" o bloqueado (6 min). Forzando reinicio...');
+        console.error(`[${getTimestamp()}] 🚨 Watchdog: El bot está en estado "zombie" o bloqueado (6 min). Forzando reinicio...`);
         await triggerEmergencyAlert('ESTADO_ZOMBIE_DETECTADO (Watchdog Timeout)');
         
         setTimeout(() => {
@@ -249,7 +277,7 @@ client.on('message_create', async (msg) => {
         // Evitar logs basura de status o grupos que se filtren
         if (sender === 'status') return;
 
-        console.log(`📩 Mensaje de ${sender}: "${msg.body}" -> "${body}"`);
+        console.log(`[${getTimestamp()}] 📩 Mensaje de ${sender}: "${msg.body}" -> "${body}"`);
 
         // Inicializar estado
         if (!userStates[sender]) userStates[sender] = { state: STATES.IDLE };
@@ -352,7 +380,7 @@ const server = http.createServer((req, res) => {
                 const cleanPhone = phone.replace(/\D/g, '');
                 const chatId = `${cleanPhone}@c.us`;
 
-                console.log(`📩 Solicitud recibida para ${cleanPhone}`);
+                console.log(`[${getTimestamp()}] 📩 Solicitud recibida para ${cleanPhone}`);
 
                 if (!client || !client.info) {
                     res.writeHead(503, { 'Content-Type': 'application/json' });
@@ -366,9 +394,9 @@ const server = http.createServer((req, res) => {
                         try {
                             const media = new MessageMedia('application/pdf', pdfBase64, filename || 'factura.pdf');
                             await client.sendMessage(chatId, media, { caption: message });
-                            console.log(`📡 Factura PDF (Base64) enviada a ${cleanPhone}`);
+                            console.log(`[${getTimestamp()}] 📡 Factura PDF (Base64) enviada a ${cleanPhone}`);
                         } catch (b64Error) {
-                            console.error('❌ Error enviando PDF Base64:', b64Error.message);
+                            console.error(`[${getTimestamp()}] ❌ Error enviando PDF Base64:`, b64Error.message);
                             if (message) await client.sendMessage(chatId, message);
                         }
                     } else if (pdfUrl) {
@@ -376,28 +404,28 @@ const server = http.createServer((req, res) => {
                             let fetchUrl = pdfUrl;
                             if (fetchUrl.includes('stefynails.online')) fetchUrl = fetchUrl.replace('https://stefynails.online', 'http://127.0.0.1');
 
-                            console.log(`📡 Descargando PDF desde: ${fetchUrl}`);
+                            console.log(`[${getTimestamp()}] 📡 Descargando PDF desde: ${fetchUrl}`);
                             const media = await MessageMedia.fromUrl(fetchUrl);
                             await client.sendMessage(chatId, media, { caption: message });
-                            console.log(`📡 Factura PDF (URL) enviada a ${cleanPhone}`);
+                            console.log(`[${getTimestamp()}] 📡 Factura PDF (URL) enviada a ${cleanPhone}`);
                         } catch (mediaError) {
-                            console.error('❌ Error cargando PDF desde URL:', mediaError.message);
+                            console.error(`[${getTimestamp()}] ❌ Error cargando PDF desde URL:`, mediaError.message);
                             if (message) await client.sendMessage(chatId, message);
                         }
                     } else {
                         await client.sendMessage(chatId, message);
-                        console.log(`📡 Mensaje de texto enviado a ${cleanPhone}`);
+                        console.log(`[${getTimestamp()}] 📡 Mensaje de texto enviado a ${cleanPhone}`);
                     }
 
                     res.writeHead(200, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ success: true }));
                 } else {
-                    console.log(`❌ Número no registrado en WhatsApp: ${cleanPhone}`);
+                    console.log(`[${getTimestamp()}] ❌ Número no registrado en WhatsApp: ${cleanPhone}`);
                     res.writeHead(404, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ error: 'Número no registrado' }));
                 }
             } catch (err) {
-                console.error('❌ Error procesando solicitud:', err.message);
+                console.error(`[${getTimestamp()}] ❌ Error procesando solicitud:`, err.message);
 
                 // Incrementar contador de errores para fallos en envíos
                 consecutiveErrors++;
@@ -416,7 +444,7 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(CONFIG.BOT_PORT, () => {
-    console.log(`🚀 Servidor HTTP del bot en puerto ${CONFIG.BOT_PORT}`);
+    console.log(`[${getTimestamp()}] 🚀 Servidor HTTP del bot en puerto ${CONFIG.BOT_PORT}`);
 });
 
 client.initialize();
@@ -426,22 +454,22 @@ client.initialize();
  * Asegura que Puppeteer se cierre correctamente al detener el proceso
  */
 async function gracefulShutdown(signal) {
-    console.log(`\n--- Recibida señal ${signal}. Cerrando bot de forma segura... ---`);
+    console.log(`\n--- [${getTimestamp()}] Recibida señal ${signal}. Cerrando bot de forma segura... ---`);
     try {
         if (client) {
             await client.destroy();
-            console.log('✅ Cliente de WhatsApp cerrado.');
+            console.log(`[${getTimestamp()}] ✅ Cliente de WhatsApp cerrado.`);
         }
         if (server) {
             server.close(() => {
-                console.log('✅ Servidor HTTP cerrado.');
+                console.log(`[${getTimestamp()}] ✅ Servidor HTTP cerrado.`);
                 process.exit(0);
             });
         } else {
             process.exit(0);
         }
     } catch (err) {
-        console.error('❌ Error durante el cierre:', err.message);
+        console.error(`[${getTimestamp()}] ❌ Error durante el cierre:`, err.message);
         process.exit(1);
     }
 }
